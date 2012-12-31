@@ -34,8 +34,7 @@
 #include <ctype.h>
 #include <string.h>
 
-
-#define NUM_CELL_COLS (MAP_WIDTH / (6 << RESOLUTION_FACTOR) + RES_CASE(0,3,7) - (optWhichFonts == OPT_PC ? 0 : RES_CASE(0,0,1))) // JMS_GFX 
+#define NUM_CELL_COLS (MAP_WIDTH / (6 << RESOLUTION_FACTOR) + RES_CASE(0,6,13) - (optWhichFonts == OPT_PC ? 0 : 7)) // JMS_GFX 
 #define NUM_CELL_ROWS (MAP_HEIGHT / (6 << RESOLUTION_FACTOR) + RES_CASE(0,2,2)) // JMS_GFX
 #define MAX_CELL_COLS 40
 
