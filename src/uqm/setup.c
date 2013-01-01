@@ -80,6 +80,7 @@ QUEUE disp_q;
 BOOLEAN hires2xPackPresent; // JMS_GFX
 BOOLEAN hires4xPackPresent; // JMS_GFX
 
+BOOLEAN balance_present;
 BOOLEAN balance_2x_present;
 BOOLEAN balance_4x_present;
 
@@ -147,6 +148,12 @@ LoadKernel (int argc, char *argv[])
 		loadAddon ("3dovideo");
 	}
 
+	if (loadAddon ("balance"))
+	{
+		log_add (log_Info, "loading addon balance");
+		balance_present = TRUE;
+	}
+
 	// JMS_GFX
 	if (resolutionFactor == 1 && loadAddon ("hires2x") && loadAddon ("balance-2x"))
 	{
@@ -165,10 +172,10 @@ LoadKernel (int argc, char *argv[])
 	// END JMS_GFX
 
 	// Never run Balance Mod without the effects package.
-	if (!(balance_4x_present || balance_2x_present || loadAddon("balance")))
+	if (!(balance_4x_present || balance_2x_present || balance_present))
 	{
-		log_add(log_Error, "The Balance Mod effects package is missing.");
-		return FALSE;
+			log_add(log_Error, "The Balance Mod effects package is missing.");
+			return FALSE;
 	}
 
 	/* Now load the rest of the addons, in order. */
