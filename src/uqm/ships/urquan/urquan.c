@@ -30,7 +30,11 @@
 #define ENERGY_REGENERATION 1
 #define ENERGY_WAIT 4
 #define MAX_THRUST 30
+#define MAX_THRUST_2XRES (MAX_THRUST << 1)
+#define MAX_THRUST_4XRES (MAX_THRUST << 2)
 #define THRUST_INCREMENT 6
+#define THRUST_INCREMENT_2XRES (THRUST_INCREMENT << 1)
+#define THRUST_INCREMENT_4XRES (THRUST_INCREMENT << 2)
 #define THRUST_WAIT 6
 #define TURN_WAIT 4
 #define SHIP_MASS 9
@@ -38,20 +42,22 @@
 // Fusion cannons
 #define WEAPON_ENERGY_COST 5
 #define WEAPON_WAIT 6
-#define CENTER_OFFSET 34
-#define SIDE_OFFSET 23
+#define CENTER_OFFSET (34 << RESOLUTION_FACTOR)
+#define SIDE_OFFSET (23 << RESOLUTION_FACTOR)
 #define MISSILE_SPEED 80
+#define MISSILE_SPEED_2XRES (MISSILE_SPEED << 1)
+#define MISSILE_SPEED_4XRES (MISSILE_SPEED << 2)
 #define MISSILE_LIFE 20
 #define MISSILE_HITS 10
 #define MISSILE_DAMAGE 6
-#define MISSILE_OFFSET 8
+#define MISSILE_OFFSET (8 << RESOLUTION_FACTOR)
 
 // Fighters
 #define SPECIAL_ENERGY_COST 8
 #define SPECIAL_WAIT 9
-#define URQUAN_OFFSET 32
-#define FIGHTER_OFFSET 4
-#define FIGHTER_SPEED 32
+#define URQUAN_OFFSET (32 << RESOLUTION_FACTOR)
+#define FIGHTER_OFFSET (4 << RESOLUTION_FACTOR)
+#define FIGHTER_SPEED (32 << RESOLUTION_FACTOR)
 #define FIGHTER_LIFE 680
 #define FIGHTER_LAUNCH_TIME 6
 #define FIGHTER_PURSUIT_TIME 275
@@ -59,18 +65,18 @@
 #define FIGHTER_HITS 1
 #define FIGHTER_MASS 0
 #define FIGHTER_WEAPON_WAIT 24
-#define FIGHTER_LASER_RANGE (48 + FIGHTER_OFFSET)
+#define FIGHTER_LASER_RANGE ((48 + FIGHTER_OFFSET) << RESOLUTION_FACTOR)
 
 // Auto-Turret
 #define AUXILIARY_ENERGY_COST 1
 #define AUXILIARY_WAIT 22
-#define TURRET_OFFSET 7
-#define TURRET_MISSILE_OFFSET 4
-#define TURRET_MISSILE_SPEED 80
+#define TURRET_OFFSET (7 << RESOLUTION_FACTOR)
+#define TURRET_MISSILE_OFFSET (4 << RESOLUTION_FACTOR)
+#define TURRET_MISSILE_SPEED (80 << RESOLUTION_FACTOR)
 #define TURRET_MISSILE_LIFE 10
 #define TURRET_MISSILE_HITS 1
 #define TURRET_MISSILE_DAMAGE 1
-#define TURRET_RANGE DISPLAY_TO_WORLD(160)
+#define TURRET_RANGE (DISPLAY_TO_WORLD(160) << RESOLUTION_FACTOR)
 #define MAX_TARGET_HITS 3
 
 static RACE_DESC urquan_desc =
@@ -144,6 +150,150 @@ static RACE_DESC urquan_desc =
 	0, /* CodeRef */
 };
 
+// JMS_GFX
+static RACE_DESC urquan_desc_2xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE | SEEKING_SPECIAL,
+		30, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		URQUAN_RACE_STRINGS,
+		URQUAN_ICON_MASK_PMAP_ANIM,
+		URQUAN_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		2666 / SPHERE_RADIUS_INCREMENT * 2, /* Initial SoI radius */
+		{ /* Known location (center of SoI) */
+			5750, 6000,
+		},
+	},
+	{
+		MAX_THRUST_2XRES,
+		THRUST_INCREMENT_2XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			URQUAN_BIG_MASK_PMAP_ANIM,
+			URQUAN_MED_MASK_PMAP_ANIM,
+			URQUAN_SML_MASK_PMAP_ANIM,
+		},
+		{
+			FUSION_BIG_MASK_PMAP_ANIM,
+			FUSION_MED_MASK_PMAP_ANIM,
+			FUSION_SML_MASK_PMAP_ANIM,
+		},
+		{
+			SPECIAL_BIG_MASK_PMAP_ANIM,
+			SPECIAL_MED_MASK_PMAP_ANIM,
+			SPECIAL_SML_MASK_PMAP_ANIM,
+		},
+		{
+			URQUAN_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		URQUAN_VICTORY_SONG,
+		URQUAN_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		MISSILE_SPEED_2XRES * MISSILE_LIFE,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+// JMS_GFX
+static RACE_DESC urquan_desc_4xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE | SEEKING_SPECIAL,
+		30, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		URQUAN_RACE_STRINGS,
+		URQUAN_ICON_MASK_PMAP_ANIM,
+		URQUAN_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		2666 / SPHERE_RADIUS_INCREMENT * 2, /* Initial SoI radius */
+		{ /* Known location (center of SoI) */
+			5750, 6000,
+		},
+	},
+	{
+		MAX_THRUST_4XRES,
+		THRUST_INCREMENT_4XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			URQUAN_BIG_MASK_PMAP_ANIM,
+			URQUAN_MED_MASK_PMAP_ANIM,
+			URQUAN_SML_MASK_PMAP_ANIM,
+		},
+		{
+			FUSION_BIG_MASK_PMAP_ANIM,
+			FUSION_MED_MASK_PMAP_ANIM,
+			FUSION_SML_MASK_PMAP_ANIM,
+		},
+		{
+			SPECIAL_BIG_MASK_PMAP_ANIM,
+			SPECIAL_MED_MASK_PMAP_ANIM,
+			SPECIAL_SML_MASK_PMAP_ANIM,
+		},
+		{
+			URQUAN_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		URQUAN_VICTORY_SONG,
+		URQUAN_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		MISSILE_SPEED_4XRES * MISSILE_LIFE,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
 // Prevent fusion bolts from killing fighters that are on a return trip to the Dreadnought.
 static void
 fusion_collision (ELEMENT *ElementPtr0, POINT *pPt0, ELEMENT *ElementPtr1, POINT *pPt1)
@@ -163,7 +313,7 @@ initialize_fusion (ELEMENT *ShipPtr, HELEMENT FusionArray[])
 	MissileBlock.face = MissileBlock.index = StarShipPtr->ShipFacing;
 	MissileBlock.sender = ShipPtr->playerNr;
 	MissileBlock.flags = IGNORE_SIMILAR;
-	MissileBlock.speed = MISSILE_SPEED;
+	MissileBlock.speed = (MISSILE_SPEED << RESOLUTION_FACTOR);
 	MissileBlock.hit_points = MISSILE_HITS;
 	MissileBlock.damage = MISSILE_DAMAGE;
 	MissileBlock.life = MISSILE_LIFE;
@@ -175,17 +325,17 @@ initialize_fusion (ELEMENT *ShipPtr, HELEMENT FusionArray[])
 	{
 		MissileBlock.pixoffs = SIDE_OFFSET;
 		MissileBlock.cx = ShipPtr->next.location.x
-			+ COSINE(FACING_TO_ANGLE (MissileBlock.face + 4), -48);
+			+ COSINE(FACING_TO_ANGLE (MissileBlock.face + 4), (-48 << RESOLUTION_FACTOR));
 		MissileBlock.cy = ShipPtr->next.location.y
-			+ SINE(FACING_TO_ANGLE (MissileBlock.face + 4), -48);
+			+ SINE(FACING_TO_ANGLE (MissileBlock.face + 4), (-48 << RESOLUTION_FACTOR));
 	}
 	else if (StarShipPtr->static_counter == 3)
 	{
 		MissileBlock.pixoffs = SIDE_OFFSET;
 		MissileBlock.cx = ShipPtr->next.location.x
-			+ COSINE(FACING_TO_ANGLE (MissileBlock.face + 4), 48);
+			+ COSINE(FACING_TO_ANGLE (MissileBlock.face + 4), (48 << RESOLUTION_FACTOR));
 		MissileBlock.cy = ShipPtr->next.location.y
-			+ SINE(FACING_TO_ANGLE (MissileBlock.face + 4), 48);
+			+ SINE(FACING_TO_ANGLE (MissileBlock.face + 4), (48 << RESOLUTION_FACTOR));
 	}
 	else
 	{
@@ -755,7 +905,7 @@ spawn_fighters (ELEMENT *ElementPtr)
 		FighterElementPtr->hit_points = FIGHTER_HITS;
 		FighterElementPtr->mass_points = FIGHTER_MASS;
 		FighterElementPtr->life_span = FIGHTER_LIFE;
-        FighterElementPtr->thrust_wait = FIGHTER_WEAPON_WAIT;
+		FighterElementPtr->thrust_wait = FIGHTER_WEAPON_WAIT;
 		FighterElementPtr->playerNr = ElementPtr->playerNr;
 		FighterElementPtr->state_flags = APPEARING | FINITE_LIFE
 				| CREW_OBJECT | IGNORE_SIMILAR;
@@ -1133,12 +1283,27 @@ init_urquan (void)
 {
 	RACE_DESC *RaceDescPtr;
 
-	urquan_desc.postprocess_func = urquan_postprocess;
-	urquan_desc.init_weapon_func = initialize_fusion;
-	urquan_desc.cyborg_control.intelligence_func = urquan_intelligence;
-
-	RaceDescPtr = &urquan_desc;
+	if (RESOLUTION_FACTOR == 0)
+	{
+		urquan_desc.postprocess_func = urquan_postprocess;
+		urquan_desc.init_weapon_func = initialize_fusion;
+		urquan_desc.cyborg_control.intelligence_func = urquan_intelligence;
+		RaceDescPtr = &urquan_desc;
+	}
+	else if (RESOLUTION_FACTOR == 1)
+	{
+		urquan_desc_2xres.postprocess_func = urquan_postprocess;
+		urquan_desc_2xres.init_weapon_func = initialize_fusion;
+		urquan_desc_2xres.cyborg_control.intelligence_func = urquan_intelligence;
+		RaceDescPtr = &urquan_desc_2xres;
+	}
+	else
+	{
+		urquan_desc_4xres.postprocess_func = urquan_postprocess;
+		urquan_desc_4xres.init_weapon_func = initialize_fusion;
+		urquan_desc_4xres.cyborg_control.intelligence_func = urquan_intelligence;
+		RaceDescPtr = &urquan_desc_4xres;
+	}
 
 	return (RaceDescPtr);
 }
-
