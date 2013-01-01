@@ -27,7 +27,11 @@
 #define ENERGY_REGENERATION 2
 #define ENERGY_WAIT 6
 #define MAX_THRUST 32
+#define MAX_THRUST_2XRES (MAX_THRUST << 1)
+#define MAX_THRUST_4XRES (MAX_THRUST << 2)
 #define THRUST_INCREMENT 8
+#define THRUST_INCREMENT_2XRES (THRUST_INCREMENT << 1)
+#define THRUST_INCREMENT_4XRES (THRUST_INCREMENT << 2)
 #define THRUST_WAIT 3
 #define TURN_WAIT 2
 #define SHIP_MASS 3
@@ -35,13 +39,15 @@
 // Pulse Cannons
 #define WEAPON_ENERGY_COST 1
 #define WEAPON_WAIT 0
-#define YEHAT_OFFSET 16
-#define LAUNCH_OFFS 32
+#define YEHAT_OFFSET 16 << RESOLUTION_FACTOR
+#define LAUNCH_OFFS 32 << RESOLUTION_FACTOR
 #define MISSILE_SPEED 80
+#define MISSILE_SPEED_2XRES (MISSILE_SPEED << 1)
+#define MISSILE_SPEED_4XRES (MISSILE_SPEED << 2)
 #define MISSILE_LIFE 10
 #define MISSILE_HITS 1
 #define MISSILE_DAMAGE 1
-#define MISSILE_OFFSET 1
+#define MISSILE_OFFSET 1 << RESOLUTION_FACTOR
 
 // Shield
 #define SPECIAL_ENERGY_COST 3
@@ -111,6 +117,150 @@ static RACE_DESC yehat_desc =
 	{
 		0,
 		MISSILE_SPEED * MISSILE_LIFE / 3,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+// JMS_GFX
+static RACE_DESC yehat_desc_2xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE | SHIELD_DEFENSE,
+		23, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		YEHAT_RACE_STRINGS,
+		YEHAT_ICON_MASK_PMAP_ANIM,
+		YEHAT_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		750 / SPHERE_RADIUS_INCREMENT * 2, /* Initial SoI radius */
+		{ /* Known location (center of SoI) */
+			4970, 40,
+		},
+	},
+	{
+		MAX_THRUST_2XRES,
+		THRUST_INCREMENT_2XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			YEHAT_BIG_MASK_PMAP_ANIM,
+			YEHAT_MED_MASK_PMAP_ANIM,
+			YEHAT_SML_MASK_PMAP_ANIM,
+		},
+		{
+			YEHAT_CANNON_BIG_MASK_PMAP_ANIM,
+			YEHAT_CANNON_MED_MASK_PMAP_ANIM,
+			YEHAT_CANNON_SML_MASK_PMAP_ANIM,
+		},
+		{
+			SHIELD_BIG_MASK_ANIM,
+			SHIELD_MED_MASK_ANIM,
+			SHIELD_SML_MASK_ANIM,
+		},
+		{
+			YEHAT_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		YEHAT_VICTORY_SONG,
+		YEHAT_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		MISSILE_SPEED_2XRES * MISSILE_LIFE / 3,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+// JMS_GFX
+static RACE_DESC yehat_desc_4xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE | SHIELD_DEFENSE,
+		23, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		YEHAT_RACE_STRINGS,
+		YEHAT_ICON_MASK_PMAP_ANIM,
+		YEHAT_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		750 / SPHERE_RADIUS_INCREMENT * 2, /* Initial SoI radius */
+		{ /* Known location (center of SoI) */
+			4970, 40,
+		},
+	},
+	{
+		MAX_THRUST_4XRES,
+		THRUST_INCREMENT_4XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			YEHAT_BIG_MASK_PMAP_ANIM,
+			YEHAT_MED_MASK_PMAP_ANIM,
+			YEHAT_SML_MASK_PMAP_ANIM,
+		},
+		{
+			YEHAT_CANNON_BIG_MASK_PMAP_ANIM,
+			YEHAT_CANNON_MED_MASK_PMAP_ANIM,
+			YEHAT_CANNON_SML_MASK_PMAP_ANIM,
+		},
+		{
+			SHIELD_BIG_MASK_ANIM,
+			SHIELD_MED_MASK_ANIM,
+			SHIELD_SML_MASK_ANIM,
+		},
+		{
+			YEHAT_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		YEHAT_VICTORY_SONG,
+		YEHAT_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		MISSILE_SPEED_4XRES * MISSILE_LIFE / 3,
 		NULL,
 	},
 	(UNINIT_FUNC *) NULL,
@@ -382,12 +532,30 @@ init_yehat (void)
 {
 	RACE_DESC *RaceDescPtr;
 
-	yehat_desc.preprocess_func = yehat_preprocess;
-	yehat_desc.postprocess_func = yehat_postprocess;
-	yehat_desc.init_weapon_func = initialize_standard_missiles;
-	yehat_desc.cyborg_control.intelligence_func = yehat_intelligence;
-
-	RaceDescPtr = &yehat_desc;
+	if (RESOLUTION_FACTOR == 0)
+	{
+		yehat_desc.preprocess_func = yehat_preprocess;
+		yehat_desc.postprocess_func = yehat_postprocess;
+		yehat_desc.init_weapon_func = initialize_standard_missiles;
+		yehat_desc.cyborg_control.intelligence_func = yehat_intelligence;
+		RaceDescPtr = &yehat_desc;
+	}
+	else if (RESOLUTION_FACTOR == 1)
+	{
+		yehat_desc_2xres.preprocess_func = yehat_preprocess;
+		yehat_desc_2xres.postprocess_func = yehat_postprocess;
+		yehat_desc_2xres.init_weapon_func = initialize_standard_missiles;
+		yehat_desc_2xres.cyborg_control.intelligence_func = yehat_intelligence;
+		RaceDescPtr = &yehat_desc_2xres;
+	}
+	else
+	{
+		yehat_desc_4xres.preprocess_func = yehat_preprocess;
+		yehat_desc_4xres.postprocess_func = yehat_postprocess;
+		yehat_desc_4xres.init_weapon_func = initialize_standard_missiles;
+		yehat_desc_4xres.cyborg_control.intelligence_func = yehat_intelligence;
+		RaceDescPtr = &yehat_desc_4xres;
+	}
 
 	return (RaceDescPtr);
 }
