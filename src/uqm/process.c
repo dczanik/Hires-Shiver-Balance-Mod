@@ -16,6 +16,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+// JMS_GFX 2012: Merged the resolution Factor stuff from P6014.
+
 #include "process.h"
 
 #include "races.h"
@@ -39,7 +41,7 @@
 
 COUNT DisplayFreeList;
 PRIMITIVE DisplayArray[MAX_DISPLAY_PRIMS];
-extern POINT SpaceOrg;
+extern DPOINT SpaceOrg; // JMS: Changed to DPOINT from POINT
 
 SIZE zoom_out = 1 << ZOOM_SHIFT;
 static SIZE opt_max_zoom_out;
@@ -203,103 +205,108 @@ PostProcess (ELEMENT *ElementPtr)
 			| POST_PROCESS;
 }
 
+// JMS: Changed a shitload of POINTs to DPOINTs and SIZEs to SDWORDs to
+// avoid overflows in hi-res.
 static COUNT
-CalcReduction (SIZE dx, SIZE dy)
+CalcReduction (SDWORD dx, SDWORD dy)
 {
 	COUNT next_reduction;
-
+	
 #ifdef KDEBUG
 	log_add (log_Debug, "CalcReduction:");
 #endif
-
+	
 	if (optMeleeScale == TFB_SCALE_STEP)
 	{
-		SIZE sdx, sdy;
-
+		SDWORD sdx, sdy;
+		
 		if (LOBYTE (GLOBAL (CurrentActivity)) > IN_ENCOUNTER)
 			return (0);
-
+		
 		sdx = dx;
 		sdy = dy;
 		for (next_reduction = MAX_VIS_REDUCTION;
-				(dx <<= REDUCTION_SHIFT) <= TRANSITION_WIDTH
-				&& (dy <<= REDUCTION_SHIFT) <= TRANSITION_HEIGHT
-				&& next_reduction > 0;
-				next_reduction -= REDUCTION_SHIFT)
+			 (dx <<= REDUCTION_SHIFT) <= TRANSITION_WIDTH
+			 && (dy <<= REDUCTION_SHIFT) <= TRANSITION_HEIGHT
+			 && next_reduction > 0;
+			 next_reduction -= REDUCTION_SHIFT)
 			;
-
-				/* check for "real" zoom in */
+		
+		/* check for "real" zoom in */
 		if (next_reduction < zoom_out
-				&& zoom_out <= MAX_VIS_REDUCTION)
+			&& zoom_out <= MAX_VIS_REDUCTION)
 		{
-#define HYSTERESIS_X DISPLAY_TO_WORLD(24)
-#define HYSTERESIS_Y DISPLAY_TO_WORLD(20)
-		if (((sdx + HYSTERESIS_X)
-				<< (MAX_VIS_REDUCTION - next_reduction)) > TRANSITION_WIDTH
+#define HYSTERESIS_X DISPLAY_TO_WORLD(24 << RESOLUTION_FACTOR) // JMS_GFX
+#define HYSTERESIS_Y DISPLAY_TO_WORLD(20 << RESOLUTION_FACTOR) // JMS_GFX
+			if (((sdx + HYSTERESIS_X)
+				 << (MAX_VIS_REDUCTION - next_reduction)) > TRANSITION_WIDTH
 				|| ((sdy + HYSTERESIS_Y)
-				<< (MAX_VIS_REDUCTION - next_reduction)) > TRANSITION_HEIGHT)
-		   /* if we don't zoom in, we want to stay at next+1 */
-		   next_reduction += REDUCTION_SHIFT;
+					<< (MAX_VIS_REDUCTION - next_reduction)) > TRANSITION_HEIGHT)
+			/* if we don't zoom in, we want to stay at next+1 */
+				next_reduction += REDUCTION_SHIFT;
 		}
-
-		if (next_reduction == 0
-				&& LOBYTE (GLOBAL (CurrentActivity)) == IN_LAST_BATTLE)
+		
+		if (next_reduction == 0 && LOBYTE (GLOBAL (CurrentActivity)) == IN_LAST_BATTLE)
 			next_reduction += REDUCTION_SHIFT;
 	}
 	else
 	{
 		if (LOBYTE (GLOBAL (CurrentActivity)) > IN_ENCOUNTER)
 			return (1 << ZOOM_SHIFT);
-			
+		
 		dx = (dx * MAX_ZOOM_OUT) / (LOG_SPACE_WIDTH >> 2);
 		if (dx < (1 << ZOOM_SHIFT))
 			dx = 1 << ZOOM_SHIFT;
 		else if (dx > MAX_ZOOM_OUT)
 			dx = MAX_ZOOM_OUT;
-			
+		
 		dy = (dy * MAX_ZOOM_OUT) / (LOG_SPACE_HEIGHT >> 2);
 		if (dy < (1 << ZOOM_SHIFT))
 			dy = 1 << ZOOM_SHIFT;
 		else if (dy > MAX_ZOOM_OUT)
 			dy = MAX_ZOOM_OUT;
-			
+		
 		if (dy > dx)
 			next_reduction = dy;
 		else
 			next_reduction = dx;
-
+		
 		if (next_reduction < (2 << ZOOM_SHIFT)
-				&& LOBYTE (GLOBAL (CurrentActivity)) == IN_LAST_BATTLE)
+			&& LOBYTE (GLOBAL (CurrentActivity)) == IN_LAST_BATTLE)
 			next_reduction = (2 << ZOOM_SHIFT);
 	}
-
+	
 #ifdef KDEBUG
 	log_add (log_Debug, "CalcReduction: exit");
 #endif
-
+	
 	return (next_reduction);
 }
 
+// JMS: Changed a shitload of POINTs to DPOINTs and SIZEs to SDWORDs to
+// avoid overflows in hi-res.
 static VIEW_STATE
-CalcView (POINT *pNewScrollPt, SIZE next_reduction,
-		SIZE *pdx, SIZE *pdy, COUNT ships_alive)
+CalcView (DPOINT *pNewScrollPt, SIZE next_reduction,
+		  SDWORD *pdx, SDWORD *pdy, COUNT ships_alive)
 {
-	SIZE dx, dy;
+	SDWORD dx, dy;
 	VIEW_STATE view_state;
-
+	
 #ifdef KDEBUG
 	log_add (log_Debug, "CalcView:");
 #endif
-	dx = ((COORD)(LOG_SPACE_WIDTH >> 1) - pNewScrollPt->x);
-	dy = ((COORD)(LOG_SPACE_HEIGHT >> 1) - pNewScrollPt->y);
+	dx = ((SDWORD)(LOG_SPACE_WIDTH >> 1) - pNewScrollPt->x);
+	dy = ((SDWORD)(LOG_SPACE_HEIGHT >> 1) - pNewScrollPt->y);
 	dx = WRAP_DELTA_X (dx);
 	dy = WRAP_DELTA_Y (dy);
 	if (ships_alive == 1)
 	{
-#define ORG_JUMP_X ((SIZE)DISPLAY_ALIGN(LOG_SPACE_WIDTH / 75))
-#define ORG_JUMP_Y ((SIZE)DISPLAY_ALIGN(LOG_SPACE_HEIGHT / 75))
+#define ORG_JUMP_X ((SDWORD)DISPLAY_ALIGN(LOG_SPACE_WIDTH / 75))
+#define ORG_JUMP_Y ((SDWORD)DISPLAY_ALIGN(LOG_SPACE_HEIGHT / 75))
 		if (dx > ORG_JUMP_X)
+		{
 			dx = ORG_JUMP_X;
+		}
 		else if (dx < -ORG_JUMP_X)
 			dx = -ORG_JUMP_X;
 		if (dy > ORG_JUMP_Y)
@@ -307,51 +314,45 @@ CalcView (POINT *pNewScrollPt, SIZE next_reduction,
 		else if (dy < -ORG_JUMP_Y)
 			dy = -ORG_JUMP_Y;
 	}
-
+	
 	if ((dx || dy) && LOBYTE (GLOBAL (CurrentActivity)) == IN_HYPERSPACE)
 		MoveSIS (&dx, &dy);
-
+	
 	if (zoom_out == next_reduction)
 		view_state = dx == 0 && dy == 0
-				&& LOBYTE (GLOBAL (CurrentActivity)) != IN_HYPERSPACE
-				? VIEW_STABLE : VIEW_SCROLL;
+		&& LOBYTE (GLOBAL (CurrentActivity)) != IN_HYPERSPACE
+		? VIEW_STABLE : VIEW_SCROLL;
 	else
 	{
 		if (optMeleeScale == TFB_SCALE_STEP)
 		{
-			SpaceOrg.x = (COORD)(LOG_SPACE_WIDTH >> 1)
-					- (LOG_SPACE_WIDTH >> ((MAX_REDUCTION + 1)
-					- next_reduction));
-			SpaceOrg.y = (COORD)(LOG_SPACE_HEIGHT >> 1)
-					- (LOG_SPACE_HEIGHT >> ((MAX_REDUCTION + 1)
-					- next_reduction));
+			SpaceOrg.x = (SDWORD)(LOG_SPACE_WIDTH >> 1) - (LOG_SPACE_WIDTH >> ((MAX_REDUCTION + 1) - next_reduction));
+			SpaceOrg.y = (SDWORD)(LOG_SPACE_HEIGHT >> 1) - (LOG_SPACE_HEIGHT >> ((MAX_REDUCTION + 1) - next_reduction));
 		}
 		else
 		{
 #define ZOOM_JUMP ((1 << ZOOM_SHIFT) >> 3)
 			if (ships_alive == 1
-					&& zoom_out > next_reduction
-					&& zoom_out <= MAX_ZOOM_OUT
-					&& zoom_out - next_reduction > ZOOM_JUMP)
+				&& zoom_out > next_reduction
+				&& zoom_out <= MAX_ZOOM_OUT
+				&& zoom_out - next_reduction > ZOOM_JUMP)
 				next_reduction = zoom_out - ZOOM_JUMP;
-				
+			
 			// Always align the origin on a whole pixel to reduce the
 			// amount of object positioning jitter
-			SpaceOrg.x = DISPLAY_ALIGN((int)(LOG_SPACE_WIDTH >> 1) -
-					(LOG_SPACE_WIDTH * next_reduction / (MAX_ZOOM_OUT << 2)));
-			SpaceOrg.y = DISPLAY_ALIGN((int)(LOG_SPACE_HEIGHT >> 1) -
-					(LOG_SPACE_HEIGHT * next_reduction / (MAX_ZOOM_OUT << 2)));
+			SpaceOrg.x = DISPLAY_ALIGN((int)(LOG_SPACE_WIDTH >> 1) - (LOG_SPACE_WIDTH * next_reduction / (MAX_ZOOM_OUT << 2)));
+			SpaceOrg.y = DISPLAY_ALIGN((int)(LOG_SPACE_HEIGHT >> 1) - (LOG_SPACE_HEIGHT * next_reduction / (MAX_ZOOM_OUT << 2)));
 		}
 		zoom_out = next_reduction;
 		view_state = VIEW_CHANGE;
 	}
-
+	
 	if (LOBYTE (GLOBAL (CurrentActivity)) <= IN_HYPERSPACE)
 		MoveGalaxy (view_state, dx, dy);
-
+	
 	*pdx = dx;
 	*pdy = dy;
-
+	
 #ifdef KDEBUG
 	log_add (log_Debug, "CalcView: exit");
 #endif
@@ -627,69 +628,70 @@ ProcessCollisions (HELEMENT hSuccElement, ELEMENT *ElementPtr,
 	return (ElementPtr->state_flags & COLLISION);
 }
 
+// JMS: Changed a shitload of POINTs to DPOINTs and SIZEs to SDWORDs to
+// avoid overflows in hi-res.
 static VIEW_STATE
-PreProcessQueue (SIZE *pscroll_x, SIZE *pscroll_y)
+PreProcessQueue (SDWORD *pscroll_x, SDWORD *pscroll_y)
 {
 	SIZE min_reduction, max_reduction;
 	COUNT sides_active;
-	POINT Origin;
+	DPOINT Origin;
 	HELEMENT hElement;
 	COUNT ships_alive;
-
+	
 #ifdef KDEBUG
 	log_add (log_Debug, "PreProcess:");
 #endif
 	sides_active = (battle_counter[0] ? 1 : 0)
-			+ (battle_counter[1] ? 1 : 0);
-
+	+ (battle_counter[1] ? 1 : 0);
+	
 	if (optMeleeScale == TFB_SCALE_STEP)
 		min_reduction = max_reduction = MAX_VIS_REDUCTION + 1;
 	else
 		min_reduction = max_reduction = MAX_ZOOM_OUT + (1 << ZOOM_SHIFT);
-
-	Origin.x = (COORD)(LOG_SPACE_WIDTH >> 1);
-	Origin.y = (COORD)(LOG_SPACE_HEIGHT >> 1);
-
+	
+	Origin.x = (SDWORD)(LOG_SPACE_WIDTH >> 1);
+	Origin.y = (SDWORD)(LOG_SPACE_HEIGHT >> 1);
+	
 	hElement = GetHeadElement ();
 	ships_alive = 0;
 	while (hElement != 0)
 	{
 		ELEMENT *ElementPtr;
 		HELEMENT hNextElement;
-
+		
 		LockElement (hElement, &ElementPtr);
-
+		
 		if (!(ElementPtr->state_flags & PRE_PROCESS))
 			PreProcess (ElementPtr);
 		hNextElement = GetSuccElement (ElementPtr);
-
-		if (CollidingElement (ElementPtr)
-				&& !(ElementPtr->state_flags & COLLISION))
-			ProcessCollisions (hNextElement, ElementPtr,
-					MAX_TIME_VALUE, PRE_PROCESS);
-
+		
+		if (CollidingElement (ElementPtr) && !(ElementPtr->state_flags & COLLISION))
+			ProcessCollisions (hNextElement, ElementPtr, MAX_TIME_VALUE, PRE_PROCESS);
+		
 		if (ElementPtr->state_flags & PLAYER_SHIP)
 		{
-			SIZE dx, dy;
-
+			SDWORD dx, dy;
+			
 			ships_alive++;
+			
 			if (max_reduction > opt_max_zoom_out
-					&& min_reduction > opt_max_zoom_out)
+				&& min_reduction > opt_max_zoom_out)
 			{
 				Origin.x = DISPLAY_ALIGN (ElementPtr->next.location.x);
 				Origin.y = DISPLAY_ALIGN (ElementPtr->next.location.y);
 			}
-
+			
 			dx = DISPLAY_ALIGN (ElementPtr->next.location.x) - Origin.x;
 			dx = WRAP_DELTA_X (dx);
 			dy = DISPLAY_ALIGN (ElementPtr->next.location.y) - Origin.y;
 			dy = WRAP_DELTA_Y (dy);
-
+			
 			if (sides_active <= 2 || ElementPtr->playerNr == 0)
 			{
 				Origin.x = DISPLAY_ALIGN (Origin.x + (dx >> 1));
 				Origin.y = DISPLAY_ALIGN (Origin.y + (dy >> 1));
-
+				
 				if (dx < 0)
 					dx = -dx;
 				if (dy < 0)
@@ -697,11 +699,11 @@ PreProcessQueue (SIZE *pscroll_x, SIZE *pscroll_y)
 				max_reduction = CalcReduction (dx, dy);
 			}
 			else if (max_reduction > opt_max_zoom_out
-					&& min_reduction <= opt_max_zoom_out)
+					 && min_reduction <= opt_max_zoom_out)
 			{
 				Origin.x = DISPLAY_ALIGN (Origin.x + (dx >> 1));
 				Origin.y = DISPLAY_ALIGN (Origin.y + (dy >> 1));
-
+				
 				if (dx < 0)
 					dx = -dx;
 				if (dy < 0)
@@ -711,35 +713,33 @@ PreProcessQueue (SIZE *pscroll_x, SIZE *pscroll_y)
 			else
 			{
 				SIZE reduction;
-
+				
 				if (dx < 0)
 					dx = -dx;
 				if (dy < 0)
 					dy = -dy;
 				reduction = CalcReduction (dx << 1, dy << 1);
-
+				
 				if (min_reduction > opt_max_zoom_out
-						|| reduction < min_reduction)
+					|| reduction < min_reduction)
 					min_reduction = reduction;
 			}
-//			log_add (log_Debug, "dx = %d dy = %d min_red = %d max_red = %d",
-//					dx, dy, min_reduction, max_reduction);
 		}
-
+		
 		UnlockElement (hElement);
 		hElement = hNextElement;
 	}
-
+	
 	if ((min_reduction > opt_max_zoom_out || min_reduction <= max_reduction)
-			&& (min_reduction = max_reduction) > opt_max_zoom_out
-			&& (min_reduction = zoom_out) > opt_max_zoom_out)
+		&& (min_reduction = max_reduction) > opt_max_zoom_out
+		&& (min_reduction = zoom_out) > opt_max_zoom_out)
 	{
 		if (optMeleeScale == TFB_SCALE_STEP)
 			min_reduction = 0;
 		else
 			min_reduction = 1 << ZOOM_SHIFT;
 	}
-
+	
 #ifdef KDEBUG
 	log_add (log_Debug, "PreProcess: exit");
 #endif
@@ -783,8 +783,10 @@ InsertPrim (PRIM_LINKS *pLinks, COUNT primIndex, COUNT iPI)
 
 PRIM_LINKS DisplayLinks;
 
-static inline COORD
-CalcDisplayCoord (COORD c, COORD orgc, SIZE reduction)
+// JMS: Changed a shitload of POINTs to DPOINTs and SIZEs to SDWORDs to
+// avoid overflows in hi-res.
+static inline SDWORD
+CalcDisplayCoord (SDWORD c, SDWORD orgc, SIZE reduction)
 {
 	if (optMeleeScale == TFB_SCALE_STEP)
 	{	/* old fixed-step zoom style */
@@ -796,14 +798,15 @@ CalcDisplayCoord (COORD c, COORD orgc, SIZE reduction)
 	}
 }
 
+// JMS: Changed a shitload of POINTs to DPOINTs and SIZEs to SDWORDs to
+// avoid overflows in hi-res.
 static void
-PostProcessQueue (VIEW_STATE view_state, SIZE scroll_x,
-		SIZE scroll_y)
+PostProcessQueue (VIEW_STATE view_state, SDWORD scroll_x, SDWORD scroll_y)
 {
-	POINT delta;
+	DPOINT delta;
 	SIZE reduction;
 	HELEMENT hElement;
-
+	
 #ifdef KDEBUG
 	log_add (log_Debug, "PostProcess:");
 #endif
@@ -811,16 +814,16 @@ PostProcessQueue (VIEW_STATE view_state, SIZE scroll_x,
 		reduction = zoom_out + ONE_SHIFT;
 	else
 		reduction = zoom_out << ONE_SHIFT;
-
+	
 	hElement = GetHeadElement ();
 	while (hElement != 0)
 	{
 		ELEMENT_FLAGS state_flags;
 		ELEMENT *ElementPtr;
 		HELEMENT hNextElement;
-
+		
 		LockElement (hElement, &ElementPtr);
-
+		
 		state_flags = ElementPtr->state_flags;
 		if (state_flags & PRE_PROCESS)
 		{
@@ -828,7 +831,7 @@ PostProcessQueue (VIEW_STATE view_state, SIZE scroll_x,
 				ElementPtr->state_flags &= ~DEFY_PHYSICS;
 			else
 				ElementPtr->state_flags &= ~COLLISION;
-
+			
 			if (state_flags & POST_PROCESS)
 			{
 				delta.x = 0;
@@ -843,34 +846,34 @@ PostProcessQueue (VIEW_STATE view_state, SIZE scroll_x,
 		else
 		{
 			HELEMENT hPostElement;
-
+			
 			hPostElement = hElement;
 			do
 			{
 				ELEMENT *PostElementPtr;
-
+				
 				LockElement (hPostElement, &PostElementPtr);
 				if (!(PostElementPtr->state_flags & PRE_PROCESS))
 					PreProcess (PostElementPtr);
 				hNextElement = GetSuccElement (PostElementPtr);
-
+				
 				if (CollidingElement (PostElementPtr)
-						&& !(PostElementPtr->state_flags & COLLISION))
+					&& !(PostElementPtr->state_flags & COLLISION))
 					ProcessCollisions (GetHeadElement (), PostElementPtr,
-							MAX_TIME_VALUE, PRE_PROCESS | POST_PROCESS);
+									   MAX_TIME_VALUE, PRE_PROCESS | POST_PROCESS);
 				UnlockElement (hPostElement);
 				hPostElement = hNextElement;
 			} while (hPostElement != 0);
-
+			
 			scroll_x = 0;
 			scroll_y = 0;
 			delta.x = 0;
 			delta.y = 0;
-					/* because these are newly added elements that are
-					 * already in adjusted coordinates */
+			/* because these are newly added elements that are
+			 * already in adjusted coordinates */
 			state_flags = ElementPtr->state_flags;
 		}
-
+		
 		if (state_flags & DISAPPEARING)
 		{
 			hNextElement = GetSuccElement (ElementPtr);
@@ -881,73 +884,66 @@ PostProcessQueue (VIEW_STATE view_state, SIZE scroll_x,
 		else
 		{
 			GRAPHICS_PRIM ObjType;
-
+			
 			ObjType = GetPrimType (&DisplayArray[ElementPtr->PrimIndex]);
 			if (view_state != VIEW_STABLE
-					|| (state_flags & (APPEARING | CHANGING)))
+				|| (state_flags & (APPEARING | CHANGING)))
 			{
 				POINT next;
-
+				
 				if (ObjType == LINE_PRIM)
 				{
-					SIZE dx, dy;
-
-					dx = ElementPtr->next.location.x
-							- ElementPtr->current.location.x;
-					dy = ElementPtr->next.location.y
-							- ElementPtr->current.location.y;
-
+					SDWORD dx, dy;
+					
+					dx = ElementPtr->next.location.x - ElementPtr->current.location.x;
+					dy = ElementPtr->next.location.y - ElementPtr->current.location.y;
+					
 					next.x = WRAP_X (ElementPtr->current.location.x + delta.x);
 					next.y = WRAP_Y (ElementPtr->current.location.y + delta.y);
-					DisplayArray[ElementPtr->PrimIndex].Object.Line.first.x =
-							CalcDisplayCoord (next.x, SpaceOrg.x, reduction);
-					DisplayArray[ElementPtr->PrimIndex].Object.Line.first.y =
-							CalcDisplayCoord (next.y, SpaceOrg.y, reduction);
-
+					DisplayArray[ElementPtr->PrimIndex].Object.Line.first.x = CalcDisplayCoord (next.x, SpaceOrg.x, reduction);
+					DisplayArray[ElementPtr->PrimIndex].Object.Line.first.y = CalcDisplayCoord (next.y, SpaceOrg.y, reduction);
+					
 					next.x += dx;
 					next.y += dy;
-					DisplayArray[ElementPtr->PrimIndex].Object.Line.second.x =
-							CalcDisplayCoord (next.x, SpaceOrg.x, reduction);
-					DisplayArray[ElementPtr->PrimIndex].Object.Line.second.y =
-							CalcDisplayCoord (next.y, SpaceOrg.y, reduction);
+					DisplayArray[ElementPtr->PrimIndex].Object.Line.second.x = CalcDisplayCoord (next.x, SpaceOrg.x, reduction);
+					DisplayArray[ElementPtr->PrimIndex].Object.Line.second.y = CalcDisplayCoord (next.y, SpaceOrg.y, reduction);
 				}
 				else
 				{
 					next.x = WRAP_X (ElementPtr->next.location.x + delta.x);
 					next.y = WRAP_Y (ElementPtr->next.location.y + delta.y);
-					DisplayArray[ElementPtr->PrimIndex].Object.Point.x =
-							CalcDisplayCoord (next.x, SpaceOrg.x, reduction);
-					DisplayArray[ElementPtr->PrimIndex].Object.Point.y =
-							CalcDisplayCoord (next.y, SpaceOrg.y, reduction);
-
+					
+					DisplayArray[ElementPtr->PrimIndex].Object.Point.x = CalcDisplayCoord (next.x, SpaceOrg.x, reduction);
+					DisplayArray[ElementPtr->PrimIndex].Object.Point.y = CalcDisplayCoord (next.y, SpaceOrg.y, reduction);
+					
 					if (ObjType == STAMP_PRIM || ObjType == STAMPFILL_PRIM)
 					{
 						if (view_state == VIEW_CHANGE
-								|| (state_flags & (APPEARING | CHANGING)))
+							|| (state_flags & (APPEARING | CHANGING)))
 						{
 							COUNT index, scale = GSCALE_IDENTITY;
-						
+							
 							if (optMeleeScale == TFB_SCALE_STEP)
 								index = zoom_out;
 							else
 								CALC_ZOOM_STUFF (&index, &scale);
-
+							
 							ElementPtr->next.image.frame = SetEquFrameIndex (
-									ElementPtr->next.image.farray[index],
-									ElementPtr->next.image.frame);
-
+								ElementPtr->next.image.farray[index],
+								ElementPtr->next.image.frame);
+							
 							if (optMeleeScale == TFB_SCALE_TRILINEAR &&
-									index < 2 && scale != GSCALE_IDENTITY)
+								index < 2 && scale != GSCALE_IDENTITY)
 							{
 								// enqueues drawcommand to assign next
 								// (smaller) zoom level image as mipmap,
 								// needed for trilinear scaling
-
+								
 								FRAME frame = ElementPtr->next.image.frame;
 								FRAME mmframe = SetEquFrameIndex (
-										ElementPtr->next.image.farray[
-										index + 1], frame);
-
+									ElementPtr->next.image.farray[
+									index + 1], frame);
+								
 								// TODO: This is currently hacky, this code
 								//   really should not dereference FRAME.
 								//   Perhaps make mipmap part of STAMP prim?
@@ -955,27 +951,27 @@ PostProcessQueue (VIEW_STATE view_state, SIZE scroll_x,
 								{
 									HOT_SPOT mmhs = GetFrameHot (mmframe);
 									TFB_DrawScreen_SetMipmap (frame->image,
-											mmframe->image, mmhs.x, mmhs.y);
+										mmframe->image, mmhs.x, mmhs.y);
 								}
 							}
 						}
 						DisplayArray[ElementPtr->PrimIndex].Object.Stamp.frame =
-								ElementPtr->next.image.frame;
+						ElementPtr->next.image.frame;
 					}
 				}
-
+				
 				ElementPtr->next.location = next;
 			}
-
+			
 			PostProcess (ElementPtr);
-
+			
 			if (ObjType < NUM_PRIMS)
 				InsertPrim (&DisplayLinks, ElementPtr->PrimIndex, END_OF_LIST);
-
+			
 			hNextElement = GetSuccElement (ElementPtr);
 			UnlockElement (hElement);
 		}
-
+		
 		hElement = hNextElement;
 	}
 #ifdef KDEBUG
@@ -1010,26 +1006,28 @@ InitDisplayList (void)
 
 UWORD nth_frame = 0;
 
+// JMS: Changed a shitload of POINTs to DPOINTs and SIZEs to SDWORDs to
+// avoid overflows in hi-res.
 void
 RedrawQueue (BOOLEAN clear)
 {
-	SIZE scroll_x, scroll_y;
+	SDWORD scroll_x, scroll_y;
 	VIEW_STATE view_state;
-
+	
 	SetContext (StatusContext);
-
+	
 	view_state = PreProcessQueue (&scroll_x, &scroll_y);
 	PostProcessQueue (view_state, scroll_x, scroll_y);
-
+	
 	if (optStereoSFX)
 		UpdateSoundPositions ();
-
+	
 	SetContext (SpaceContext);
 	if (LOBYTE (GLOBAL (CurrentActivity)) == SUPER_MELEE
 		|| !(GLOBAL (CurrentActivity) & (CHECK_ABORT | CHECK_LOAD)))
 	{
 		BYTE skip_frames;
-
+		
 		skip_frames = HIBYTE (nth_frame);
 		if (skip_frames != (BYTE)~0
 			&& (skip_frames == 0 || (--nth_frame & 0x00FF) == 0))
@@ -1037,19 +1035,19 @@ RedrawQueue (BOOLEAN clear)
 			nth_frame += skip_frames;
 			if (clear)
 				ClearDrawable (); // this is for BATCH_BUILD_PAGE effect, but not scaled by SetGraphicScale
-
+			
 			if (optMeleeScale != TFB_SCALE_STEP)
 			{
 				COUNT index, scale;
-
+				
 				CALC_ZOOM_STUFF (&index, &scale);
 				SetGraphicScale (scale);
 			}
-
+			
 			DrawBatch (DisplayArray, DisplayLinks, 0);//BATCH_BUILD_PAGE);
 			SetGraphicScale (0);
 		}
-
+		
 		FlushSounds ();
 	}
 	else
@@ -1057,7 +1055,7 @@ RedrawQueue (BOOLEAN clear)
 		ProcessSound ((SOUND)~0, NULL);
 		FlushSounds ();
 	}
-
+	
 	DisplayLinks = MakeLinks (END_OF_LIST, END_OF_LIST);
 }
 

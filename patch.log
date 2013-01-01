@@ -1,0 +1,407 @@
+The next patch would create the file src/.kdev_include_paths,
+which already exists!  Applying it anyway.
+patching file src/.kdev_include_paths
+patching file src/config_unix.h.in
+patching file src/config_vc6.h
+Hunk #1 NOT MERGED at 1-64.
+patching file src/config_win.h.in
+patching file src/libs/gfxlib.h
+patching file src/libs/graphics/dcqueue.c
+patching file src/libs/graphics/gfx_common.c
+patching file src/libs/graphics/gfx_common.h
+patching file src/libs/graphics/intersec.c
+patching file src/libs/graphics/sdl/canvas.c
+patching file src/libs/graphics/sdl/opengl.c
+patching file src/libs/graphics/sdl/opengl.h
+patching file src/libs/graphics/sdl/pure.c
+patching file src/libs/graphics/sdl/pure.h
+patching file src/libs/graphics/sdl/sdl_common.c
+patching file src/libs/graphics/tfb_draw.c
+patching file src/libs/graphics/tfb_draw.h
+patching file src/libs/graphics/widgets.c
+patching file src/libs/input/sdl/input.c
+patching file src/libs/input/sdl/vcontrol.c
+patching file src/libs/network/wspiapiwrap.h
+patching file src/options.c
+Hunk #2 NOT MERGED at 61-70.
+patching file src/options.h
+Hunk #2 NOT MERGED at 43-55.
+patching file src/port.h
+patching file src/res/darwin/Info.plist
+The next patch would create the file src/svnversion.h,
+which already exists!  Applying it anyway.
+patching file src/svnversion.h
+patching file src/symbian/config.h
+Hunk #1 NOT MERGED at 1-60.
+The next patch would create the file src/tools/LICENSE.txt,
+which already exists!  Applying it anyway.
+patching file src/tools/LICENSE.txt
+The next patch would create the file src/tools/uqmanimationtool.conf,
+which already exists!  Applying it anyway.
+patching file src/tools/uqmanimationtool.conf
+patching file src/uqm/border.c
+patching file src/uqm/cleanup.c
+patching file src/uqm/clock.c
+patching file src/uqm/clock.h
+patching file src/uqm/cnctdlg.c
+patching file src/uqm/colors.h
+Hunk #1 merged at 80-86.
+The next patch would create the file src/uqm/colors.h~,
+which already exists!  Applying it anyway.
+patching file src/uqm/colors.h~
+patching file src/uqm/comm/arilou/arilouc.c
+patching file src/uqm/comm/blackur/blackurc.c
+patching file src/uqm/comm/chmmr/chmmrc.c
+patching file src/uqm/comm/chmmr/resinst.h
+patching file src/uqm/comm/comandr/comandr.c
+patching file src/uqm/comm/druuge/druugec.c
+patching file src/uqm/comm/ilwrath/ilwrathc.c
+patching file src/uqm/comm/melnorm/melnorm.c
+patching file src/uqm/comm/mycon/myconc.c
+patching file src/uqm/comm/orz/orzc.c
+patching file src/uqm/comm/orz/resinst.h
+patching file src/uqm/comm/pkunk/pkunkc.c
+patching file src/uqm/comm/rebel/rebel.c
+patching file src/uqm/comm/shofixt/shofixt.c
+patching file src/uqm/comm/slyhome/slyhome.c
+patching file src/uqm/comm/slyland/slyland.c
+patching file src/uqm/comm/spahome/spahome.c
+patching file src/uqm/comm/spathi/spathic.c
+patching file src/uqm/comm/starbas/starbas.c
+patching file src/uqm/comm/supox/supoxc.c
+patching file src/uqm/comm/syreen/syreenc.c
+patching file src/uqm/comm/talkpet/talkpet.c
+patching file src/uqm/comm/thradd/thraddc.c
+patching file src/uqm/comm/umgah/umgahc.c
+patching file src/uqm/comm/urquan/urquanc.c
+patching file src/uqm/comm/utwig/utwigc.c
+patching file src/uqm/comm/vux/vuxc.c
+patching file src/uqm/comm/yehat/yehatc.c
+patching file src/uqm/comm/zoqfot/zoqfotc.c
+patching file src/uqm/comm.c
+patching file src/uqm/comm.h
+patching file src/uqm/commanim.c
+patching file src/uqm/commanim.h
+patching file src/uqm/commglue.h
+patching file src/uqm/confirm.c
+patching file src/uqm/credits.c
+patching file src/uqm/cyborg.c
+Hunk #15 merged at 1800.
+patching file src/uqm/element.h
+Hunk #2 NOT MERGED at 200-205.
+Hunk #3 merged at 248.
+patching file src/uqm/encount.c
+patching file src/uqm/encount.h
+patching file src/uqm/flash.c
+patching file src/uqm/flash.h
+patching file src/uqm/fmv.c
+patching file src/uqm/galaxy.c
+patching file src/uqm/gameopt.c
+patching file src/uqm/gameopt.h
+patching file src/uqm/gamestr.h
+patching file src/uqm/gendef.c
+patching file src/uqm/globdata.c
+patching file src/uqm/globdata.h
+patching file src/uqm/gravity.c
+Hunk #1 merged at 19-20.
+patching file src/uqm/grpinfo.c
+patching file src/uqm/grpinfo.h
+patching file src/uqm/hyper.c
+patching file src/uqm/hyper.h
+patching file src/uqm/ifontres.h
+patching file src/uqm/igfxres.h
+patching file src/uqm/init.c
+Hunk #1 merged at 42.
+patching file src/uqm/init.h
+patching file src/uqm/intel.h
+patching file src/uqm/ipdisp.c
+patching file src/uqm/istrtab.h
+patching file src/uqm/load.c
+patching file src/uqm/menu.c
+patching file src/uqm/misc.c
+patching file src/uqm/oscill.c
+The next patch would create the file src/uqm/oscill.c~,
+which already exists!  Applying it anyway.
+patching file src/uqm/oscill.c~
+patching file src/uqm/outfit.c
+The next patch would create the file src/uqm/outfit.c~,
+which already exists!  Applying it anyway.
+patching file src/uqm/outfit.c~
+patching file src/uqm/pickship.c
+patching file src/uqm/plandata.c
+patching file src/uqm/planets/calc.c
+patching file src/uqm/planets/cargo.c
+patching file src/uqm/planets/devices.c
+patching file src/uqm/planets/generate/Makeinfo
+patching file src/uqm/planets/generate/genand.c
+patching file src/uqm/planets/generate/genburv.c
+patching file src/uqm/planets/generate/genchmmr.c
+patching file src/uqm/planets/generate/gencol.c
+patching file src/uqm/planets/generate/gendru.c
+patching file src/uqm/planets/generate/genilw.c
+patching file src/uqm/planets/generate/genmyc.c
+patching file src/uqm/planets/generate/genorz.c
+patching file src/uqm/planets/generate/genpet.c
+patching file src/uqm/planets/generate/genpku.c
+patching file src/uqm/planets/generate/genrain.c
+patching file src/uqm/planets/generate/gensam.c
+patching file src/uqm/planets/generate/gensol.c
+patching file src/uqm/planets/generate/genspa.c
+patching file src/uqm/planets/generate/gensup.c
+patching file src/uqm/planets/generate/gensyr.c
+patching file src/uqm/planets/generate/genthrad.c
+patching file src/uqm/planets/generate/gentrap.c
+patching file src/uqm/planets/generate/genutw.c
+patching file src/uqm/planets/generate/genvux.c
+patching file src/uqm/planets/generate/genyeh.c
+patching file src/uqm/planets/generate/genzoq.c
+The next patch would create the file src/uqm/planets/generate/genzoqcolony.c,
+which already exists!  Applying it anyway.
+patching file src/uqm/planets/generate/genzoqcolony.c
+patching file src/uqm/planets/gentopo.c
+patching file src/uqm/planets/lander.c
+patching file src/uqm/planets/orbits.c
+patching file src/uqm/planets/pl_stuff.c
+patching file src/uqm/planets/plandata.h
+patching file src/uqm/planets/planets.c
+patching file src/uqm/planets/planets.h
+patching file src/uqm/planets/plangen.c
+patching file src/uqm/planets/pstarmap.c
+The next patch would create the file src/uqm/planets/pstarmap.c~,
+which already exists!  Applying it anyway.
+patching file src/uqm/planets/pstarmap.c~
+patching file src/uqm/planets/report.c
+patching file src/uqm/planets/roster.c
+patching file src/uqm/planets/scan.c
+The next patch would create the file src/uqm/planets/scan.c~,
+which already exists!  Applying it anyway.
+patching file src/uqm/planets/scan.c~
+patching file src/uqm/planets/scan.h
+patching file src/uqm/planets/solarsys.c
+patching file src/uqm/planets/surface.c
+patching file src/uqm/process.c
+patching file src/uqm/races.h
+Hunk #2 NOT MERGED at 57-83, merged at 85-86.
+Hunk #4 merged at 759,764,767-772,785,789.
+The next patch would create the file src/uqm/races.h~,
+which already exists!  Applying it anyway.
+patching file src/uqm/races.h~
+patching file src/uqm/restart.c
+patching file src/uqm/save.c
+patching file src/uqm/setup.c
+Hunk #2 merged at 66-67,80-81.
+Hunk #3 merged at 154-166.
+Hunk #4 merged at 244-253.
+patching file src/uqm/setup.h
+Hunk #1 merged at 17-18.
+Hunk #2 merged at 36-37.
+patching file src/uqm/setupmenu.c
+Hunk #3 merged at 81,84, NOT MERGED at 89-97.
+Hunk #4 NOT MERGED at 130-142, merged at 149,151-162.
+Hunk #6 NOT MERGED at 211-216, merged at 231.
+Hunk #9 NOT MERGED at 470-479.
+Hunk #10 NOT MERGED at 522-530.
+Hunk #36 merged at 1473,1477, NOT MERGED at 1482-1489,1499-1501,1504,1507-1509,1514,1517, NOT MERGED at 1520-1537,1539,1542-1586,1602-1643,1649-1682,1710-1712,1721,1723-1725,1729-1730,1736,1741-1760.
+Hunk #37 merged at 1772-1777,1787,1794, NOT MERGED at 1805-1815,1817-1827,1840,1843-1854,1868,1879,1887.
+patching file src/uqm/setupmenu.h
+Hunk #3 merged at 89.
+patching file src/uqm/ship.c
+patching file src/uqm/shipcont.h
+patching file src/uqm/ships/androsyn/androsyn.c
+Hunk #2 NOT MERGED at 129-284,288-291,295-302,313-316,318-329.
+Hunk #3 NOT MERGED at 392-397.
+Hunk #6 NOT MERGED at 768-777.
+Hunk #7 NOT MERGED at 903-939.
+patching file src/uqm/ships/arilou/arilou.c
+Hunk #1 merged at 124-279,287-296,307-308,313.
+patching file src/uqm/ships/blackurq/blackurq.c
+Hunk #1 NOT MERGED at 55-68.
+Hunk #2 NOT MERGED at 140-295.
+Hunk #3 NOT MERGED at 351-354.
+Hunk #5 merged at 417.
+Hunk #8 NOT MERGED at 496-502.
+Hunk #11 NOT MERGED at 752-765.
+Hunk #12 NOT MERGED at 768-782.
+Hunk #13 NOT MERGED at 888-922.
+patching file src/uqm/ships/chenjesu/chenjesu.c
+Hunk #1 NOT MERGED at 66-74.
+Hunk #2 NOT MERGED at 147-304,308-317.
+Hunk #3 merged at 367.
+Hunk #4 NOT MERGED at 467-472.
+Hunk #8 NOT MERGED at 578-582.
+Hunk #9 NOT MERGED at 637-645.
+Hunk #13 NOT MERGED at 887-901.
+Hunk #14 NOT MERGED at 960-996.
+patching file src/uqm/ships/chmmr/chmmr.c
+Hunk #5 merged at 424, NOT MERGED at 435-439.
+Hunk #11 NOT MERGED at 653-657.
+Hunk #12 merged at 693,704-705, NOT MERGED at 717-721.
+patching file src/uqm/ships/druuge/druuge.c
+Hunk #1 NOT MERGED at 121-282.
+Hunk #3 NOT MERGED at 326-332.
+patching file src/uqm/ships/human/human.c
+Hunk #1 NOT MERGED at 53-61.
+Hunk #2 NOT MERGED at 133-290.
+Hunk #3 NOT MERGED at 316-323.
+Hunk #4 NOT MERGED at 382-385.
+Hunk #5 NOT MERGED at 454-460.
+patching file src/uqm/ships/ilwrath/ilwrath.c
+Hunk #2 merged at 532,540-541.
+Hunk #3 NOT MERGED at 549-569.
+Hunk #4 NOT MERGED at 570-590.
+Hunk #5 NOT MERGED at 608-637.
+patching file src/uqm/ships/lastbat/lastbat.c
+patching file src/uqm/ships/melnorme/melnorme.c
+Hunk #1 NOT MERGED at 128-287.
+Hunk #2 NOT MERGED at 319-326.
+Hunk #3 NOT MERGED at 410-424.
+Hunk #4 NOT MERGED at 676-683.
+patching file src/uqm/ships/mmrnmhrm/mmrnmhrm.c
+Hunk #1 NOT MERGED at 41-48,50-60.
+Hunk #2 NOT MERGED at 155-312.
+Hunk #4 NOT MERGED at 702-710.
+Hunk #5 NOT MERGED at 721-730.
+Hunk #6 NOT MERGED at 751-761.
+Hunk #7 NOT MERGED at 847-879.
+Hunk #8 NOT MERGED at 927-940.
+Hunk #9 NOT MERGED at 973-1016.
+Hunk #10 NOT MERGED at 1041-1055.
+patching file src/uqm/ships/mycon/mycon.c
+Hunk #1 NOT MERGED at 28-41.
+Hunk #2 NOT MERGED at 63-73.
+Hunk #4 NOT MERGED at 148-305, merged at 314-315, merged at 319-320, merged at 325, merged at 338-339, merged at 344.
+Hunk #6 NOT MERGED at 555-566.
+patching file src/uqm/ships/orz/orz.c
+Hunk #1 merged at 132-285, NOT MERGED at 293-298, NOT MERGED at 303-308.
+Hunk #2 merged at 337.
+Hunk #3 merged at 1193.
+Hunk #4 NOT MERGED at 1201-1222.
+Hunk #5 NOT MERGED at 1228-1254.
+Hunk #6 NOT MERGED at 1255-1289.
+Hunk #7 NOT MERGED at 1291-1307.
+Hunk #8 NOT MERGED at 1308-1327.
+Hunk #9 NOT MERGED at 1328-1344.
+Hunk #10 NOT MERGED at 1345-1372.
+Hunk #11 NOT MERGED at 1374-1393.
+Hunk #12 NOT MERGED at 1394-1429.
+Hunk #13 NOT MERGED at 1431-1454.
+patching file src/uqm/ships/pkunk/pkunk.c
+Hunk #1 NOT MERGED at 24-30.
+Hunk #3 NOT MERGED at 303-309.
+Hunk #8 merged at 625-628.
+patching file src/uqm/ships/shofixti/shofixti.c
+Hunk #1 merged at 125-278, NOT MERGED at 282-288.
+Hunk #3 NOT MERGED at 488-491.
+Hunk #4 NOT MERGED at 508-511.
+patching file src/uqm/ships/sis_ship/resinst.h
+patching file src/uqm/ships/sis_ship/sis_ship.c
+patching file src/uqm/ships/slylandr/slylandr.c
+Hunk #1 merged at 119-271.
+Hunk #2 NOT MERGED at 419-426.
+Hunk #3 NOT MERGED at 457-461.
+patching file src/uqm/ships/spathi/spathi.c
+Hunk #1 NOT MERGED at 131-292.
+Hunk #2 NOT MERGED at 373-380.
+Hunk #3 NOT MERGED at 443-450.
+Hunk #4 merged at 462.
+Hunk #5 NOT MERGED at 604-632.
+patching file src/uqm/ships/supox/supox.c
+Hunk #1 NOT MERGED at 121-281.
+Hunk #2 NOT MERGED at 483-489.
+Hunk #3 NOT MERGED at 494-508.
+Hunk #4 NOT MERGED at 570-598.
+patching file src/uqm/ships/syreen/syreen.c
+Hunk #1 merged at 124-277, NOT MERGED at 281-287.
+Hunk #3 NOT MERGED at 385-389.
+patching file src/uqm/ships/thradd/thradd.c
+Hunk #1 NOT MERGED at 58-69.
+Hunk #2 merged at 145-298.
+Hunk #4 NOT MERGED at 403-408.
+Hunk #5 NOT MERGED at 483-488.
+Hunk #6 NOT MERGED at 599-603.
+Hunk #7 NOT MERGED at 699-727.
+patching file src/uqm/ships/umgah/umgah.c
+Hunk #2 NOT MERGED at 301-309.
+Hunk #5 NOT MERGED at 575-585.
+Hunk #6 NOT MERGED at 684-719.
+patching file src/uqm/ships/urquan/urquan.c
+Hunk #1 NOT MERGED at 147-309,314-320.
+Hunk #2 NOT MERGED at 329-334.
+Hunk #3 NOT MERGED at 1173-1181,1183-1190.
+Hunk #4 NOT MERGED at 1195-1228.
+Hunk #5 NOT MERGED at 1240-1249.
+Hunk #6 NOT MERGED at 1325-1335.
+patching file src/uqm/ships/utwig/utwig.c
+Hunk #1 NOT MERGED at 53-62.
+Hunk #2 merged at 135-286, NOT MERGED at 290-301.
+patching file src/uqm/ships/vux/vux.c
+Hunk #1 NOT MERGED at 37-48.
+Hunk #2 NOT MERGED at 174-335,345-353,355-361,363-370.
+Hunk #3 NOT MERGED at 380-389.
+Hunk #4 NOT MERGED at 458-468.
+Hunk #5 NOT MERGED at 522-528.
+patching file src/uqm/ships/yehat/yehat.c
+Hunk #1 merged at 124-277, NOT MERGED at 281-289,300.
+The next patch would create the file src/uqm/ships/yehat/yehat.c.orig,
+which already exists!  Applying it anyway.
+patching file src/uqm/ships/yehat/yehat.c.orig
+The next patch would create the file src/uqm/ships/yehat/yehat.c.rej,
+which already exists!  Applying it anyway.
+patching file src/uqm/ships/yehat/yehat.c.rej
+patching file src/uqm/ships/zoqfot/zoqfot.c
+Hunk #1 NOT MERGED at 127-288.
+Hunk #2 NOT MERGED at 300-303,305-309,316-323.
+Hunk #3 NOT MERGED at 360-364.
+Hunk #5 NOT MERGED at 423-429.
+patching file src/uqm/shipstat.c
+patching file src/uqm/shipyard.c
+The next patch would create the file src/uqm/shipyard.c~,
+which already exists!  Applying it anyway.
+patching file src/uqm/shipyard.c~
+patching file src/uqm/sis.c
+The next patch would create the file src/uqm/sis.c~,
+which already exists!  Applying it anyway.
+patching file src/uqm/sis.c~
+patching file src/uqm/sis.h
+The next patch would create the file src/uqm/sis.h~,
+which already exists!  Applying it anyway.
+patching file src/uqm/sis.h~
+patching file src/uqm/starbase.c
+patching file src/uqm/starcon.c
+patching file src/uqm/state.c
+patching file src/uqm/status.c
+Hunk #7 merged at 507.
+patching file src/uqm/status.h
+Hunk #1 merged at 19-20,27-32,40-44, NOT MERGED at 53-67,74-76.
+The next patch would create the file src/uqm/supermelee/.kdev_include_paths~,
+which already exists!  Applying it anyway.
+patching file src/uqm/supermelee/.kdev_include_paths~
+patching file src/uqm/supermelee/buildpick.c
+patching file src/uqm/supermelee/loadmele.c
+patching file src/uqm/supermelee/melee.c
+patching file src/uqm/supermelee/melee.h
+patching file src/uqm/supermelee/netplay/packethandlers.c
+patching file src/uqm/supermelee/pickmele.c
+Hunk #4 NOT MERGED at 439-449.
+patching file src/uqm/tactrans.c
+patching file src/uqm/tactrans.h
+patching file src/uqm/units.h
+patching file src/uqm/uqmdebug.c
+patching file src/uqm/util.c
+The next patch would create the file src/uqm/util.c~,
+which already exists!  Applying it anyway.
+patching file src/uqm/util.c~
+patching file src/uqm/util.h
+The next patch would create the file src/uqm/util.h~,
+which already exists!  Applying it anyway.
+patching file src/uqm/util.h~
+patching file src/uqm/velocity.c
+patching file src/uqm/velocity.h
+patching file src/uqm/weapon.c
+patching file src/uqm.c
+Hunk #2 merged at 132-134.
+Hunk #5 merged at 290, NOT MERGED at 298-308.
+Hunk #6 NOT MERGED at 441-455.
+Hunk #8 merged at 712-714,716.
+patching file src/uqmversion.h
+Hunk #1 NOT MERGED at 26-30.

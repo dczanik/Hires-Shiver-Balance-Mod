@@ -16,6 +16,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+// JMS_GFX 2012: Merged the resolution Factor stuff from P6014.
+
 #ifndef _TACTRANS_H
 #define _TACTRANS_H
 

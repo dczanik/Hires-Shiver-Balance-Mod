@@ -16,9 +16,14 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+// JMS_GFX 2012: Merged the resolution Factor stuff from P6014.
+
 #include "lander.h"
 #include "lifeform.h"
 #include "scan.h"
+
+#include "../util.h"
+		/* for get_fuel_to_sol() */
 #include "../build.h"
 #include "../colors.h"
 #include "../cons_res.h"
@@ -42,6 +47,8 @@
 #include "libs/graphics/drawable.h"
 #include "libs/inplib.h"
 #include "libs/mathlib.h"
+
+#define HAZARD_COLORS
 
 extern FRAME SpaceJunkFrame;
 
@@ -68,18 +75,22 @@ enum ScanMenuItems
 
 
 void
-RepairBackRect (RECT *pRect)
+RepairBackRect (RECT *pRect, BOOLEAN Fullscreen)
 {
 	RECT new_r, old_r;
-
+	
 	GetContextClipRect (&old_r);
 	new_r.corner.x = pRect->corner.x + old_r.corner.x;
 	new_r.corner.y = pRect->corner.y + old_r.corner.y;
 	new_r.extent = pRect->extent;
-
+	
 	new_r.extent.height += new_r.corner.y & 1;
 	new_r.corner.y &= ~1;
-	DrawFromExtraScreen (&new_r);
+	
+	if (Fullscreen)
+		DrawFromExtraScreen_Fs (&new_r);
+	else
+		DrawFromExtraScreen (&new_r);
 }
 
 static void
@@ -152,11 +163,19 @@ GetPlanetTitle (UNICODE *buf, COUNT bufsize)
 static void
 PrintCoarseScanPC (void)
 {
-#define SCAN_LEADING_PC 14
+#define SCAN_LEADING_PC (14 << RESOLUTION_FACTOR) // JMS_GFX
 	SDWORD val;
 	TEXT t;
 	RECT r;
 	UNICODE buf[200];
+
+	/* We need this for the new color-changing hazard readouts.
+	 * We initialize it to SCAN_PC_TITLE_COLOR because we'll need
+	 * to reset the ContextForeGroundColor to this value whenever
+	 * we may have changed it - and having it always be set to a
+	 * sane value removes the need to only reset it conditionally.
+	 */
+	Color OldColor = (SCAN_PC_TITLE_COLOR);
 
 	GetPlanetTitle (buf, sizeof (buf));
 
@@ -165,7 +184,7 @@ PrintCoarseScanPC (void)
 
 	t.align = ALIGN_CENTER;
 	t.baseline.x = SIS_SCREEN_WIDTH >> 1;
-	t.baseline.y = 13;
+	t.baseline.y = (13 << RESOLUTION_FACTOR) + 4*RESOLUTION_FACTOR; // JMS_GFX
 	t.pStr = buf;
 	t.CharCount = (COUNT)~0;
 
@@ -176,9 +195,9 @@ PrintCoarseScanPC (void)
 	SetContextFont (TinyFont);
 	UnlockMutex (GraphicsLock);
 
-#define LEFT_SIDE_BASELINE_X_PC 5
-#define RIGHT_SIDE_BASELINE_X_PC (SIS_SCREEN_WIDTH - 75)
-#define SCAN_BASELINE_Y_PC 40
+#define LEFT_SIDE_BASELINE_X_PC (5 << RESOLUTION_FACTOR) // JMS_GFX
+#define RIGHT_SIDE_BASELINE_X_PC (SIS_SCREEN_WIDTH - (75 << RESOLUTION_FACTOR)) // JMS_GFX
+#define SCAN_BASELINE_Y_PC (40 << RESOLUTION_FACTOR) // JMS_GFX
 
 	t.baseline.y = SCAN_BASELINE_Y_PC;
 	t.align = ALIGN_LEFT;
@@ -223,9 +242,22 @@ PrintCoarseScanPC (void)
 			LEFT_SIDE_BASELINE_X_PC); // "Temp: "
 	sprintf (buf, "%d" STR_DEGREE_SIGN " c",
 			pSolarSysState->SysInfo.PlanetInfo.SurfaceTemperature);
+#ifdef HAZARD_COLORS
+	if ((pSolarSysState->SysInfo.PlanetInfo.SurfaceTemperature) >= (100) &&
+	    (pSolarSysState->SysInfo.PlanetInfo.SurfaceTemperature) <= (400))
+	{ /* Between 100 and 400 temperature the planet is still explorable,
+	   * draw the readout in yellow */
+		OldColor = SetContextForeGroundColor (DULL_YELLOW_COLOR);
+	}
+	else if (pSolarSysState->SysInfo.PlanetInfo.SurfaceTemperature > 400)
+	{ /* Above 400 the planet is quite dangerous, draw the readout in red. */
+		OldColor = SetContextForeGroundColor (BRIGHT_RED_COLOR);
+	}
+#endif
 	t.pStr = buf;
 	t.CharCount = (COUNT)~0;
 	font_DrawText (&t);
+	SetContextForeGroundColor (OldColor);
 	t.baseline.y += SCAN_LEADING_PC;
 	UnlockMutex (GraphicsLock);
 
@@ -241,8 +273,22 @@ PrintCoarseScanPC (void)
 				pSolarSysState->SysInfo.PlanetInfo.Weather + 1);
 		t.pStr = buf;
 	}
+#ifdef HAZARD_COLORS
+	if ((pSolarSysState->SysInfo.PlanetInfo.Weather + 1) >= (3) &&
+	    (pSolarSysState->SysInfo.PlanetInfo.Weather + 1) <= (4))
+	{ /* Weather values of 3 or 4 will unavoidably kill a few
+	   * crew, draw the readout in yellow. */
+		OldColor = SetContextForeGroundColor (DULL_YELLOW_COLOR);
+	}
+	else if ((pSolarSysState->SysInfo.PlanetInfo.Weather + 1) > (5))
+	{ /* Weather values < 5 will unavoidably kill many crew,
+	   * draw the readout in red. */
+		OldColor = SetContextForeGroundColor (BRIGHT_RED_COLOR);
+	}
+#endif
 	t.CharCount = (COUNT)~0;
 	font_DrawText (&t);
+	SetContextForeGroundColor (OldColor);
 	t.baseline.y += SCAN_LEADING_PC;
 	UnlockMutex (GraphicsLock);
 
@@ -259,8 +305,22 @@ PrintCoarseScanPC (void)
 				pSolarSysState->SysInfo.PlanetInfo.Tectonics + 1);
 		t.pStr = buf;
 	}
+#ifdef HAZARD_COLORS
+	if ((pSolarSysState->SysInfo.PlanetInfo.Tectonics + 1) >= (3) &&
+	    (pSolarSysState->SysInfo.PlanetInfo.Tectonics + 1) <= (5))
+	{ /* Between class 3 and 5 tectonics the planet is still explorable,
+	   * draw the readout in yellow. */
+		OldColor = SetContextForeGroundColor (DULL_YELLOW_COLOR);
+	}
+	else if ((pSolarSysState->SysInfo.PlanetInfo.Tectonics + 1) > (5))
+	{ /* Above class 5 tectonics the planet is quite dangerous, draw the
+	   * readout in red. */
+		OldColor = SetContextForeGroundColor (BRIGHT_RED_COLOR);
+	}
+#endif
 	t.CharCount = (COUNT)~0;
 	font_DrawText (&t);
+	SetContextForeGroundColor (OldColor);
 	UnlockMutex (GraphicsLock);
 
 	t.baseline.y = SCAN_BASELINE_Y_PC;
@@ -337,11 +397,19 @@ PrintCoarseScanPC (void)
 static void
 PrintCoarseScan3DO (void)
 {
-#define SCAN_LEADING 19
+#define SCAN_LEADING (19 << RESOLUTION_FACTOR) // JMS_GFX
 	SDWORD val;
 	TEXT t;
 	STAMP s;
 	UNICODE buf[200];
+
+	/* We need this for the new color-changing hazard readouts.
+	 * We initialize it to SCAN_PC_TITLE_COLOR because we'll need
+	 * to reset the ContextForeGroundColor to this value whenever
+	 * we may have changed it - and having it always be set to a
+	 * sane value removes the need to only reset it conditionally.
+	 */
+	Color OldColor = (SCAN_PC_TITLE_COLOR);
 
 	GetPlanetTitle (buf, sizeof (buf));
 
@@ -350,7 +418,7 @@ PrintCoarseScan3DO (void)
 
 	t.align = ALIGN_CENTER;
 	t.baseline.x = SIS_SCREEN_WIDTH >> 1;
-	t.baseline.y = 13;
+	t.baseline.y = (13 << RESOLUTION_FACTOR); // JMS_GFX
 	t.pStr = buf;
 	t.CharCount = (COUNT)~0;
 
@@ -359,15 +427,15 @@ PrintCoarseScan3DO (void)
 	font_DrawText (&t);
 
 	s.origin.x = s.origin.y = 0;
-	s.origin.x = 16 - SAFE_X;
+	s.origin.x = ((16 - SAFE_X) << RESOLUTION_FACTOR); // JMS_GFX
 	s.frame = SetAbsFrameIndex (SpaceJunkFrame, 20);
 	DrawStamp (&s);
 
 	UnlockMutex (GraphicsLock);
 
-#define LEFT_SIDE_BASELINE_X (27 + (16 - SAFE_X))
+#define LEFT_SIDE_BASELINE_X ((27 + (16 - SAFE_X)) << RESOLUTION_FACTOR) // JMS_GFX
 #define RIGHT_SIDE_BASELINE_X (SIS_SCREEN_WIDTH - LEFT_SIDE_BASELINE_X)
-#define SCAN_BASELINE_Y 25
+#define SCAN_BASELINE_Y (25 << RESOLUTION_FACTOR) // JMS_GFX
 
 	t.baseline.x = LEFT_SIDE_BASELINE_X;
 	t.baseline.y = SCAN_BASELINE_Y;
@@ -377,7 +445,8 @@ PrintCoarseScan3DO (void)
 	t.pStr = buf;
 	val = ((pSolarSysState->SysInfo.PlanetInfo.PlanetToSunDist * 100L
 			+ (EARTH_RADIUS >> 1)) / EARTH_RADIUS);
-	MakeScanValue (buf, val, STR_EARTH_SIGN);
+	MakeScanValue (buf, val,
+			GAME_STRING (ORBITSCAN_STRING_BASE + 1)); // " a.u."
 	t.CharCount = (COUNT)~0;
 	font_DrawText (&t);
 	t.baseline.y += SCAN_LEADING;
@@ -391,7 +460,8 @@ PrintCoarseScan3DO (void)
 	{
 		val = (pSolarSysState->SysInfo.PlanetInfo.AtmoDensity * 100
 				+ (EARTH_ATMOSPHERE >> 1)) / EARTH_ATMOSPHERE;
-		MakeScanValue (buf, val, STR_EARTH_SIGN);
+		MakeScanValue (buf, val,
+				GAME_STRING (ORBITSCAN_STRING_BASE + 5)); // " atm"
 	}
 	t.CharCount = (COUNT)~0;
 	font_DrawText (&t);
@@ -400,31 +470,74 @@ PrintCoarseScan3DO (void)
 
 	LockMutex (GraphicsLock);
 	t.pStr = buf;
-	sprintf (buf, "%d" STR_DEGREE_SIGN,
+	sprintf (buf, "%d" STR_DEGREE_SIGN " c",
 			pSolarSysState->SysInfo.PlanetInfo.SurfaceTemperature);
+
+#ifdef HAZARD_COLORS
+	if ((pSolarSysState->SysInfo.PlanetInfo.SurfaceTemperature) >= (100) &&
+	    (pSolarSysState->SysInfo.PlanetInfo.SurfaceTemperature) <= (400))
+	{ /* Between 100 and 400 temperature the planet is still explorable,
+	   * draw the readout in yellow */
+		OldColor = SetContextForeGroundColor (DULL_YELLOW_COLOR);
+	}
+	else if (pSolarSysState->SysInfo.PlanetInfo.SurfaceTemperature > 400)
+	{ /* Above 400 the planet is quite dangerous, draw the readout in red. */
+		OldColor = SetContextForeGroundColor (BRIGHT_RED_COLOR);
+	}
+#endif
+
 	t.CharCount = (COUNT)~0;
 	font_DrawText (&t);
+	SetContextForeGroundColor (OldColor);
 	t.baseline.y += SCAN_LEADING;
 	UnlockMutex (GraphicsLock);
 
 	LockMutex (GraphicsLock);
 	t.pStr = buf;
-	sprintf (buf, "<%u>", pSolarSysState->SysInfo.PlanetInfo.AtmoDensity == 0
+	sprintf (buf, "%s %u", GAME_STRING (ORBITSCAN_STRING_BASE + 9), // Class
+			pSolarSysState->SysInfo.PlanetInfo.AtmoDensity == 0
 			? 0 : (pSolarSysState->SysInfo.PlanetInfo.Weather + 1));
+#ifdef HAZARD_COLORS
+	if ((pSolarSysState->SysInfo.PlanetInfo.Weather + 1) >= (3) &&
+	    (pSolarSysState->SysInfo.PlanetInfo.Weather + 1) <= (4))
+	{ /* Weather values of 3 or 4 will unavoidably kill a few
+	   * crew, draw the readout in yellow. */
+		OldColor = SetContextForeGroundColor (DULL_YELLOW_COLOR);
+	}
+	else if ((pSolarSysState->SysInfo.PlanetInfo.Weather + 1) > (5))
+	{ /* Weather values < 5 will unavoidably kill many crew,
+	   * draw the readout in red. */
+		OldColor = SetContextForeGroundColor (BRIGHT_RED_COLOR);
+	}
+#endif
 	t.CharCount = (COUNT)~0;
 	font_DrawText (&t);
+	SetContextForeGroundColor (OldColor);
 	t.baseline.y += SCAN_LEADING;
 	UnlockMutex (GraphicsLock);
-
 	LockMutex (GraphicsLock);
 	t.pStr = buf;
-	sprintf (buf, "<%u>",
+	sprintf (buf, "%s %u", GAME_STRING (ORBITSCAN_STRING_BASE + 9), // Class
 			PLANSIZE (
 			pSolarSysState->SysInfo.PlanetInfo.PlanDataPtr->Type
 			) == GAS_GIANT
 			? 0 : (pSolarSysState->SysInfo.PlanetInfo.Tectonics + 1));
+#ifdef HAZARD_COLORS
+	if ((pSolarSysState->SysInfo.PlanetInfo.Tectonics + 1) >= (3) &&
+	    (pSolarSysState->SysInfo.PlanetInfo.Tectonics + 1) <= (5))
+	{ /* Between class 3 and 5 tectonics the planet is still explorable,
+	   * draw the readout in yellow. */
+		OldColor = SetContextForeGroundColor (DULL_YELLOW_COLOR);
+	}
+	else if ((pSolarSysState->SysInfo.PlanetInfo.Tectonics + 1) > (5))
+	{ /* Above class 5 tectonics the planet is quite dangerous, draw the
+	   * readout in red. */
+		OldColor = SetContextForeGroundColor (BRIGHT_RED_COLOR);
+	}
+#endif
 	t.CharCount = (COUNT)~0;
 	font_DrawText (&t);
+	SetContextForeGroundColor (OldColor);
 	UnlockMutex (GraphicsLock);
 
 	t.baseline.x = RIGHT_SIDE_BASELINE_X;
@@ -439,7 +552,8 @@ PrintCoarseScan3DO (void)
 			+ ((100L * 100L) >> 1)) / (100L * 100L);
 	if (val == 0)
 		val = 1;
-	MakeScanValue (buf, val, STR_EARTH_SIGN);
+	MakeScanValue (buf, val,
+			GAME_STRING (ORBITSCAN_STRING_BASE + 12)); // " e.s."
 	t.CharCount = (COUNT)~0;
 	font_DrawText (&t);
 	t.baseline.y += SCAN_LEADING;
@@ -448,7 +562,8 @@ PrintCoarseScan3DO (void)
 	LockMutex (GraphicsLock);
 	t.pStr = buf;
 	val = pSolarSysState->SysInfo.PlanetInfo.PlanetRadius;
-	MakeScanValue (buf, val, STR_EARTH_SIGN);
+	MakeScanValue (buf, val,
+			GAME_STRING (ORBITSCAN_STRING_BASE + 12)); // " e.s."
 
 	t.CharCount = (COUNT)~0;
 	font_DrawText (&t);
@@ -460,7 +575,8 @@ PrintCoarseScan3DO (void)
 	val = pSolarSysState->SysInfo.PlanetInfo.SurfaceGravity;
 	if (val == 0)
 		val = 1;
-	MakeScanValue (buf, val, STR_EARTH_SIGN);
+	MakeScanValue (buf, val,
+			GAME_STRING (ORBITSCAN_STRING_BASE + 15)); // " g."
 	t.CharCount = (COUNT)~0;
 	font_DrawText (&t);
 	t.baseline.y += SCAN_LEADING;
@@ -481,7 +597,8 @@ PrintCoarseScan3DO (void)
 	t.pStr = buf;
 	val = (SDWORD)pSolarSysState->SysInfo.PlanetInfo.RotationPeriod
 			* 10 / 24;
-	MakeScanValue (buf, val, STR_EARTH_SIGN);
+	MakeScanValue (buf, val,
+			GAME_STRING (ORBITSCAN_STRING_BASE + 17)); // " days"
 	t.CharCount = (COUNT)~0;
 	font_DrawText (&t);
 	UnlockMutex (GraphicsLock);
@@ -712,7 +829,8 @@ DoPickPlanetSide (MENU_STATE *pMS)
 	PICK_PLANET_STATE *pickState = pMS->privData;
 	DWORD TimeIn = GetTimeCounter ();
 	BOOLEAN select, cancel;
-
+	POINT	new_pt;
+	
 	select = PulsedInputState.menu[KEY_MENU_SELECT];
 	cancel = PulsedInputState.menu[KEY_MENU_CANCEL];
 	
@@ -721,7 +839,7 @@ DoPickPlanetSide (MENU_STATE *pMS)
 		pickState->success = false;
 		return FALSE;
 	}
-
+	
 	if (cancel)
 	{
 		pickState->success = false;
@@ -734,12 +852,12 @@ DoPickPlanetSide (MENU_STATE *pMS)
 	}
 	else
 	{
-		SIZE dx = 0;
-		SIZE dy = 0;
-		POINT new_pt;
-
+		COUNT	i, j = 0; // JMS_GFX
+		SIZE	dx = 0;
+		SIZE	dy = 0;
+		
 		new_pt = planetLoc;
-
+		
 		if (CurrentInputState.menu[KEY_MENU_LEFT])
 			dx = -1;
 		if (CurrentInputState.menu[KEY_MENU_RIGHT])
@@ -748,52 +866,107 @@ DoPickPlanetSide (MENU_STATE *pMS)
 			dy = -1;
 		if (CurrentInputState.menu[KEY_MENU_DOWN])
 			dy = 1;
-
-		LockMutex (GraphicsLock);
-		BatchGraphics ();
-
+		
 		dx = dx << MAG_SHIFT;
-		if (dx)
-		{
-			new_pt.x += dx;
-			if (new_pt.x < 0)
-				new_pt.x += (MAP_WIDTH << MAG_SHIFT);
-			else if (new_pt.x >= (MAP_WIDTH << MAG_SHIFT))
-				new_pt.x -= (MAP_WIDTH << MAG_SHIFT);
-		}
 		dy = dy << MAG_SHIFT;
-		if (dy)
+		
+		// JMS_GFX: 1 for 320x240, 3 for 640x480, 7 for 1280x960
+		// XXX: This was good for debugging build, but too fast on opitmized release build.
+		//j = (1 << (RESOLUTION_FACTOR + 1)) - 1;
+		
+		// JMS_GFX: 1 for 320x240, 2 for 640x480, 4 for 1280x960
+		j = 1 << RESOLUTION_FACTOR;
+		
+		// JMS_GFX: This makes the scan cursor faster in hi-res modes.
+		// (Originally there was no loop, just the contents.)
+		for (i = 0; i < j; i++)
 		{
-			new_pt.y += dy;
-			if (new_pt.y < 0 || new_pt.y >= (MAP_HEIGHT << MAG_SHIFT))
-				new_pt.y = planetLoc.y;
+			LockMutex (GraphicsLock);
+			BatchGraphics ();
+			
+			if (dx)
+			{
+				new_pt.x += dx;
+				if (new_pt.x < 0)
+					new_pt.x += (MAP_WIDTH << MAG_SHIFT);
+				else if (new_pt.x >= (MAP_WIDTH << MAG_SHIFT))
+					new_pt.x -= (MAP_WIDTH << MAG_SHIFT);
+			}
+			
+			if (dy)
+			{
+				new_pt.y += dy;
+				if (new_pt.y < 0 || new_pt.y >= (MAP_HEIGHT << MAG_SHIFT))
+					new_pt.y = planetLoc.y;
+			}
+			
+			if (!pointsEqual (new_pt, planetLoc))
+				setPlanetLoc (new_pt, TRUE);
+			
+			flashPlanetLocation ();
+			
+			// JMS_GFX: Just upping the denominator wouldn't do no good since
+			// something else limits entering this function to about once per 1/40 secs...
+			// Since I couldn't find that mysterious element, I had to do speed things up
+			// with a loop and this thing here.
+			// XXX: Actually, with the optimized release build the best solution now seems is to keep all at 1/40th, but keep the loop...
+			if (RESOLUTION_FACTOR == 0)
+				SleepThreadUntil (TimeIn + ONE_SECOND / 40);
+			else if (RESOLUTION_FACTOR == 1)
+				SleepThreadUntil (TimeIn + ONE_SECOND / 40);
+			else
+				SleepThreadUntil (TimeIn + ONE_SECOND / 40);
+			
+			UnbatchGraphics ();
+			UnlockMutex (GraphicsLock);
 		}
-
-		if (!pointsEqual (new_pt, planetLoc))
-		{
-			setPlanetLoc (new_pt, TRUE);
-		}
-
-		flashPlanetLocation ();
-
-		UnbatchGraphics ();
-		UnlockMutex (GraphicsLock);
-
-		SleepThreadUntil (TimeIn + ONE_SECOND / 40);
 	}
-
+	
+	// JMS_GFX: For some reason, 1280x960 is choppy, no matter how many iterations
+	// the loop has or how short the sleepthread is. This final redraw makes things
+	// a bit smoother.
+	// XXX: This was good at debugging build but mad the cursor blink too fast in optimized release build.
+	/*if (RESOLUTION_FACTOR == 2)
+	 {
+	 LockMutex (GraphicsLock);
+	 BatchGraphics ();
+	 
+	 if (!pointsEqual (new_pt, planetLoc))
+	 setPlanetLoc (new_pt, TRUE);
+	 
+	 flashPlanetLocation ();
+	 
+	 UnbatchGraphics ();
+	 UnlockMutex (GraphicsLock);
+	 }*/
+	
 	return TRUE;
 }
 
 static void
 drawLandingFuelUsage (COUNT fuel)
 {
+	/* We need this so we can save the StatusMessageMode
+	 * and fix it when we're done.
+	 */
+	StatMsgMode old_status_message_mode;
+
 	UNICODE buf[100];
+
+	if (((SDWORD) (GLOBAL_SIS (FuelOnBoard)) - fuel) <= (SDWORD)(get_fuel_to_sol ()))
+	{ /* We will not have enough fuel to get to Sol if we dispatch the lander */
+		old_status_message_mode = SetStatusMessageMode (SMM_ALERT);
+	} else if (((SDWORD) (GLOBAL_SIS (FuelOnBoard)) - fuel) <= (SDWORD)(get_fuel_to_sol () + (5 * FUEL_TANK_SCALE)))
+	{ /* We will have enough fuel to get to Sol if we dispatch the lander, but will have less than 5 to spare */
+		old_status_message_mode = SetStatusMessageMode (SMM_WARNING);
+	}
 
 	sprintf (buf, "%s%1.1f",
 			GAME_STRING (NAVIGATION_STRING_BASE + 5),
 			(float) fuel / FUEL_TANK_SCALE);
 	DrawStatusMessage (buf);
+
+	SetStatusMessageMode (old_status_message_mode);
 }
 
 static void
@@ -979,9 +1152,12 @@ callPickupForScanType (SOLARSYS_STATE *solarSys, PLANET_DESC *world,
 static void
 ScanPlanet (COUNT scanType)
 {
-#define SCAN_DURATION   (ONE_SECOND * 7 / 4)
+// BW: picked up experimentally ; any value that results into
+// SCAN_LINE_WAIT below 6 makes scanning hang up badly
+// Is this specific to my machine ?
+#define SCAN_DURATION   RES_CASE(ONE_SECOND * 7 / 4, ONE_SECOND * 7 / 4, ONE_SECOND * 12 / 4)
 // NUM_FLASH_COLORS for flashing blips; 1 for the final frame
-#define SCAN_LINES      (MAP_HEIGHT + NUM_FLASH_COLORS + 1)
+#define SCAN_LINES      (MAP_HEIGHT + NUM_FLASH_COLORS - 8)
 #define SCAN_LINE_WAIT  (SCAN_DURATION / SCAN_LINES)
 
 	COUNT startScan, endScan;
@@ -1020,7 +1196,7 @@ ScanPlanet (COUNT scanType)
 		TimeCount TimeOut;
 
 		t.baseline.x = SIS_SCREEN_WIDTH >> 1;
-		t.baseline.y = SIS_SCREEN_HEIGHT - MAP_HEIGHT - 7;
+		t.baseline.y = SIS_SCREEN_HEIGHT - MAP_HEIGHT - (7 << RESOLUTION_FACTOR); // JMS_GFX
 		t.align = ALIGN_CENTER;
 		t.CharCount = (COUNT)~0;
 
@@ -1029,12 +1205,12 @@ ScanPlanet (COUNT scanType)
 		LockMutex (GraphicsLock);
 		SetContext (PlanetContext);
 		r.corner.x = 0;
-		r.corner.y = t.baseline.y - 10;
+		r.corner.y = t.baseline.y - (10 << RESOLUTION_FACTOR); // JMS_GFX
 		r.extent.width = SIS_SCREEN_WIDTH;
-		r.extent.height = t.baseline.y - r.corner.y + 1;
+		r.extent.height = t.baseline.y - r.corner.y + (1 << RESOLUTION_FACTOR); // JMS_GFX
 		// XXX: I do not know why we are repairing it here, as there
 		//   should not be anything drawn over the stars at the moment
-		RepairBackRect (&r);
+		RepairBackRect (&r, FALSE);
 
 		SetContextFont (MicroFont);
 		SetContextForeGroundColor (textColors[scan]);
@@ -1054,7 +1230,7 @@ ScanPlanet (COUNT scanType)
 
 		// Draw the scan slowly line by line
 		TimeOut = GetTimeCounter ();
-		for (i = 0; i < SCAN_LINES; i++)
+		for (i = 0; i < (SWORD)SCAN_LINES; i++)
 		{
 			TimeOut += SCAN_LINE_WAIT;
 			if (WaitForAnyButtonUntil (TRUE, TimeOut, FALSE))
@@ -1071,7 +1247,7 @@ ScanPlanet (COUNT scanType)
 			UnlockMutex (GraphicsLock);
 		}
 
-		if (i < SCAN_LINES)
+		if (i < (SWORD)SCAN_LINES)
 		{	// Aborted by a keypress; draw in finished state
 			LockMutex (GraphicsLock);
 			BatchGraphics ();
@@ -1084,7 +1260,7 @@ ScanPlanet (COUNT scanType)
 
 	LockMutex (GraphicsLock);
 	SetContext (PlanetContext);
-	RepairBackRect (&r);
+	RepairBackRect (&r, FALSE);
 
 	SetContext (ScanContext);
 	if (scanType == AUTO_SCAN)
@@ -1297,6 +1473,7 @@ generateBioNode (SOLARSYS_STATE *system, ELEMENT *NodeElementPtr,
 {
 	COUNT i;
 	COUNT creatureType;
+	DWORD j;
 
 	creatureType = system->SysInfo.PlanetInfo.CurType;
 
@@ -1304,10 +1481,18 @@ generateBioNode (SOLARSYS_STATE *system, ELEMENT *NodeElementPtr,
 	{
 		// Place moving creatures at a random location.
 		i = (COUNT)TFB_Random ();
-		NodeElementPtr->current.location.x =
-				(LOBYTE (i) % (MAP_WIDTH - (8 << 1))) + 8;
-		NodeElementPtr->current.location.y =
-				(HIBYTE (i) % (MAP_HEIGHT - (8 << 1))) + 8;
+		j = (DWORD)TFB_Random ();
+		
+		if (RESOLUTION_FACTOR == 0)
+		{
+			NodeElementPtr->current.location.x = (LOBYTE (i) % (MAP_WIDTH - (8 << 1))) + 8;
+			NodeElementPtr->current.location.y = (HIBYTE (i) % (MAP_HEIGHT - (8 << 1))) + 8;
+		}
+		else 
+		{
+			NodeElementPtr->current.location.x = (LOWORD (j) % (MAP_WIDTH - (8 << 1))) + 8;	// JMS_GFX: Replaced previous line with this line (BYTE was too small for 640x480 maps.)
+			NodeElementPtr->current.location.y = (HIWORD (j) % (MAP_HEIGHT - (8 << 1))) + 8;  // JMS_GFX: Replaced previous line with this line (BYTE was too small for 1280x960 maps.)
+		}
 	}
 
 	if (system->PlanetSideFrame[0] == 0)
@@ -1394,8 +1579,11 @@ GeneratePlanetSide (void)
 
 				EType = pSolarSysState->SysInfo.PlanetInfo.CurType;
 				NodeElementPtr->turn_wait = (BYTE)EType;
-				NodeElementPtr->mass_points = HIBYTE (
-						pSolarSysState->SysInfo.PlanetInfo.CurDensity);
+				
+				// JMS: Partially scavenged energy blips won't return anymore to original size after leaving planet.
+				NodeElementPtr->mass_points = HIBYTE (pSolarSysState->SysInfo.PlanetInfo.CurDensity)
+				- pSolarSysState->SysInfo.PlanetInfo.PartiallyScavengedList[scan][num_nodes];
+				
 				NodeElementPtr->current.image.frame = SetAbsFrameIndex (
 						MiscDataFrame, (NUM_SCANDOT_TRANSITIONS * 2)
 						+ ElementCategory (EType) * 5);

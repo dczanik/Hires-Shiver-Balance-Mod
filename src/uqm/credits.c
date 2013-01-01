@@ -16,6 +16,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+// JMS_GFX 2012: Merged the resolution Factor stuff from P6014.
+
 #include "credits.h"
 
 #include "controls.h"
@@ -32,10 +34,10 @@
 #include <math.h>
 
 // Rates in pixel lines per second
-#define CREDITS_BASE_RATE   9
-#define CREDITS_MAX_RATE    130
+#define CREDITS_BASE_RATE   (15 << RESOLUTION_FACTOR) // JMS_GFX
+#define CREDITS_MAX_RATE    (130 << RESOLUTION_FACTOR) // JMS_GFX
 // Maximum frame rate
-#define CREDITS_FRAME_RATE  36
+#define CREDITS_FRAME_RATE  (36 << RESOLUTION_FACTOR) // JMS_GFX
 
 #define CREDITS_TIMEOUT   (ONE_SECOND * 5)
 

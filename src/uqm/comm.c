@@ -16,6 +16,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+// JMS_GFX 2012: Merged the resolution Factor stuff from P6014.
+
 #define COMM_INTERNAL
 #include "comm.h"
 
@@ -55,18 +57,24 @@
 // XXX: was 32 picked experimentally?
 #define OSCILLOSCOPE_RATE   (ONE_SECOND / 32)
 
+// JMS_GFX
+#define RESPONSE_EXTRA_Y (RES_CASE(0,12,22))
+
 // Maximum comm animation frame rate (actual execution rate)
 // A gfx frame is not always produced during an execution frame,
 // and several animations are combined into one gfx frame.
 // The rate was originally 120fps which allowed for more animation
 // precision which is ultimately wasted on the human eye anyway.
 // The highest known stable animation rate is 40fps, so that's what we use.
-#define COMM_ANIM_RATE   (ONE_SECOND / 40)
+//
+// JMS: Changed this back to 120 fps since hires4x seems to like it... 
+#define COMM_ANIM_RATE   (ONE_SECOND / 120)
 
 static CONTEXT AnimContext;
 
 LOCDATA CommData;
 UNICODE shared_phrase_buf[2048];
+FONT ComputerFont;
 
 static BOOLEAN TalkingFinished;
 static CommIntroMode curIntroMode = CIM_DEFAULT;
@@ -105,7 +113,7 @@ static FRAME TextCacheFrame;
 
 RECT CommWndRect = {
 	// default values; actually inited by HailAlien()
-	{SIS_ORG_X, SIS_ORG_Y},
+	{0, 0}, //was {SIS_ORG_X, SIS_ORG_Y}, // JMS_GFX
 	{0, 0}
 };
 
@@ -157,7 +165,8 @@ add_text (int status, TEXT *pTextIn)
 	static COORD last_baseline;
 	BOOLEAN eol;
 	CONTEXT OldContext = NULL;
-	
+	COUNT computerOn = 0;
+
 	BatchGraphics ();
 
 	maxchars = (COUNT)~0;
@@ -192,13 +201,13 @@ add_text (int status, TEXT *pTextIn)
 	}
 	else if (GetContextFontLeading (&leading), status <= -4)
 	{
-		text_width = (SIZE) (SIS_SCREEN_WIDTH - 8 - (TEXT_X_OFFS << 2));
+		text_width = (SIZE) (SIS_SCREEN_WIDTH - (8 << RESOLUTION_FACTOR) - (TEXT_X_OFFS << 2)); // JMS_GFX
 
 		pText = pTextIn;
 	}
 	else
 	{
-		text_width = (SIZE) (SIS_SCREEN_WIDTH - 8 - (TEXT_X_OFFS << 2));
+		text_width = (SIZE) (SIS_SCREEN_WIDTH - (8 << RESOLUTION_FACTOR) - (TEXT_X_OFFS << 2)); // JMS_GFX
 
 		switch (status)
 		{
@@ -219,7 +228,7 @@ add_text (int status, TEXT *pTextIn)
 
 		maxchars = pTextIn->CharCount;
 		locText = *pTextIn;
-		locText.baseline.x -= 8;
+		locText.baseline.x -= (8 << RESOLUTION_FACTOR) - 4 * RESOLUTION_FACTOR; // JMS_GFX
 		locText.CharCount = (COUNT)~0;
 		locText.pStr = STR_BULLET;
 		font_DrawText (&locText);
@@ -273,8 +282,109 @@ add_text (int status, TEXT *pTextIn)
 		else
 		{
 			// Alien speech
-			font_DrawTracedText (pText,
-					CommData.AlienTextFColor, CommData.AlienTextBColor);
+			if (CommData.AlienConv == ORZ_CONVERSATION)
+			{
+				// BW : special case for the Orz conversations
+				// the character $ is recycled as a marker to
+				// switch from and to computer font
+				
+				const char *ptr;
+				RECT rect;
+				COORD baselinex = pText->baseline.x;
+				COORD width = 0;
+				COUNT remChars = pText->CharCount;
+			        // Remaining chars until end of line within width
+				const char *bakptr;
+				COUNT bakChars = remChars;
+				COUNT bakcompOn = computerOn;
+				FONT bakFont = SetContextFont(ComputerFont);
+				
+				SetContextFont(bakFont);
+				ptr = pText->pStr;
+				bakptr = ptr;
+				
+				// We need to manually center the line because
+				// the computer font is larger than the Orzfont
+				
+				// This loop computes the width of the line
+				while (remChars > 0)
+					{
+						while ((*ptr != '$') && remChars > 0)
+							{
+								getCharFromString (&ptr);
+								remChars--;
+							}
+						
+						pText->CharCount -= remChars;
+						TextRect (pText, &rect, NULL);
+						
+						width += rect.extent.width;
+						
+						if (*ptr == '$')
+							{
+								getCharFromString (&ptr);
+								remChars--;
+								computerOn = 1 - computerOn;
+								if (computerOn)
+									SetContextFont (ComputerFont);
+								else
+									SetContextFont (CommData.AlienFont);
+							}
+						pText->CharCount = remChars;
+						pText->pStr = ptr;
+					}
+
+				// This to simulate a centered line
+				pText->baseline.x = baselinex - (width >> 1);
+				pText->align = ALIGN_LEFT;
+				
+				// Put everything back in place for the
+				// actual display 
+				remChars = bakChars;
+				pText->CharCount = bakChars;
+				ptr = bakptr;
+				pText->pStr = bakptr;
+				computerOn = bakcompOn;
+				SetContextFont(bakFont);
+				
+				// This loop is used to look up for $
+				while (remChars > 0)
+					{
+						while ((*ptr != '$') && remChars > 0)
+							{
+								getCharFromString (&ptr);
+								remChars--;
+							}
+						
+						pText->CharCount -= remChars;
+						TextRect (pText, &rect, NULL);
+						
+						font_DrawTracedText (pText,
+								     CommData.AlienTextFColor, CommData.AlienTextBColor);
+						
+						pText->baseline.x += rect.extent.width;
+						
+						if (*ptr == '$')
+							{
+								getCharFromString (&ptr);
+								remChars--;
+								computerOn = 1 - computerOn;
+								if (computerOn)
+									SetContextFont (ComputerFont);
+								else
+									SetContextFont (CommData.AlienFont);
+							}
+						pText->CharCount = remChars;
+						pText->pStr = ptr;
+					}
+				pText->baseline.x = baselinex;
+				pText->align = ALIGN_CENTER;
+			}
+			else
+			{
+				// Normal case : other races than Orz
+				font_DrawTracedText (pText, CommData.AlienTextFColor, CommData.AlienTextBColor);
+			}
 		}
 	} while (!eol && maxchars);
 	pText->pStr = pStr;
@@ -416,19 +526,23 @@ RefreshResponses (ENCOUNTER_STATE *pES)
 	BYTE response;
 	SIZE leading;
 	STAMP s;
-
+	BYTE extra_y; // JMS_GFX
+	
 	SetContext (SpaceContext);
 	GetContextFontLeading (&leading);
 	BatchGraphics ();
 
 	DrawSISComWindow ();
-	y = SLIDER_Y + SLIDER_HEIGHT + 1;
+	y = SLIDER_Y + SLIDER_HEIGHT + (1 << RESOLUTION_FACTOR); // JMS_GFX
 	for (response = pES->top_response; response < pES->num_responses;
 			++response)
 	{
-		pES->response_list[response].response_text.baseline.x = TEXT_X_OFFS + 8;
-		pES->response_list[response].response_text.baseline.y = y + leading;
+		extra_y = (response == pES->top_response ? 0 : RESPONSE_EXTRA_Y); // JMS_GFX
+		
+		pES->response_list[response].response_text.baseline.x = TEXT_X_OFFS + (8 << RESOLUTION_FACTOR); // JMS_GFX
+		pES->response_list[response].response_text.baseline.y = y + leading + extra_y; // JMS_GFX
 		pES->response_list[response].response_text.align = ALIGN_LEFT;
+		
 		if (response == pES->cur_response)
 			y = add_text (-1, &pES->response_list[response].response_text);
 		else
@@ -471,7 +585,7 @@ FeedbackPlayerPhrase (UNICODE *pStr)
 		TEXT ct;
 
 		ct.baseline.x = SIS_SCREEN_WIDTH >> 1;
-		ct.baseline.y = SLIDER_Y + SLIDER_HEIGHT + 13;
+		ct.baseline.y = SLIDER_Y + SLIDER_HEIGHT + (13 << RESOLUTION_FACTOR); // JMS_GFX
 		ct.align = ALIGN_CENTER;
 		ct.CharCount = (COUNT)~0;
 
@@ -480,7 +594,7 @@ FeedbackPlayerPhrase (UNICODE *pStr)
 		SetContextForeGroundColor (COMM_RESPONSE_INTRO_TEXT_COLOR);
 		font_DrawText (&ct);
 
-		ct.baseline.y += 16;
+		ct.baseline.y += (16 << RESOLUTION_FACTOR); // JMS_GFX
 		SetContextForeGroundColor (COMM_FEEDBACK_TEXT_COLOR);
 		ct.pStr = pStr;
 		add_text (-4, &ct);
@@ -804,9 +918,9 @@ typedef struct summary_state
 static BOOLEAN
 DoConvSummary (SUMMARY_STATE *pSS)
 {
-#define DELTA_Y_SUMMARY 8
-#define MAX_SUMM_ROWS ((SIS_SCREEN_HEIGHT - SLIDER_Y - SLIDER_HEIGHT) \
-			/ DELTA_Y_SUMMARY) - 1
+#define DELTA_Y_SUMMARY (8 << RESOLUTION_FACTOR) // JMS_GFX
+	//#define MAX_SUMM_ROWS ((SIS_SCREEN_HEIGHT - SLIDER_Y - SLIDER_HEIGHT) / DELTA_Y_SUMMARY
+#define MAX_SUMM_ROWS (SLIDER_Y	/ DELTA_Y_SUMMARY) - (1 << RESOLUTION_FACTOR) // JMS_GFX
 
 	if (!pSS->Initialized)
 	{
@@ -843,7 +957,7 @@ DoConvSummary (SUMMARY_STATE *pSS)
 		r.corner.x = 0;
 		r.corner.y = 0;
 		r.extent.width = SIS_SCREEN_WIDTH;
-		r.extent.height = SIS_SCREEN_HEIGHT - SLIDER_Y - SLIDER_HEIGHT + 2;
+		r.extent.height = SLIDER_Y; //SIS_SCREEN_HEIGHT - SLIDER_Y - SLIDER_HEIGHT + (2 << RESOLUTION_FACTOR) + 16 * RESOLUTION_FACTOR; // JMS_GFX
 
 		LockMutex (GraphicsLock);
 		SetContext (AnimContext);
@@ -853,7 +967,7 @@ DoConvSummary (SUMMARY_STATE *pSS)
 		SetContextForeGroundColor (COMM_HISTORY_TEXT_COLOR);
 
 		r.extent.width -= 2 + 2;
-		t.baseline.x = 2;
+		t.baseline.x = 2 << RESOLUTION_FACTOR; // JMS_GFX
 		t.align = ALIGN_LEFT;
 		t.baseline.y = DELTA_Y_SUMMARY;
 		SetContextFont (TinyFont);
@@ -1031,8 +1145,7 @@ PlayerResponseInput (ENCOUNTER_STATE *pES)
 
 			LockMutex (GraphicsLock);
 			BatchGraphics ();
-			add_text (-2,
-					&pES->response_list[pES->cur_response].response_text);
+			// add_text (-2, &pES->response_list[pES->cur_response].response_text);
 
 			pES->cur_response = response;
 
@@ -1041,13 +1154,14 @@ PlayerResponseInput (ENCOUNTER_STATE *pES)
 			if (response < pES->top_response)
 			{
 				pES->top_response = 0;
-				RefreshResponses (pES);
+				// RefreshResponses (pES);
 			}
 			else if (y > SIS_SCREEN_HEIGHT)
 			{
 				pES->top_response = response;
-				RefreshResponses (pES);
+				// RefreshResponses (pES);
 			}
+			RefreshResponses (pES);
 			UnbatchGraphics ();
 			UnlockMutex (GraphicsLock);
 		}
@@ -1208,6 +1322,7 @@ HailAlien (void)
 
 	ES.InputFunc = DoCommunication;
 	PlayerFont = LoadFont (PLAYER_FONT);
+	ComputerFont = LoadFont (COMPUTER_FONT);
 
 	CommData.AlienFrame = CaptureDrawable (
 			LoadGraphic (CommData.AlienFrameRes));
@@ -1232,9 +1347,13 @@ HailAlien (void)
 
 	// init subtitle cache context
 	TextCacheContext = CreateContext ("TextCacheContext");
+	// TextCacheFrame = CaptureDrawable (
+	// 		CreateDrawable (WANT_PIXMAP, SIS_SCREEN_WIDTH,
+	// 		SIS_SCREEN_HEIGHT - SLIDER_Y - SLIDER_HEIGHT + 2, 1));
+	// BW: previous lines were just a complex and wrong way of obtaining 107
 	TextCacheFrame = CaptureDrawable (
 			CreateDrawable (WANT_PIXMAP, SIS_SCREEN_WIDTH,
-			SIS_SCREEN_HEIGHT - SLIDER_Y - SLIDER_HEIGHT + 2, 1));
+			SLIDER_Y, 1));
 	SetContext (TextCacheContext);
 	SetContextFGFrame (TextCacheFrame);
 	TextBack = BUILD_COLOR (MAKE_RGB15 (0x00, 0x00, 0x10), 0x00);
@@ -1256,6 +1375,8 @@ HailAlien (void)
 		SetContextFGFrame (Screen);
 		GetFrameRect (CommData.AlienFrame, &r);
 		r.extent.width = SIS_SCREEN_WIDTH;
+		CommWndRect.corner.x = SIS_ORG_X; // JMS_GFX: Added these lines because of the 
+		CommWndRect.corner.y = SIS_ORG_Y; // changed init of CommWndRect in the beginning of comm.c
 		CommWndRect.extent = r.extent;
 		
 		SetTransitionSource (NULL);
@@ -1317,6 +1438,7 @@ HailAlien (void)
 	DestroyDrawable (ReleaseDrawable (TextCacheFrame));
 
 	DestroyFont (PlayerFont);
+	DestroyFont (ComputerFont);
 
 	// Some support code tests either of these to see if the
 	// game is currently in comm or encounter

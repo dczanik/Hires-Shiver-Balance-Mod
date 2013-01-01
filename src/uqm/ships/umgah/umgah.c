@@ -118,6 +118,158 @@ static RACE_DESC umgah_desc =
 	0, /* CodeRef */
 };
 
+// JMS_GFX
+#define MAX_THRUST_2XRES /* DISPLAY_TO_WORLD (5) */ 36
+#define THRUST_INCREMENT_2XRES /* DISPLAY_TO_WORLD (2) */ 12
+
+// JMS_GFX
+static RACE_DESC umgah_desc_2xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE | IMMEDIATE_WEAPON,
+		7, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		UMGAH_RACE_STRINGS,
+		UMGAH_ICON_MASK_PMAP_ANIM,
+		UMGAH_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		833 / SPHERE_RADIUS_INCREMENT * 2, /* Initial SoI radius */
+		{ /* Known location (center of SoI) */
+			1798, 6000,
+		},
+	},
+	{
+		MAX_THRUST_2XRES,
+		THRUST_INCREMENT_2XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			UMGAH_BIG_MASK_PMAP_ANIM,
+			UMGAH_MED_MASK_PMAP_ANIM,
+			UMGAH_SML_MASK_PMAP_ANIM,
+		},
+		{
+			SPRITZ_MASK_PMAP_ANIM,
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+		},
+		{
+			CONE_BIG_MASK_ANIM,
+			CONE_MED_MASK_ANIM,
+			CONE_SML_MASK_ANIM,
+		},
+		{
+			UMGAH_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		UMGAH_VICTORY_SONG,
+		UMGAH_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		(LONG_RANGE_WEAPON_2XRES << 2),
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+// JMS_GFX
+#define MAX_THRUST_4XRES /* DISPLAY_TO_WORLD (5) */ 72
+#define THRUST_INCREMENT_4XRES /* DISPLAY_TO_WORLD (2) */ 24
+
+// JMS_GFX
+static RACE_DESC umgah_desc_4xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE | IMMEDIATE_WEAPON,
+		7, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		UMGAH_RACE_STRINGS,
+		UMGAH_ICON_MASK_PMAP_ANIM,
+		UMGAH_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		833 / SPHERE_RADIUS_INCREMENT * 2, /* Initial SoI radius */
+		{ /* Known location (center of SoI) */
+			1798, 6000,
+		},
+	},
+	{
+		MAX_THRUST_4XRES,
+		THRUST_INCREMENT_4XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			UMGAH_BIG_MASK_PMAP_ANIM,
+			UMGAH_MED_MASK_PMAP_ANIM,
+			UMGAH_SML_MASK_PMAP_ANIM,
+		},
+		{
+			SPRITZ_MASK_PMAP_ANIM,
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+		},
+		{
+			CONE_BIG_MASK_ANIM,
+			CONE_MED_MASK_ANIM,
+			CONE_SML_MASK_ANIM,
+		},
+		{
+			UMGAH_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		UMGAH_VICTORY_SONG,
+		UMGAH_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		(LONG_RANGE_WEAPON_4XRES << 2),
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
 static void
 cone_preprocess (ELEMENT *ElementPtr)
 {
@@ -146,6 +298,15 @@ cone_collision (ELEMENT *ElementPtr0, POINT *pPt0, ELEMENT *ElementPtr1, POINT *
 	}
 }
 
+<<<<<<<
+=======
+#define JUMP_DIST DISPLAY_TO_WORLD (40 << RESOLUTION_FACTOR) // JMS_GFX
+
+static void
+umgah_intelligence (ELEMENT *ShipPtr, EVALUATE_DESC *ObjectsOfConcern,
+		COUNT ConcernCounter)
+{
+>>>>>>>
 static COUNT
 initialize_cone (ELEMENT *ShipPtr, HELEMENT ConeArray[])
 {
@@ -326,10 +487,10 @@ umgah_intelligence (ELEMENT *ShipPtr, EVALUATE_DESC *ObjectsOfConcern, COUNT Con
 		else
 			this_turn = (BYTE)lpEvalDesc->which_turn;
 
-		EnoughJuice = (BOOLEAN)(WORLD_TO_TURN (
+		EnoughJuice = (BOOLEAN)((WORLD_TO_TURN (
 				JUMP_DIST * StarShipPtr->RaceDescPtr->ship_info.energy_level
 				/ SPECIAL_ENERGY_COST
-				) > this_turn);
+				) >> RESOLUTION_FACTOR) > this_turn); // JMS_GFX
 		delta_x = lpEvalDesc->ObjectPtr->next.location.x -
 				ShipPtr->next.location.x;
 		delta_y = lpEvalDesc->ObjectPtr->next.location.y -
@@ -347,7 +508,7 @@ umgah_intelligence (ELEMENT *ShipPtr, EVALUATE_DESC *ObjectsOfConcern, COUNT Con
 				|| (this_turn > 6
 				&& MANEUVERABILITY (
 				&EnemyStarShipPtr->RaceDescPtr->cyborg_control
-				) <= SLOW_SHIP)
+				) <= (SLOW_SHIP << RESOLUTION_FACTOR)) // JMS_GFX
 				|| (this_turn >= 16 && this_turn <= 24)))
 			StarShipPtr->RaceDescPtr->cyborg_control.WeaponRange = (LONG_RANGE_WEAPON << 3);
 		else
@@ -408,7 +569,54 @@ init_umgah (void)
 	umgah_desc.cyborg_control.intelligence_func = umgah_intelligence;
 
 	RaceDescPtr = &umgah_desc;
+<<<<<<<
+=======
+		ConePtr->collision_func = cone_collision;
+		ConePtr->state_flags &= ~APPEARING;
+		ConePtr->next = ConePtr->current;
+		InitIntersectStartPoint (ConePtr);
+		InitIntersectEndPoint (ConePtr);
+		ConePtr->IntersectControl.IntersectStamp.frame = StarShipPtr->RaceDescPtr->ship_data.special[0];
+		UnlockElement (ConeArray[0]);
+	}
+>>>>>>>
 
 	return (RaceDescPtr);
 }
 
+<<<<<<<
+=======
+RACE_DESC*
+init_umgah (void)
+{
+	RACE_DESC *RaceDescPtr;
+
+	if (RESOLUTION_FACTOR == 0)
+	{
+		umgah_desc.preprocess_func = umgah_preprocess;
+		umgah_desc.postprocess_func = umgah_postprocess;
+		umgah_desc.init_weapon_func = initialize_cone;
+		umgah_desc.cyborg_control.intelligence_func = umgah_intelligence;
+		RaceDescPtr = &umgah_desc;
+	}
+	else if (RESOLUTION_FACTOR == 1)
+	{
+		umgah_desc_2xres.preprocess_func = umgah_preprocess;
+		umgah_desc_2xres.postprocess_func = umgah_postprocess;
+		umgah_desc_2xres.init_weapon_func = initialize_cone;
+		umgah_desc_2xres.cyborg_control.intelligence_func = umgah_intelligence;
+		RaceDescPtr = &umgah_desc_2xres;
+	}
+	else
+	{
+		umgah_desc_4xres.preprocess_func = umgah_preprocess;
+		umgah_desc_4xres.postprocess_func = umgah_postprocess;
+		umgah_desc_4xres.init_weapon_func = initialize_cone;
+		umgah_desc_4xres.cyborg_control.intelligence_func = umgah_intelligence;
+		RaceDescPtr = &umgah_desc_4xres;
+	}
+
+	return (RaceDescPtr);
+}
+
+>>>>>>>

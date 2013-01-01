@@ -14,6 +14,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+// JMS_GFX 2012: Merged the resolution Factor stuff from P6014.
+
 #include "port.h"
 #include "libs/threadlib.h"
 #include "libs/graphics/drawcmd.h"
@@ -554,13 +556,13 @@ TFB_FlushGraphics (void)
 				int oldWidth = ScreenWidthActual;
 				int oldHeight = ScreenHeightActual;
 				if (TFB_ReInitGraphics (cmd->driver, cmd->flags,
-						cmd->width, cmd->height))
+						cmd->width, cmd->height, resolutionFactor, forceAspectRatio)) // JMS_GFX: Added resolutionFactor
 				{
 					log_add (log_Error, "Could not provide requested mode: "
 							"reverting to last known driver.");
 					// We don't know what exactly failed, so roll it all back
 					if (TFB_ReInitGraphics (oldDriver, oldFlags,
-							oldWidth, oldHeight))
+							oldWidth, oldHeight, resolutionFactor, forceAspectRatio)) // JMS_GFX: Added resolutionFactor
 					{
 						log_add (log_Fatal,
 								"Couldn't reinit at that point either. "

@@ -63,8 +63,15 @@
 #define ENERGY_DRAIN 10
 #define FREE_DOGGY_OFFSET 68 
 #define MAX_DOGGIES 4
+<<<<<<<
 #define DOGGY_HITS 3
 #define DOGGY_MASS 4
+=======
+
+#define SHIP_MASS 10
+#define MISSILE_SPEED DISPLAY_TO_WORLD (16)
+#define MISSILE_LIFE 90 /* actually, it's as long as you hold the button down. */
+>>>>>>>
 
 static RACE_DESC chenjesu_desc =
 {
@@ -137,11 +144,177 @@ static RACE_DESC chenjesu_desc =
 	0, /* CodeRef */
 };
 
+<<<<<<<
 // Fragments will not harm friendly DOGIs.
+=======
+#define MAX_THRUST_2XRES /* DISPLAY_TO_WORLD (14) */ 54 // JMS_GFX
+#define THRUST_INCREMENT_2XRES /* DISPLAY_TO_WORLD (4) */ 6 // JMS_GFX
+
+// JMS_GFX
+static RACE_DESC chenjesu_desc_2xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE | SEEKING_SPECIAL | SEEKING_WEAPON,
+		28, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		CHENJESU_RACE_STRINGS,
+		CHENJESU_ICON_MASK_PMAP_ANIM,
+		CHENJESU_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		0, /* Initial sphere of influence radius */
+		{ /* Known location (center of SoI) */
+			0, 0,
+		},
+	},
+	{
+		MAX_THRUST_2XRES,
+		THRUST_INCREMENT_2XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			CHENJESU_BIG_MASK_PMAP_ANIM,
+			CHENJESU_MED_MASK_PMAP_ANIM,
+			CHENJESU_SML_MASK_PMAP_ANIM,
+		},
+		{
+			SPARK_BIG_MASK_PMAP_ANIM,
+			SPARK_MED_MASK_PMAP_ANIM,
+			SPARK_SML_MASK_PMAP_ANIM,
+		},
+		{
+			DOGGY_BIG_MASK_PMAP_ANIM,
+			DOGGY_MED_MASK_PMAP_ANIM,
+			DOGGY_SML_MASK_PMAP_ANIM,
+		},
+		{
+			CHENJESU_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		CHENJESU_VICTORY_SONG,
+		CHENJESU_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		LONG_RANGE_WEAPON_2XRES,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+#define MAX_THRUST_4XRES /* DISPLAY_TO_WORLD (14) */ 108 // JMS_GFX
+#define THRUST_INCREMENT_4XRES /* DISPLAY_TO_WORLD (4) */ 12 // JMS_GFX
+
+// JMS_GFX
+static RACE_DESC chenjesu_desc_4xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE | SEEKING_SPECIAL | SEEKING_WEAPON,
+		28, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		CHENJESU_RACE_STRINGS,
+		CHENJESU_ICON_MASK_PMAP_ANIM,
+		CHENJESU_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		0, /* Initial sphere of influence radius */
+		{ /* Known location (center of SoI) */
+			0, 0,
+		},
+	},
+	{
+		MAX_THRUST_4XRES,
+		THRUST_INCREMENT_4XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			CHENJESU_BIG_MASK_PMAP_ANIM,
+			CHENJESU_MED_MASK_PMAP_ANIM,
+			CHENJESU_SML_MASK_PMAP_ANIM,
+		},
+		{
+			SPARK_BIG_MASK_PMAP_ANIM,
+			SPARK_MED_MASK_PMAP_ANIM,
+			SPARK_SML_MASK_PMAP_ANIM,
+		},
+		{
+			DOGGY_BIG_MASK_PMAP_ANIM,
+			DOGGY_MED_MASK_PMAP_ANIM,
+			DOGGY_SML_MASK_PMAP_ANIM,
+		},
+		{
+			CHENJESU_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		CHENJESU_VICTORY_SONG,
+		CHENJESU_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		LONG_RANGE_WEAPON_4XRES,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+#define FRAGMENT_LIFE 10
+#define FRAGMENT_SPEED MISSILE_SPEED
+#define FRAGMENT_RANGE (FRAGMENT_LIFE * FRAGMENT_SPEED)
+
+>>>>>>>
 static void
 fragment_collision (ELEMENT *ElementPtr0, POINT *pPt0, ELEMENT *ElementPtr1, POINT *pPt1)
 {
+<<<<<<<
 	STARSHIP *OtherShipPtr;
+=======
+#define FRAGMENT_HITS 1
+#define FRAGMENT_DAMAGE 2
+#define FRAGMENT_OFFSET (2 << RESOLUTION_FACTOR) // JMS_GFX
+#define NUM_FRAGMENTS 8
+	STARSHIP *StarShipPtr;
+	MISSILE_BLOCK MissileBlock;
+>>>>>>>
 
 	GetElementStarShip (ElementPtr1, &OtherShipPtr);
 	
@@ -191,7 +364,7 @@ crystal_postprocess (ELEMENT *ElementPtr)
 	MissileBlock.sender = ElementPtr->playerNr;
 	MissileBlock.flags = IGNORE_SIMILAR;
 	MissileBlock.pixoffs = 0;
-	MissileBlock.speed = FRAGMENT_SPEED;
+	MissileBlock.speed = FRAGMENT_SPEED << RESOLUTION_FACTOR; // JMS_GFX
 	MissileBlock.hit_points = FRAGMENT_HITS;
 	MissileBlock.damage = FRAGMENT_DAMAGE;
 	MissileBlock.life = FRAGMENT_LIFE;
@@ -290,6 +463,12 @@ crystal_collision (ELEMENT *ElementPtr0, POINT *pPt0,
 		UnlockElement (hBlastElement);
 	}
 }
+<<<<<<<
+=======
+
+#define DOGGY_OFFSET ((18 << RESOLUTION_FACTOR) + 10 * RESOLUTION_FACTOR) // JMS_GFX: Let's ensure the doggy doesn't spawn on top of Chenjesu ship and die.
+#define DOGGY_SPEED DISPLAY_TO_WORLD (8 << RESOLUTION_FACTOR) // JMS_GFX
+>>>>>>>
 
 static void
 doggy_preprocess (ELEMENT *ElementPtr)
@@ -305,10 +484,8 @@ doggy_preprocess (ELEMENT *ElementPtr)
 		COUNT facing, orig_facing;
 		SIZE delta_facing;
 
-		facing = orig_facing =
-				NORMALIZE_FACING (ANGLE_TO_FACING (
-				GetVelocityTravelAngle (&ElementPtr->velocity)
-				));
+		facing = orig_facing = NORMALIZE_FACING (ANGLE_TO_FACING (GetVelocityTravelAngle (&ElementPtr->velocity)));
+		
 		if ((delta_facing = TrackShip (ElementPtr, &facing)) < 0)
 			facing = NORMALIZE_FACING (TFB_Random ());
 		else
@@ -322,8 +499,7 @@ doggy_preprocess (ELEMENT *ElementPtr)
 					ShipPtr->current.location.y -
 					ElementPtr->current.location.y)
 					));
-			delta_facing = NORMALIZE_FACING (facing -
-					GetFrameIndex (ShipPtr->current.image.frame));
+			delta_facing = NORMALIZE_FACING (facing - GetFrameIndex (ShipPtr->current.image.frame));
 			UnlockElement (ElementPtr->hTarget);
 
 			if (delta_facing > ANGLE_TO_FACING (HALF_CIRCLE - OCTANT) &&
@@ -339,8 +515,7 @@ doggy_preprocess (ELEMENT *ElementPtr)
 		}
 
 		if (facing != orig_facing)
-			SetVelocityVector (&ElementPtr->velocity,
-					DOGGY_SPEED, facing);
+			SetVelocityVector (&ElementPtr->velocity, DOGGY_SPEED, facing);
 	}
 }
 
@@ -391,7 +566,11 @@ doggy_collision (ELEMENT *ElementPtr0, POINT *pPt0,
 		ElementPtr0->thrust_wait += COLLISION_THRUST_WAIT << 1;
 }
 
+<<<<<<<
 static void chenjesu_entrance (ELEMENT *ElementPtr);
+=======
+#define CHENJESU_OFFSET (16 << RESOLUTION_FACTOR) // JMS_GFX
+>>>>>>>
 
 static void
 spawn_doggy (ELEMENT *ElementPtr)
@@ -446,6 +625,15 @@ spawn_doggy (ELEMENT *ElementPtr)
 					+ SINE (angle, DISPLAY_TO_WORLD (CHENJESU_OFFSET + offset));
 			DoggyElementPtr->current.image.farray = StarShipPtr->RaceDescPtr->ship_data.special;
 			DoggyElementPtr->current.image.frame = StarShipPtr->RaceDescPtr->ship_data.special[0];
+<<<<<<<
+=======
+		DoggyElementPtr->current.location.y = ElementPtr->next.location.y
+				+ SINE (angle, DISPLAY_TO_WORLD (CHENJESU_OFFSET + DOGGY_OFFSET));
+		DoggyElementPtr->current.image.farray = StarShipPtr->RaceDescPtr->ship_data.special;
+		DoggyElementPtr->current.image.frame = StarShipPtr->RaceDescPtr->ship_data.special[0];
+
+		SetVelocityVector (&DoggyElementPtr->velocity, DOGGY_SPEED, NORMALIZE_FACING (ANGLE_TO_FACING (angle)));
+>>>>>>>
 
 			SetVelocityVector (&DoggyElementPtr->velocity,
 					DOGGY_SPEED, NORMALIZE_FACING (ANGLE_TO_FACING (angle)));
@@ -580,13 +768,13 @@ chenjesu_intelligence (ELEMENT *ShipPtr, EVALUATE_DESC *ObjectsOfConcern,
 		if ((lpEvalDesc->which_turn <= 16
 				&& MANEUVERABILITY (
 				&EnemyStarShipPtr->RaceDescPtr->cyborg_control
-				) >= MEDIUM_SHIP)
+				) >= (MEDIUM_SHIP << RESOLUTION_FACTOR)) // JMS_GFX
 				|| (MANEUVERABILITY (
 				&EnemyStarShipPtr->RaceDescPtr->cyborg_control
-				) <= SLOW_SHIP
+				) <= (SLOW_SHIP << RESOLUTION_FACTOR) // JMS_GFX
 				&& WEAPON_RANGE (
 				&EnemyStarShipPtr->RaceDescPtr->cyborg_control
-				) >= LONG_RANGE_WEAPON * 3 / 4
+				) >= (LONG_RANGE_WEAPON << RESOLUTION_FACTOR) * 3 / 4 // JMS_GFX
 				&& (EnemyStarShipPtr->RaceDescPtr->ship_info.ship_flags & SEEKING_WEAPON)))
 			lpEvalDesc->MoveState = PURSUE;
 	}
@@ -625,11 +813,11 @@ chenjesu_intelligence (ELEMENT *ShipPtr, EVALUATE_DESC *ObjectsOfConcern,
 					if ((which_turn = PlotIntercept (CrystalPtr,
 							ObjectsOfConcern[ENEMY_SHIP_INDEX].ObjectPtr,
 							CrystalPtr->life_span,
-							FRAGMENT_RANGE / 2)) == 0
+							(FRAGMENT_RANGE << RESOLUTION_FACTOR) / 2)) == 0
 							|| (which_turn == 1
 							&& PlotIntercept (CrystalPtr,
 							ObjectsOfConcern[ENEMY_SHIP_INDEX].ObjectPtr,
-							CrystalPtr->life_span, 0) == 0))
+							CrystalPtr->life_span, 0) == 0)) // JMS_GFX
 						StarShipPtr->ship_input_state &= ~WEAPON;
 					else if (StarShipPtr->weapon_counter == 0)
 					{
@@ -654,7 +842,7 @@ chenjesu_intelligence (ELEMENT *ShipPtr, EVALUATE_DESC *ObjectsOfConcern,
 					StarShipPtr->weapon_counter = 3;
 			}
 			else if (StarShipPtr->weapon_counter == 0
-					&& ship_weapons (ShipPtr, lpEvalDesc->ObjectPtr, FRAGMENT_RANGE / 2))
+					&& ship_weapons (ShipPtr, lpEvalDesc->ObjectPtr, (FRAGMENT_RANGE << RESOLUTION_FACTOR) / 2)) // JMS_GFX
 				StarShipPtr->ship_input_state |= WEAPON;
 		}
 	}
@@ -681,5 +869,56 @@ init_chenjesu (void)
 	RaceDescPtr = &chenjesu_desc;
 
 	return (RaceDescPtr);
+<<<<<<<
+}
+=======
+	MissileBlock.face = StarShipPtr->ShipFacing;
+	MissileBlock.index = 0;
+	MissileBlock.sender = ShipPtr->playerNr;
+	MissileBlock.flags = IGNORE_SIMILAR;
+	MissileBlock.pixoffs = CHENJESU_OFFSET;
+	MissileBlock.speed = MISSILE_SPEED << RESOLUTION_FACTOR; // JMS_GFX
+	MissileBlock.hit_points = MISSILE_HITS;
+	MissileBlock.damage = MISSILE_DAMAGE;
+	MissileBlock.life = MISSILE_LIFE;
+	MissileBlock.preprocess_func = crystal_preprocess;
+	MissileBlock.blast_offs = MISSILE_OFFSET;
+>>>>>>>
+
+<<<<<<<
+=======
+RACE_DESC*
+init_chenjesu (void)
+{
+	RACE_DESC *RaceDescPtr;
+
+	// JMS_GFX: A rather clumsy way of giving ship correct stats at hi-res mode
+	if (RESOLUTION_FACTOR == 0)
+	{
+		chenjesu_desc.preprocess_func = chenjesu_preprocess;
+		chenjesu_desc.postprocess_func = chenjesu_postprocess;
+		chenjesu_desc.init_weapon_func = initialize_crystal;
+		chenjesu_desc.cyborg_control.intelligence_func = chenjesu_intelligence;
+		RaceDescPtr = &chenjesu_desc;
+	}
+	else if (RESOLUTION_FACTOR == 1)
+	{
+		chenjesu_desc_2xres.preprocess_func = chenjesu_preprocess;
+		chenjesu_desc_2xres.postprocess_func = chenjesu_postprocess;
+		chenjesu_desc_2xres.init_weapon_func = initialize_crystal;
+		chenjesu_desc_2xres.cyborg_control.intelligence_func = chenjesu_intelligence;
+		RaceDescPtr = &chenjesu_desc_2xres;
+	}
+	else
+	{
+		chenjesu_desc_4xres.preprocess_func = chenjesu_preprocess;
+		chenjesu_desc_4xres.postprocess_func = chenjesu_postprocess;
+		chenjesu_desc_4xres.init_weapon_func = initialize_crystal;
+		chenjesu_desc_4xres.cyborg_control.intelligence_func = chenjesu_intelligence;
+		RaceDescPtr = &chenjesu_desc_4xres;
+	}
+	
+	return (RaceDescPtr);
 }
 
+>>>>>>>

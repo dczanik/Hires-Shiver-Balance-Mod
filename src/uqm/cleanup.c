@@ -16,6 +16,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+// JMS_GFX 2012: Merged the resolution Factor stuff from P6014.
+
 #include "nameref.h"
 #include "libs/reslib.h"
 #include "gamestr.h"
@@ -67,6 +69,8 @@ UninitKernel (void)
 	DestroyFont (MicroFont);
 	DestroyStringTable (ReleaseStringTable (GameStrings));
 	DestroyDrawable (ReleaseDrawable (StatusFrame));
+	DestroyDrawable (ReleaseDrawable (nebulaeFrame));	// JMS
+	DestroyDrawable (ReleaseDrawable (hyperspacesuns));	// JMS
 	DestroyDrawable (ReleaseDrawable (ActivityFrame));
 	DestroyFont (TinyFont);
 	DestroyFont (StarConFont);

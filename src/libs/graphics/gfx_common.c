@@ -16,6 +16,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+// JMS_GFX 2012: Merged the resolution Factor stuff from P6014.
+
 #include "gfxintrn.h"
 #include "libs/graphics/gfx_common.h"
 #include "libs/graphics/drawcmd.h"
@@ -23,6 +25,10 @@
 #include "libs/misc.h"
 		// for TFB_DEBUG_HALT
 
+// JMS_GFX
+unsigned int resolutionFactor;
+int screen_y_correction = 0;
+// End JMS_GFX
 
 int ScreenWidth;
 int ScreenHeight;
@@ -44,10 +50,24 @@ DrawFromExtraScreen (RECT *r)
 	TFB_DrawScreen_Copy(r, TFB_SCREEN_EXTRA, TFB_SCREEN_MAIN);
 }
 
+// JMS_GFX
+void
+DrawFromExtraScreen_Fs (RECT *r)
+{
+	TFB_DrawScreen_Copy_Fs(r, TFB_SCREEN_EXTRA, TFB_SCREEN_MAIN);
+}
+
 void
 LoadIntoExtraScreen (RECT *r)
 {
 	TFB_DrawScreen_Copy(r, TFB_SCREEN_MAIN, TFB_SCREEN_EXTRA);
+}
+
+// JMS_GFX
+void
+LoadIntoExtraScreen_Fs (RECT *r)
+{
+	TFB_DrawScreen_Copy_Fs(r, TFB_SCREEN_MAIN, TFB_SCREEN_EXTRA);
 }
 
 int

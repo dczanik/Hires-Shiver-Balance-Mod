@@ -32,9 +32,7 @@
 #include "gamestr.h"
 
 #include <stdlib.h>
-#ifdef STATE_DEBUG
-#	include "libs/log.h"
-#endif
+#include "libs/log.h"
 
 
 static void CreateRadar (void);

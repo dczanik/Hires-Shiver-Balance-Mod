@@ -65,7 +65,8 @@ drawSupportShip (ROSTER_STATE *rosterState, bool filled)
 	if (!rosterState->curShipFrame)
 		return;
 
-	s.origin = rosterState->curShipPt;
+	s.origin.x = RES_STAT_SCALE(rosterState->curShipPt.x);
+	s.origin.y = RES_STAT_SCALE(rosterState->curShipPt.y);
 	s.frame = rosterState->curShipFrame;
 	
 	if (filled)
@@ -85,7 +86,7 @@ getSupportShipIcon (ROSTER_STATE *rosterState)
 	if (!ShipFragPtr)
 		return;
 
-	rosterState->curShipFrame = ShipFragPtr->icons;
+	rosterState->curShipFrame = SetAbsFrameIndex (ShipFragPtr->icons, 2);
 	UnlockShipFrag (&GLOBAL (built_ship_q), hShipFrag);
 }
 

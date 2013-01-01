@@ -16,6 +16,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+// JMS_GFX 2012: Merged the resolution Factor stuff from P6014.
+
 #ifndef _MELEE_H
 #define _MELEE_H
 
@@ -34,8 +36,8 @@ typedef struct melee_state MELEE_STATE;
 #define NUM_MELEE_COLUMNS 7
 //#define NUM_MELEE_COLUMNS 6
 #define MELEE_FLEET_SIZE (NUM_MELEE_ROWS * NUM_MELEE_COLUMNS)
-#define ICON_WIDTH 16
-#define ICON_HEIGHT 16
+#define ICON_WIDTH (16 << RESOLUTION_FACTOR) // JMS_GFX
+#define ICON_HEIGHT (16 << RESOLUTION_FACTOR) // JMS_GFX
 
 extern FRAME PickMeleeFrame;
 

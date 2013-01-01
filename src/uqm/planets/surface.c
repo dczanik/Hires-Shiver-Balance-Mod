@@ -46,18 +46,36 @@ CalcMineralDeposits (SYSTEM_INFO *SysInfoPtr, COUNT which_deposit)
 		while (num_possible--)
 		{
 #define MEDIUM_DEPOSIT_THRESHOLD 150
-#define LARGE_DEPOSIT_THRESHOLD 225
+#define LARGE_DEPOSIT_THRESHOLD 220
 			COUNT deposit_quality_fine,
 						deposit_quality_gross;
+			
+			// JMS: For making the mineral blip smaller in case it is partially scavenged.
+			SDWORD temp_deposit_quality;
 
 			deposit_quality_fine = ((COUNT)TFB_Random () % 100)
 					+ (
 					DEPOSIT_QUALITY (eptr->Density)
 					+ SysInfoPtr->StarSize
 					) * 50;
-			if (deposit_quality_fine < MEDIUM_DEPOSIT_THRESHOLD)
+			
+			// JMS: This makes the mineral blip smaller in case it is partially scavenged.
+			if (which_deposit < 32)
+				temp_deposit_quality = deposit_quality_fine - ((SysInfoPtr->PlanetInfo.PartiallyScavengedList[MINERAL_SCAN][which_deposit]) * 10);
+			// JMS: In case which_deposit >= 32 (most likely 65535), it means that this
+			// function is being called only to count the number of deposit nodes on the
+			// surface. In that case we don't need to use the PartiallyScavengedList
+			// since the amount of minerals in that node is not stored yet.
+			// (AND we cannot use the list since accessing element 65535 would crash the game ;)
+			else
+				temp_deposit_quality = deposit_quality_fine;
+			
+			if (temp_deposit_quality < 0)
+				temp_deposit_quality = 0;
+			
+			if (temp_deposit_quality < MEDIUM_DEPOSIT_THRESHOLD)
 				deposit_quality_gross = 0;
-			else if (deposit_quality_fine < LARGE_DEPOSIT_THRESHOLD)
+			else if (temp_deposit_quality < LARGE_DEPOSIT_THRESHOLD)
 				deposit_quality_gross = 1;
 			else
 				deposit_quality_gross = 2;
@@ -204,14 +222,16 @@ CalcLifeForms (SYSTEM_INFO *SysInfoPtr, COUNT which_life)
 			do
 			{
 				BYTE index, num_creatures;
-				UWORD rand_val;
-
+				DWORD rand_val; // JMS_GFX: Was UWORD
+				
 				rand_val = (UWORD)TFB_Random ();
-				index = LOBYTE (rand_val) % NUM_CREATURE_TYPES;
-				num_creatures = (BYTE)((HIBYTE (rand_val) % 10) + 1);
+				index = LOBYTE ((UWORD)rand_val) % NUM_CREATURE_TYPES; // JMS_GFX
+				num_creatures = (BYTE)((HIBYTE ((UWORD)rand_val) % 10) + 1); // JMS_GFX
 				do
 				{
 					GenerateRandomLocation (SysInfoPtr);
+					
+					
 					SysInfoPtr->PlanetInfo.CurType = index;
 
 					if (num_life_forms >= which_life
@@ -247,13 +267,29 @@ GenerateLifeForms (SYSTEM_INFO *SysInfoPtr, COUNT *pwhich_life)
 void
 GenerateRandomLocation (SYSTEM_INFO *SysInfoPtr)
 {
-	UWORD rand_val;
-
-	rand_val = (UWORD)TFB_Random ();
-	SysInfoPtr->PlanetInfo.CurPt.x =
-			(LOBYTE (rand_val) % (MAP_WIDTH - (8 << 1))) + 8;
-	SysInfoPtr->PlanetInfo.CurPt.y =
-			(HIBYTE (rand_val) % (MAP_HEIGHT - (8 << 1))) + 8;
+	UWORD rand_val = (UWORD)TFB_Random ();
+	UWORD x, y; // JMS_GFX: Helpers.
+	
+	x = (LOBYTE (rand_val) % (ORIGINAL_MAP_WIDTH - (8 << 1)));
+	y = (HIBYTE (rand_val) % (ORIGINAL_MAP_HEIGHT - (8 << 1)));
+	
+	// JMS_GFX
+	x <<= RESOLUTION_FACTOR;
+	y <<= RESOLUTION_FACTOR;
+	SysInfoPtr->PlanetInfo.CurPt.x = x;
+	SysInfoPtr->PlanetInfo.CurPt.y = y;
+	
+	SysInfoPtr->PlanetInfo.CurPt.x += 8 << RESOLUTION_FACTOR; // JMS_GFX
+	SysInfoPtr->PlanetInfo.CurPt.y += 8 << RESOLUTION_FACTOR; // JMS_GFX
+	
+	// JMS_GFX: Compensate for 1280x960's different aspect ratio
+	if (RESOLUTION_FACTOR == 2)
+	{
+		DWORD xx = (DWORD)SysInfoPtr->PlanetInfo.CurPt.x;
+		xx *= 111;
+		xx /= 100;
+		SysInfoPtr->PlanetInfo.CurPt.x = (COUNT)xx;
+	}
 }
 
 DWORD

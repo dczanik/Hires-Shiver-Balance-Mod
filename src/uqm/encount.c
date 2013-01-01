@@ -16,6 +16,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+// JMS_GFX 2012: Merged the resolution Factor stuff from P6014.
+
 #include "encount.h"
 
 #include "battle.h"
@@ -38,6 +40,7 @@
 #include "settings.h"
 #include "setup.h"
 #include "sounds.h"
+#include "util.h" // JMS: For SaveContextFrame()
 #include "libs/graphics/gfx_common.h"
 #include "libs/log.h"
 #include "libs/mathlib.h"
@@ -294,7 +297,7 @@ InitEncounter (void)
 
 //    t.baseline.x = SIS_SCREEN_WIDTH >> 1;
 	t.baseline.x = (SIS_SCREEN_WIDTH >> 1) + 1;
-	t.baseline.y = 10;
+	t.baseline.y = 10 << RESOLUTION_FACTOR; // JMS_GFX
 	t.align = ALIGN_CENTER;
 
 	SetContextFont (MicroFont);
@@ -306,7 +309,7 @@ InitEncounter (void)
 				// "ENCOUNTER IN"
 		t.CharCount = (COUNT)~0;
 		font_DrawText (&t);
-		t.baseline.y += 12;
+		t.baseline.y += 12 << RESOLUTION_FACTOR; // JMS_GFX
 		t.pStr = GAME_STRING (ENCOUNTER_STRING_BASE + 1);
 				// "DEEP SPACE"
 		t.CharCount = (COUNT)~0;
@@ -320,12 +323,12 @@ InitEncounter (void)
 				// "ENCOUNTER AT"
 		t.CharCount = (COUNT)~0;
 		font_DrawText (&t);
-		t.baseline.y += 12;
+		t.baseline.y += 12 << RESOLUTION_FACTOR; // JMS_GFX
 		GetClusterName (CurStarDescPtr, buf);
 		t.pStr = buf;
 		t.CharCount = (COUNT)~0;
 		font_DrawText (&t);
-		t.baseline.y += 12;
+		t.baseline.y += 12 << RESOLUTION_FACTOR; // JMS_GFX
 		t.pStr = GLOBAL_SIS (PlanetName);
 		t.CharCount = (COUNT)~0;
 		font_DrawText (&t);
@@ -367,6 +370,7 @@ InitEncounter (void)
 				hNextShip = hStarShip;
 
 			s.origin = display_pt[i % NUM_DISPLAY_PTS];
+			
 			if (i >= NUM_DISPLAY_PTS)
 			{
 				COUNT angle, radius;
@@ -374,11 +378,19 @@ InitEncounter (void)
 				radius = square_root ((long)s.origin.x * s.origin.x
 						+ (long)s.origin.y * s.origin.y)
 						+ ((i / NUM_DISPLAY_PTS) * 18);
+				
+				radius <<= RESOLUTION_FACTOR; // JMS_GFX
 
 				angle = ARCTAN (s.origin.x, s.origin.y);
-				s.origin.x = COSINE (angle, radius);
-				s.origin.y = SINE (angle, radius);
+				s.origin.x = (COSINE (angle, radius));
+				s.origin.y = (SINE (angle, radius));
 			}
+			else
+			{
+				s.origin.x <<= RESOLUTION_FACTOR; // JMS_GFX
+				s.origin.y <<= RESOLUTION_FACTOR; // JMS_GFX
+			}
+				
 			s.frame = SetAbsFrameIndex (FragPtr->icons, 0);
 			GetFrameRect (s.frame, &r);
 			s.origin.x += (SIS_SCREEN_WIDTH >> 1) - (r.extent.width >> 1);
@@ -423,6 +435,7 @@ DrawFadeText (const UNICODE *str1, const UNICODE *str2, BOOLEAN fade_in,
 	SIZE i;
 	DWORD TimeIn;
 	TEXT t1, t2;
+	RECT r1, r2;
 	static const Color fade_cycle[] =
 	{
 		BUILD_COLOR (MAKE_RGB15_INIT (0x0A, 0x0A, 0x0A), 0x1D),
@@ -435,13 +448,13 @@ DrawFadeText (const UNICODE *str1, const UNICODE *str2, BOOLEAN fade_in,
 	};
 #define NUM_FADES (sizeof (fade_cycle) / sizeof (fade_cycle[0]))
 
-	t1.baseline.x = pRect->corner.x + 100;
-	t1.baseline.y = pRect->corner.y + 45;
+	t1.baseline.x = pRect->corner.x + (100 << RESOLUTION_FACTOR); // JMS_GFX
+	t1.baseline.y = pRect->corner.y + (45 << RESOLUTION_FACTOR); // JMS_GFX
 	t1.align = ALIGN_CENTER;
 	t1.pStr = str1;
 	t1.CharCount = (COUNT)~0;
 	t2 = t1;
-	t2.baseline.y += 11;
+	t2.baseline.y += 11 << RESOLUTION_FACTOR; // JMS_GFX
 	t2.pStr = str2;
 
 	FlushInput ();
@@ -477,10 +490,18 @@ DrawFadeText (const UNICODE *str1, const UNICODE *str2, BOOLEAN fade_in,
 			SleepThreadUntil (TimeIn + (ONE_SECOND / 20));
 			TimeIn = GetTimeCounter ();
 		}
+		// SetContextForeGroundColor (
+		//		BUILD_COLOR (MAKE_RGB15 (0x0A, 0x0A, 0x0A), 0x08));
+		// font_DrawText (&t1);
+		// font_DrawText (&t2);
+		// BW: previous lines don't work with anti-aliased fonts
 		SetContextForeGroundColor (
-				BUILD_COLOR (MAKE_RGB15 (0x0A, 0x0A, 0x0A), 0x08));
-		font_DrawText (&t1);
-		font_DrawText (&t2);
+				   BUILD_COLOR_RGBA (0x50, 0x50, 0x50, 0xff));
+		TextRect(&t1, &r1, NULL);
+		TextRect(&t2, &r2, NULL);
+		DrawFilledRectangle (&r1);
+		DrawFilledRectangle (&r2);
+
 	}
 }
 
@@ -521,6 +542,11 @@ UninitEncounter (void)
 		UNICODE buf[80];
 		HSHIPFRAG hStarShip;
 		SHIP_FRAGMENT *FragPtr;
+		
+		// JMS: These are for fixing a bug at drawing "debris scavenged" in hires4x
+		RECT	save_r;
+		STAMP	saveMetallicFrame;
+		
 		static const Color fade_ship_cycle[] =
 		{
 			BUILD_COLOR (MAKE_RGB15_INIT (0x07, 0x00, 0x00), 0x2F),
@@ -619,8 +645,8 @@ UninitEncounter (void)
 
 								DrawStatusMessage (NULL);
 								
-								ship_s.origin.x = scavenge_r.corner.x + 32;
-								ship_s.origin.y = scavenge_r.corner.y + 56;
+								ship_s.origin.x = scavenge_r.corner.x + (32 << RESOLUTION_FACTOR); // JMS_GFX
+								ship_s.origin.y = scavenge_r.corner.y + (56 << RESOLUTION_FACTOR); // JMS_GFX
 								ship_s.frame = IncFrameIndex (FragPtr->icons);
 								DrawStamp (&ship_s);
 								SetContextForeGroundColor (
@@ -632,13 +658,13 @@ UninitEncounter (void)
 								// XXX: this will not work with UTF-8 strings
 								strupr (buf);
 
-								t.baseline.x = scavenge_r.corner.x + 100;
-								t.baseline.y = scavenge_r.corner.y + 68;
+								t.baseline.x = scavenge_r.corner.x + (100 << RESOLUTION_FACTOR); // JMS_GFX
+								t.baseline.y = scavenge_r.corner.y + (68 << RESOLUTION_FACTOR); // JMS_GFX
 								t.align = ALIGN_CENTER;
 								t.pStr = buf;
 								t.CharCount = (COUNT)~0;
 								font_DrawText (&t);
-								t.baseline.y += 6;
+								t.baseline.y += 6 << RESOLUTION_FACTOR; // JMS_GFX
 								t.pStr = GAME_STRING (
 										ENCOUNTER_STRING_BASE + 3);
 										// "BATTLE GROUP"
@@ -648,6 +674,24 @@ UninitEncounter (void)
 								ship_s.frame = FragPtr->icons;
 
 								SetContextFont (MicroFont);
+								
+								// JMS: Let's store the rectangle behind "Enemy ships destroyed" (before drawing the text on it).
+								if (RESOLUTION_FACTOR != 0)
+								{
+									// These values are inferred from DrawFadeText.
+									// However, they're not the same (100 and 45) because the text there is centered,
+									// but these rect coords are for the upper-left corner, not center.
+									save_r.corner.x = scavenge_r.corner.x + (70 << RESOLUTION_FACTOR); // JMS_GFX
+									save_r.corner.y = scavenge_r.corner.y + (35 << RESOLUTION_FACTOR); // JMS_GFX
+									
+									// These are wild-assed guesses.
+									save_r.extent.width  = 60 << RESOLUTION_FACTOR;
+									save_r.extent.height = 30 << RESOLUTION_FACTOR; 
+									
+									// Now that we have the size and placement of the rectangle, let's store it.
+									saveMetallicFrame = SaveContextFrame (&save_r);
+								}
+								
 								str1 = GAME_STRING (
 										ENCOUNTER_STRING_BASE + 4);
 										// "Enemy Ships"
@@ -657,23 +701,23 @@ UninitEncounter (void)
 								DrawFadeText (str1, str2, TRUE, &scavenge_r);
 							}
 
-							r.corner.y = scavenge_r.corner.y + 9;
-							r.extent.height = 22;
+							r.corner.y = scavenge_r.corner.y + (9 << RESOLUTION_FACTOR); // JMS_GFX
+							r.extent.height = 22 << RESOLUTION_FACTOR; // JMS_GFX
 
 							SetContextForeGroundColor (BLACK_COLOR);
 
-							r.extent.width = 34;
+							r.extent.width = 34 << RESOLUTION_FACTOR; // JMS_GFX
 							r.corner.x = scavenge_r.corner.x +
 									scavenge_r.extent.width
-									- (10 + r.extent.width);
+									- ((10 << RESOLUTION_FACTOR) + r.extent.width); // JMS_GFX
 							DrawFilledRectangle (&r);
 
 							/* collect bounty ResUnits */
 							j = race_bounty[EncounterRace] >> 3;
 							RecycleAmount += j;
 							sprintf (buf, "%u", RecycleAmount);
-							t.baseline.x = r.corner.x + r.extent.width - 1;
-							t.baseline.y = r.corner.y + 14;
+							t.baseline.x = r.corner.x + r.extent.width - 1 - 5 * RESOLUTION_FACTOR; // JMS_GFX;
+							t.baseline.y = r.corner.y + (14 << RESOLUTION_FACTOR); // JMS_GFX
 							t.align = ALIGN_RIGHT;
 							t.pStr = buf;
 							t.CharCount = (COUNT)~0;
@@ -683,17 +727,17 @@ UninitEncounter (void)
 							DeltaSISGauges (0, 0, j);
 
 							if ((VictoryState++ - 1) % MAX_DEAD_DISPLAYED)
-								ship_s.origin.x += 17;
+								ship_s.origin.x += (17 << RESOLUTION_FACTOR); // JMS_GFX
 							else
 							{
 								SetContextForeGroundColor (BLACK_COLOR);
 
-								r.corner.x = scavenge_r.corner.x + 10;
-								r.extent.width = 104;
+								r.corner.x = scavenge_r.corner.x + (10 << RESOLUTION_FACTOR); // JMS_GFX
+								r.extent.width = (104 << RESOLUTION_FACTOR); // JMS_GFX
 								DrawFilledRectangle (&r);
 
-								ship_s.origin.x = r.corner.x + 2;
-								ship_s.origin.y = scavenge_r.corner.y + 12;
+								ship_s.origin.x = r.corner.x + (2 << RESOLUTION_FACTOR); // JMS_GFX
+								ship_s.origin.y = scavenge_r.corner.y + (12 << RESOLUTION_FACTOR); // JMS_GFX
 							}
 
 							if (Sleepy)
@@ -746,13 +790,13 @@ UninitEncounter (void)
 				if (!CurrentInputState.key[PlayerControls[0]][KEY_ESCAPE])
 				{
 					SetContextForeGroundColor (BLACK_COLOR);
-					r.corner.x = scavenge_r.corner.x + 10;
-					r.extent.width = 132;
+					r.corner.x = scavenge_r.corner.x + (10 << RESOLUTION_FACTOR); // JMS_GFX
+					r.extent.width = 132 << RESOLUTION_FACTOR; // JMS_GFX
 					DrawFilledRectangle (&r);
 					sprintf (buf, "%u %s", RecycleAmount,
 							GAME_STRING (STATUS_STRING_BASE + 1)); // "RU"
 					t.baseline.x = r.corner.x + (r.extent.width >> 1);
-					t.baseline.y = r.corner.y + 14;
+					t.baseline.y = r.corner.y + (14 << RESOLUTION_FACTOR); // JMS_GFX
 					t.align = ALIGN_CENTER;
 					t.pStr = buf;
 					t.CharCount = (COUNT)~0;
@@ -764,12 +808,22 @@ UninitEncounter (void)
 							// "Debris"
 					str2 = GAME_STRING (ENCOUNTER_STRING_BASE + 7);
 							// "Scavenged"
+					
+					// JMS: Now we draw the clean metallic frame to erase the "Enemy ships destroyed"
+					// text before drawing "debris scavenged."
+					if(RESOLUTION_FACTOR != 0)
+						DrawStamp (&saveMetallicFrame);
+					
 					DrawFadeText (str1, str2, TRUE, &scavenge_r);
 					UnlockMutex (GraphicsLock);
 					WaitForAnyButton (TRUE, ONE_SECOND * 2, FALSE);
 					LockMutex (GraphicsLock);
 					if (!CurrentInputState.key[PlayerControls[0]][KEY_ESCAPE])
 						DrawFadeText (str1, str2, FALSE, &scavenge_r);
+					
+					// JMS: The final cleanup of the "Debris scavenged". Without this, an ugly grey ghost-text would remain.
+					if(RESOLUTION_FACTOR != 0)
+						DrawStamp (&saveMetallicFrame);
 				}
 			}
 

@@ -79,7 +79,7 @@ TFB_PreInit (void)
 }
 
 int
-TFB_ReInitGraphics (int driver, int flags, int width, int height)
+TFB_ReInitGraphics (int driver, int flags, int width, int height, unsigned int resolutionFactor, BOOLEAN forceAspectRatio) // JMS_GFX: Added resolutionFactor
 {
 	int result;
 	int togglefullscreen = 0;
@@ -98,19 +98,19 @@ TFB_ReInitGraphics (int driver, int flags, int width, int height)
 	{
 #ifdef HAVE_OPENGL
 		result = TFB_GL_ConfigureVideo (driver, flags, width, height,
-				togglefullscreen);
+				togglefullscreen, resolutionFactor, forceAspectRatio); // JMS_GFX: Added resolutionFactor
 #else
 		driver = TFB_GFXDRIVER_SDL_PURE;
 		log_add (log_Warning, "OpenGL support not compiled in,"
 				" so using pure SDL driver");
 		result = TFB_Pure_ConfigureVideo (driver, flags, width, height,
-				togglefullscreen);
+				togglefullscreen, resolutionFactor); // JMS_GFX: Added resolutionFactor
 #endif
 	}
 	else
 	{
 		result = TFB_Pure_ConfigureVideo (driver, flags, width, height,
-				togglefullscreen);
+				togglefullscreen, resolutionFactor); // JMS_GFX: Added resolutionFactor
 	}
 
 	sprintf (caption, "The Ur-Quan Masters v%d.%d.%d%s",
@@ -127,7 +127,7 @@ TFB_ReInitGraphics (int driver, int flags, int width, int height)
 }
 
 int
-TFB_InitGraphics (int driver, int flags, int width, int height)
+TFB_InitGraphics (int driver, int flags, int width, int height, unsigned int resolutionFactor, BOOLEAN forceAspectRatio) // JMS_GFX: added resolutionFactor
 {
 	int result, i;
 	char caption[200];
@@ -143,17 +143,17 @@ TFB_InitGraphics (int driver, int flags, int width, int height)
 	if (driver == TFB_GFXDRIVER_SDL_OPENGL)
 	{
 #ifdef HAVE_OPENGL
-		result = TFB_GL_InitGraphics (driver, flags, width, height);
+		result = TFB_GL_InitGraphics (driver, flags, width, height, resolutionFactor, forceAspectRatio); // JMS_GFX: added resolutionFactor
 #else
 		driver = TFB_GFXDRIVER_SDL_PURE;
 		log_add (log_Warning, "OpenGL support not compiled in,"
 				" so using pure SDL driver");
-		result = TFB_Pure_InitGraphics (driver, flags, width, height);
+		result = TFB_Pure_InitGraphics (driver, flags, width, height, resolutionFactor); // JMS_GFX: added resolutionFactor
 #endif
 	}
 	else
 	{
-		result = TFB_Pure_InitGraphics (driver, flags, width, height);
+		result = TFB_Pure_InitGraphics (driver, flags, width, height, resolutionFactor);  // JMS_GFX: added resolutionFactor
 	}
 
 	sprintf (caption, "The Ur-Quan Masters v%d.%d.%d%s", 
@@ -267,8 +267,9 @@ TFB_SwapBuffers (int force_full_redraw)
 	if (transition_amount != 255)
 	{
 		SDL_Rect r;
+		
 		r.x = TransitionClipRect.corner.x;
-		r.y = TransitionClipRect.corner.y;
+		r.y = TransitionClipRect.corner.y - screen_y_correction; // JMS_GFX
 		r.w = TransitionClipRect.extent.width;
 		r.h = TransitionClipRect.extent.height;
 		graphics_backend->screen (TFB_SCREEN_TRANSITION,

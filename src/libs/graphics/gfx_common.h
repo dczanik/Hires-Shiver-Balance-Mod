@@ -16,6 +16,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+// JMS_GFX 2012: Merged the resolution Factor stuff from P6014.
+
 #ifndef GFX_COMMON_H
 #define GFX_COMMON_H
 
@@ -63,8 +65,8 @@ extern int GfxFlags;
 
 // The following functions are driver-defined
 void TFB_PreInit (void);
-int TFB_InitGraphics (int driver, int flags, int width, int height);
-int TFB_ReInitGraphics (int driver, int flags, int width, int height);
+int TFB_InitGraphics (int driver, int flags, int width, int height, unsigned int resolutionFactor, BOOLEAN forceAspectRatio); // JMS_GFX: Added resolutionFactor
+int TFB_ReInitGraphics (int driver, int flags, int width, int height, unsigned int resolutionFactor, BOOLEAN forceAspectRatio); // JMS_GFX: Added resolutionFactor
 void TFB_UninitGraphics (void);
 void TFB_ProcessEvents (void);
 void TFB_SetGamma (float gamma);
@@ -82,7 +84,9 @@ typedef enum {
 } SCALE;
 
 void LoadIntoExtraScreen (RECT *r);
+void LoadIntoExtraScreen_Fs (RECT *r); // JMS_GFX
 void DrawFromExtraScreen (RECT *r);
+void DrawFromExtraScreen_Fs (RECT *r); // JMS_GFX
 int SetGraphicScale (int scale);
 int GetGraphicScale (void);
 int SetGraphicScaleMode (int mode /* enum SCALE */);
@@ -98,6 +102,12 @@ extern float FrameRate;
 extern int FrameRateTickBase;
 
 void TFB_FlushGraphics (void); // Only call from main thread!!
+
+// JMS_GFX
+extern unsigned int resolutionFactor;
+extern BOOLEAN forceAspectRatio;
+extern int screen_y_correction;
+// END JMS_GFX
 
 extern int ScreenWidth;
 extern int ScreenHeight;

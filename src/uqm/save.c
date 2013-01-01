@@ -16,6 +16,10 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+// JMS 2011: - Added saving res_factor to summary_desc. It'll help making saves between different resolutions compatible.
+
+// JMS_GFX 2012: Merged the resolution Factor stuff from P6014.
+
 #include <assert.h>
 
 #include "save.h"
@@ -304,8 +308,9 @@ SaveEncounter (const ENCOUNTER *EncounterPtr, DECODE_REF fh)
 	}
 	
 	// Save the stuff after the BRIEF_SHIP_INFO array
-	cwrite_32  (fh, EncounterPtr->log_x);
-	cwrite_32  (fh, EncounterPtr->log_y);
+	// JMS: Let's make savegames work even between different resolution modes.
+	cwrite_32  (fh, ((EncounterPtr->log_x) >> RESOLUTION_FACTOR));
+	cwrite_32  (fh, ((EncounterPtr->log_y) >> RESOLUTION_FACTOR));
 }
 
 static void
@@ -360,6 +365,14 @@ SaveClockState (const CLOCK_STATE *ClockPtr, DECODE_REF fh)
 static void
 SaveGameState (const GAME_STATE *GSPtr, DECODE_REF fh)
 {
+	BYTE res_scale; // JMS
+	
+	// JMS
+	if (LOBYTE (GSPtr->CurrentActivity) != IN_INTERPLANETARY)
+		res_scale = RESOLUTION_FACTOR; 
+	else
+		res_scale = 0;
+	
 	cwrite_8   (fh, 0); /* obsolete; BYTE cur_state */
 	cwrite_8   (fh, GSPtr->glob_flags);
 	cwrite_8   (fh, GSPtr->CrewCost);
@@ -377,24 +390,24 @@ SaveGameState (const GAME_STATE *GSPtr, DECODE_REF fh)
 	cwrite_16  (fh, GSPtr->ip_location.x);
 	cwrite_16  (fh, GSPtr->ip_location.y);
 	/* STAMP ShipStamp */
-	cwrite_16  (fh, GSPtr->ShipStamp.origin.x);
-	cwrite_16  (fh, GSPtr->ShipStamp.origin.y);
+	cwrite_16  (fh, (GSPtr->ShipStamp.origin.x >> RESOLUTION_FACTOR)); // JMS: Let's make savegames work even between different resolution modes.
+	cwrite_16  (fh, (GSPtr->ShipStamp.origin.y >> RESOLUTION_FACTOR)); // JMS: Let's make savegames work even between different resolution modes.
 	cwrite_16  (fh, GSPtr->ShipFacing);
 	cwrite_8   (fh, GSPtr->ip_planet);
 	cwrite_8   (fh, GSPtr->in_orbit);
 
 	/* VELOCITY_DESC velocity */
 	cwrite_16  (fh, GSPtr->velocity.TravelAngle);
-	cwrite_16  (fh, GSPtr->velocity.vector.width);
-	cwrite_16  (fh, GSPtr->velocity.vector.height);
-	cwrite_16  (fh, GSPtr->velocity.fract.width);
-	cwrite_16  (fh, GSPtr->velocity.fract.height);
-	cwrite_16  (fh, GSPtr->velocity.error.width);
-	cwrite_16  (fh, GSPtr->velocity.error.height);
-	cwrite_16  (fh, GSPtr->velocity.incr.width);
-	cwrite_16  (fh, GSPtr->velocity.incr.height);
+	cwrite_16  (fh, GSPtr->velocity.vector.width >> res_scale); // JMS: Let's make savegames work even between different resolution modes.
+	cwrite_16  (fh, GSPtr->velocity.vector.height >> res_scale);// JMS: Let's make savegames work even between different resolution modes.
+	cwrite_16  (fh, GSPtr->velocity.fract.width >> res_scale);	// JMS: Let's make savegames work even between different resolution modes.
+	cwrite_16  (fh, GSPtr->velocity.fract.height >> res_scale); // JMS: Let's make savegames work even between different resolution modes.
+	cwrite_16  (fh, GSPtr->velocity.error.width >> res_scale);	// JMS: Let's make savegames work even between different resolution modes.
+	cwrite_16  (fh, GSPtr->velocity.error.height >> res_scale);	// JMS: Let's make savegames work even between different resolution modes.
+	cwrite_16  (fh, GSPtr->velocity.incr.width >> res_scale);	// JMS: Let's make savegames work even between different resolution modes.
+	cwrite_16  (fh, GSPtr->velocity.incr.height >> res_scale);	// JMS: Let's make savegames work even between different resolution modes.
 	cwrite_16  (fh, 0); /* VELOCITY_DESC padding */
-
+	
 	cwrite_32  (fh, GSPtr->BattleGroupRef);
 	
 	DummySaveQueue (&GSPtr->avail_race_q, fh);
@@ -405,7 +418,9 @@ SaveGameState (const GAME_STATE *GSPtr, DECODE_REF fh)
 
 	cwrite_a8  (fh, GSPtr->GameState, sizeof (GSPtr->GameState));
 
-	assert (sizeof (GSPtr->GameState) % 4 == 3);
+	//log_add (log_Debug, "Size:%lu, divided:%lu", sizeof (GSPtr->GameState), sizeof (GSPtr->GameState) % 4);
+	
+	assert (sizeof (GSPtr->GameState) % 4 == 1);
 	cwrite_8  (fh, 0); /* GAME_STATE alignment padding */
 }
 
@@ -413,8 +428,8 @@ static BOOLEAN
 SaveSisState (const SIS_STATE *SSPtr, void *fp)
 {
 	if (
-			write_32  (fp, SSPtr->log_x) != 1 ||
-			write_32  (fp, SSPtr->log_y) != 1 ||
+		write_32  (fp, ((SSPtr->log_x) >> RESOLUTION_FACTOR)) != 1 || // JMS: Let's make savegames work even between different resolution modes.
+		write_32  (fp, ((SSPtr->log_y) >> RESOLUTION_FACTOR)) != 1 || // JMS: Let's make savegames work even between different resolution modes.
 			write_32  (fp, SSPtr->ResUnits) != 1 ||
 			write_32  (fp, SSPtr->FuelOnBoard) != 1 ||
 			write_16  (fp, SSPtr->CrewEnlisted) != 1 ||
@@ -455,7 +470,8 @@ SaveSummary (const SUMMARY_DESC *SummPtr, void *fp)
 			write_8  (fp, SummPtr->NumDevices) != 1 ||
 			write_a8 (fp, SummPtr->ShipList, MAX_BUILT_SHIPS) != 1 ||
 			write_a8 (fp, SummPtr->DeviceList, MAX_EXCLUSIVE_DEVICES) != 1 ||
-
+			write_8  (fp, SummPtr->res_factor) != 1 || // JMS: This'll help making saves in different resolutions compatible.
+		
 			write_16  (fp, 0) != 1 /* padding */
 		)
 		return FALSE;
@@ -532,6 +548,8 @@ PrepareSummary (SUMMARY_DESC *SummPtr)
 	SummPtr->day_index = GLOBAL (GameClock.day_index);
 	SummPtr->month_index = GLOBAL (GameClock.month_index);
 	SummPtr->year_index = GLOBAL (GameClock.year_index);
+	
+	SummPtr->res_factor = RESOLUTION_FACTOR; // JMS: This'll help making saves in different resolutions compatible.
 }
 
 static void
@@ -830,7 +848,7 @@ RetrySave:
 
 		// Write the memory file to the actual savegame file.
 		sprintf (file, "starcon2.%02u", which_game);
-		log_add (log_Debug, "'%s' is %u bytes long", file,
+		log_add (log_Debug, "'%s' is %lu bytes long", file,
 				flen + sizeof (*SummPtr));
 		if (flen && (out_fp = res_OpenResFile (saveDir, file, "wb")))
 		{

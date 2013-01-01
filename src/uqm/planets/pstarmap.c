@@ -36,6 +36,9 @@
 #include "../sounds.h"
 #include "../state.h"
 #include "../uqmdebug.h"
+#include "../util.h"
+		/* For get_fuel_to_sol() */
+
 #include "options.h"
 #include "libs/inplib.h"
 #include "libs/strlib.h"
@@ -280,12 +283,81 @@ GetSphereRect (FLEET_INFO *FleetPtr, RECT *pRect, RECT *pRepairRect)
 }
 
 static void
+DrawFuelCircles ()
+{
+	RECT r;
+	long diameter;
+	long diameter_no_return;
+	POINT corner;
+	Color OldColor;
+
+	diameter           = (long) GLOBAL_SIS (FuelOnBoard) << 1;
+	diameter_no_return = (long) GLOBAL_SIS (FuelOnBoard) - get_fuel_to_sol();
+
+	if (LOBYTE (GLOBAL (CurrentActivity)) != IN_HYPERSPACE)
+		corner = CurStarDescPtr->star_pt;
+	else
+	{
+		corner.x = LOGX_TO_UNIVERSE (GLOBAL_SIS (log_x));
+		corner.y = LOGY_TO_UNIVERSE (GLOBAL_SIS (log_y));
+	}
+
+	/* Draw outer circle*/
+	r.extent.width = UNIVERSE_TO_DISPX (diameter)
+	                 - UNIVERSE_TO_DISPX (0);
+
+	if (r.extent.width < 0)
+		r.extent.width = -r.extent.width;
+
+	r.extent.height = UNIVERSE_TO_DISPY (diameter)
+	                  - UNIVERSE_TO_DISPY (0);
+
+	if (r.extent.height < 0)
+		r.extent.height = -r.extent.height;
+
+	r.corner.x = UNIVERSE_TO_DISPX (corner.x)
+	             - (r.extent.width >> 1);
+	r.corner.y = UNIVERSE_TO_DISPY (corner.y)
+	             - (r.extent.height >> 1);
+
+	OldColor = SetContextForeGroundColor (
+	                   BUILD_COLOR (MAKE_RGB15 (0x03, 0x03, 0x03), 0x22));
+	DrawFilledOval (&r);
+	SetContextForeGroundColor (OldColor);
+
+	/* Draw a second fuel circle showing the 'point of no return', past which there will
+	 * not be enough fuel to return to Sol.
+	 */
+
+	r.extent.width = UNIVERSE_TO_DISPX (diameter_no_return)
+	                 - UNIVERSE_TO_DISPX (0);
+
+	if (r.extent.width < 0)
+		r.extent.width = -r.extent.width;
+
+	r.extent.height = UNIVERSE_TO_DISPY (diameter_no_return)
+	                  - UNIVERSE_TO_DISPY (0);
+
+	if (r.extent.height < 0)
+		r.extent.height = -r.extent.height;
+
+	r.corner.x = UNIVERSE_TO_DISPX (corner.x)
+	             - (r.extent.width >> 1);
+	r.corner.y = UNIVERSE_TO_DISPY (corner.y)
+	             - (r.extent.height >> 1);
+
+	OldColor = SetContextForeGroundColor (
+	                   BUILD_COLOR (MAKE_RGB15 (0x04, 0x04, 0x05), 0x22));
+	DrawFilledOval (&r);
+	SetContextForeGroundColor (OldColor);
+}
+
+static void
 DrawStarMap (COUNT race_update, RECT *pClipRect)
 {
 #define GRID_DELTA 500
 	SIZE i;
 	COUNT which_space;
-	long diameter;
 	RECT r, old_r;
 	POINT oldOrigin = {0, 0};
 	STAMP s;
@@ -343,38 +415,9 @@ DrawStarMap (COUNT race_update, RECT *pClipRect)
 	}
 	ClearDrawable ();
 
-	if (race_update == 0
-			&& which_space < 2
-			&& (diameter = (long)GLOBAL_SIS (FuelOnBoard) << 1))
+	if (race_update == 0 && which_space < 2)
 	{
-		Color OldColor;
-
-		if (LOBYTE (GLOBAL (CurrentActivity)) != IN_HYPERSPACE)
-			r.corner = CurStarDescPtr->star_pt;
-		else
-		{
-			r.corner.x = LOGX_TO_UNIVERSE (GLOBAL_SIS (log_x));
-			r.corner.y = LOGY_TO_UNIVERSE (GLOBAL_SIS (log_y));
-		}
-
-		r.extent.width = UNIVERSE_TO_DISPX (diameter)
-				- UNIVERSE_TO_DISPX (0);
-		if (r.extent.width < 0)
-			r.extent.width = -r.extent.width;
-		r.extent.height = UNIVERSE_TO_DISPY (diameter)
-				- UNIVERSE_TO_DISPY (0);
-		if (r.extent.height < 0)
-			r.extent.height = -r.extent.height;
-
-		r.corner.x = UNIVERSE_TO_DISPX (r.corner.x)
-				- (r.extent.width >> 1);
-		r.corner.y = UNIVERSE_TO_DISPY (r.corner.y)
-				- (r.extent.height >> 1);
-
-		OldColor = SetContextForeGroundColor (
-				BUILD_COLOR (MAKE_RGB15 (0x03, 0x03, 0x03), 0x22));
-		DrawFilledOval (&r);
-		SetContextForeGroundColor (OldColor);
+		DrawFuelCircles ();
 	}
 
 	for (i = MAX_Y_UNIVERSE + 1; i >= 0; i -= GRID_DELTA)
@@ -583,7 +626,7 @@ EraseCursor (COORD curs_x, COORD curs_y)
 		r.extent.height = SIS_SCREEN_HEIGHT - r.corner.y;
 
 #ifndef OLD
-	RepairBackRect (&r);
+	RepairBackRect (&r, FALSE);
 #else /* NEW */
 	r.extent.height += r.corner.y & 1;
 	r.corner.y &= ~1;
@@ -596,10 +639,10 @@ EraseCursor (COORD curs_x, COORD curs_y)
 static void
 ZoomStarMap (SIZE dir)
 {
-#define MAX_ZOOM_SHIFT 4
+#define MAX_ZOOM_SHIFT (BYTE)(4 - RESOLUTION_FACTOR)
 	if (dir > 0)
 	{
-		if (zoomLevel < MAX_ZOOM_SHIFT)
+		if (zoomLevel < MAX_ZOOM_SHIFT) // JMS_GFX
 		{
 			++zoomLevel;
 			mapOrigin = cursorLoc;
@@ -675,6 +718,11 @@ UpdateCursorLocation (int sx, int sy, const POINT *newpt)
 			cursorLoc.y = MAX_Y_UNIVERSE;
 
 		s.origin.y = UNIVERSE_TO_DISPY (cursorLoc.y);
+		if (s.origin.y < 0)
+		{
+			s.origin.y = 0;
+			cursorLoc.y = DISP_TO_UNIVERSEY (0);
+		}
 	}
 
 	if (s.origin.x < 0 || s.origin.y < 0
@@ -706,6 +754,9 @@ UpdateCursorInfo (UNICODE *prevbuf)
 	POINT pt;
 	STAR_DESC *SDPtr;
 	STAR_DESC *BestSDPtr;
+	
+	// JMS: Display star search key hint.
+	utf8StringCopy (buf, sizeof (buf), "(Star search: F6)");
 
 	pt.x = UNIVERSE_TO_DISPX (cursorLoc.x);
 	pt.y = UNIVERSE_TO_DISPY (cursorLoc.y);
@@ -722,8 +773,20 @@ UpdateCursorInfo (UNICODE *prevbuf)
 
 	if (BestSDPtr)
 	{
+		// JMS: For masking the names of QS portals not yet entered.
+		BYTE QuasiPortalsKnown[] =
+		{
+			QS_PORTALS_KNOWN
+		};
+		
 		cursorLoc = BestSDPtr->star_pt;
-		GetClusterName (BestSDPtr, buf);
+		
+		if (GET_GAME_STATE(ARILOU_SPACE_SIDE) >= 2
+			&& !(QuasiPortalsKnown[BestSDPtr->Postfix - 133]))
+			utf8StringCopy (buf, sizeof (buf),
+				GAME_STRING (STAR_STRING_BASE + 132));
+		else
+			GetClusterName (BestSDPtr, buf);
 	}
 	else
 	{	// No star found. Reset the coordinates to the cursor's location
@@ -768,7 +831,29 @@ UpdateCursorInfo (UNICODE *prevbuf)
 	if (strcmp (buf, prevbuf) != 0)
 	{
 		strcpy (prevbuf, buf);
-		DrawSISMessage (buf);
+		
+		// Cursor is on top of a star. Display its name.
+		if (BestSDPtr)
+			DrawSISMessage (buf);
+		// Cursor is elsewhere.
+		else
+		{
+			// In HS, display default star search button name.
+			if (GET_GAME_STATE (ARILOU_SPACE_SIDE) <= 1)
+			{
+				CONTEXT OldContext;
+				OldContext = SetContext (OffScreenContext);
+				SetContextForeGroundColor (BUILD_COLOR (MAKE_RGB15 (0x0E, 0xA7, 0xD9), 0x00));
+				DrawSISMessageEx (buf, -1, -1, DSME_MYCOLOR);
+				SetContext (OldContext);
+			}
+			// In QS, don't display star search button - the search is unusable.
+			else
+			{
+				strcpy (buf, "QuasiSpace");
+				DrawSISMessage (buf);
+			}
+		}
 	}
 	UnlockMutex (GraphicsLock);
 }
@@ -1233,6 +1318,8 @@ DoMoveCursor (MENU_STATE *pMS)
 #define STEP_ACCEL_DELAY (ONE_SECOND / 120)
 	static UNICODE last_buf[CURSOR_INFO_BUFSIZE];
 	DWORD TimeIn = GetTimeCounter ();
+	static COUNT moveRepeats;
+	BOOLEAN isMove = FALSE;
 
 	if (!pMS->Initialized)
 	{
@@ -1330,15 +1417,30 @@ DoMoveCursor (MENU_STATE *pMS)
 		if (PulsedInputState.menu[KEY_MENU_UP])      sy =   -1;
 		if (PulsedInputState.menu[KEY_MENU_DOWN])    sy =    1;
 
+		if (moveRepeats > 20)
+		{
+			sx *= 1 << RESOLUTION_FACTOR;
+			sy *= 1 << RESOLUTION_FACTOR;
+		}
+		// BW: we need to go through this because 4x only checks for
+		// input every ONE_SECOND/40 or so, thus reducing
+		// MIN_ACCEL_STEP is of no use. In practice it's similar.
+
 		if (sx != 0 || sy != 0)
 		{
 			UpdateCursorLocation (sx, sy, NULL);
 			UpdateCursorInfo (last_buf);
 			UpdateFuelRequirement ();
+			isMove = TRUE;
 		}
 
 		SleepThreadUntil (TimeIn + MIN_ACCEL_DELAY);
 	}
+
+	if (isMove)
+		++moveRepeats;
+	else
+		moveRepeats = 0;
 
 	flashCurrentLocation (NULL);
 

@@ -24,9 +24,12 @@
 #include "uqm/hyper.h"
 			// for SOL_X/SOL_Y
 
+#include "../../nameref.h"
+			// JMS_GFX: For LoadGraphic 
 
 static LOCDATA chmmr_desc =
 {
+	CHMMR_CONVERSATION, /* AlienConv */
 	NULL, /* init_encounter_func */
 	NULL, /* post_encounter_func */
 	NULL, /* uninit_encounter_func */
@@ -148,11 +151,6 @@ ExitConversation (RESPONSE_REF R)
 /* Magic numbers for Earth */
 #define EARTH_OUTER_X (-725)
 #define EARTH_OUTER_Y (597)
-#define EARTH_INNER_X (121)
-#define EARTH_INNER_Y (113)
-/* Magic numbers for Earth Starbase */
-#define STARBASE_INNER_X (86)
-#define STARBASE_INNER_Y (113)
 
 		/* transport player to Earth */
 		GLOBAL_SIS (log_x) = UNIVERSE_TO_LOGX (SOL_X);
@@ -176,10 +174,9 @@ ExitConversation (RESPONSE_REF R)
 			for (i = NUM_BOMB_MODULES; i < NUM_MODULE_SLOTS; ++i)
 				GLOBAL_SIS (ModuleSlots[i]) = EMPTY_SLOT + 2;
 
-			/* XXX : this should be unhardcoded eventually */
 			/* transport to Starbase */
-			GLOBAL (ShipStamp.origin.x) = STARBASE_INNER_X - SAFE_X;
-			GLOBAL (ShipStamp.origin.y) = STARBASE_INNER_Y - SAFE_Y;
+			GLOBAL (ShipStamp.origin.x) = SIS_SCREEN_WIDTH >> 1;
+			GLOBAL (ShipStamp.origin.y) = SIS_SCREEN_HEIGHT >> 1;
 		}
 		else
 		{	/* 'Beating Game Differently' mode - never visited Starbase,
@@ -211,10 +208,10 @@ ExitConversation (RESPONSE_REF R)
 
 			/* XXX : this should be unhardcoded eventually */
 			/* transport to Earth itself */
-			GLOBAL (ShipStamp.origin.x) = EARTH_INNER_X - SAFE_X;
-			GLOBAL (ShipStamp.origin.y) = EARTH_INNER_Y - SAFE_Y;
+			GLOBAL (ShipStamp.origin.x) = SIS_SCREEN_WIDTH >> 1;
+			GLOBAL (ShipStamp.origin.y) = SIS_SCREEN_HEIGHT >> 1;
 		}
-
+		
 		/* install Chmmr-supplied modules */
 		for (i = 0; i < NUM_DRIVE_SLOTS; ++i)
 			GLOBAL_SIS (DriveSlots[i]) = FUSION_THRUSTER;
@@ -558,6 +555,15 @@ Intro (void)
 			CommData.AlienColorMap = SetAbsColorMapIndex (
 					CommData.AlienColorMap, 1
 					);
+			
+			// JMS_GFX: Use separate graphics in hires instead of colormap transform.
+			if (RESOLUTION_FACTOR > 0)
+			{
+				CommData.AlienFrameRes = CHMMR_RED_PMAP_ANIM;
+				CommData.AlienFrame = CaptureDrawable (
+					LoadGraphic (CommData.AlienFrameRes));
+			}
+				
 			switch (NumVisits++)
 			{
 				case 0:

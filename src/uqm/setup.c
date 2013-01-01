@@ -16,6 +16,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+// JMS_GFX 2012: Merged the resolution Factor stuff from P6014.
+
 #include "setup.h"
 
 #include "coderes.h"
@@ -61,6 +63,8 @@ FONT TinyFont;
 QUEUE race_q[NUM_PLAYERS];
 FRAME ActivityFrame;
 FRAME StatusFrame;
+FRAME hyperspacesuns; // BW
+FRAME nebulaeFrame; // JMS
 FRAME FlagStatFrame;
 FRAME MiscDataFrame;
 FRAME FontGradFrame;
@@ -73,6 +77,8 @@ STRING GameStrings;
 STRING balance_strings;
 
 QUEUE disp_q;
+BOOLEAN hires2xPackPresent; // JMS_GFX
+BOOLEAN hires4xPackPresent; // JMS_GFX
 
 uio_Repository *repository;
 uio_DirHandle *rootDir;
@@ -144,6 +150,19 @@ LoadKernel (int argc, char *argv[])
 		log_add(log_Error, "The Balance Mod effects package is missing.");
 		return FALSE;
 	}
+
+	// JMS_GFX
+	if (resolutionFactor == 1 && loadAddon ("hires2x"))
+	{
+		hires2xPackPresent = TRUE;
+		printf ("loading addon hires2x\n");
+	}
+	else if (resolutionFactor == 2 && loadAddon ("hires4x"))
+	{
+		hires4xPackPresent = TRUE;
+		printf ("loading addon hires4x\n");
+	}
+	// END JMS_GFX
 
 	/* Now load the rest of the addons, in order. */
 	prepareAddons (optAddons);
@@ -221,6 +240,16 @@ InitKernel (void)
 
 	retreat_status_frame = CaptureDrawable (LoadGraphic (RETREAT_SLASH_MASK_PMAP_ANIM));
 	if (retreat_status_frame == NULL)
+		return FALSE;
+	
+	// JMS: Animated hyperspace suns.
+	hyperspacesuns = CaptureDrawable (LoadGraphic (HYPERSUNS_MASK_PMAP_ANIM));
+	if (hyperspacesuns == NULL)
+		return FALSE;
+	
+	// JMS: Background nebulae in IP.
+	nebulaeFrame = CaptureDrawable (LoadGraphic (NEBULAE_PMAP_ANIM));
+	if (nebulaeFrame == NULL)
 		return FALSE;
 
 	GameStrings = CaptureStringTable (LoadStringTable (STARCON_GAME_STRINGS));

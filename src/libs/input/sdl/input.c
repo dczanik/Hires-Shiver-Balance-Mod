@@ -218,11 +218,13 @@ TFB_InitInput (int driver, int flags)
 {
 	int i;
 	int nJoysticks;
+	int signed_num_keys; // JMS: New variable to silence warnings
 	(void)driver;
 	(void)flags;
 
 	SDL_EnableUNICODE(1);
-	(void)SDL_GetKeyState (&num_keys);
+	(void)SDL_GetKeyState (&signed_num_keys);
+	num_keys = (unsigned int) signed_num_keys;
 	kbdstate = (int *)HMalloc (sizeof (int) * (num_keys + 1));
 	
 

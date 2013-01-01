@@ -16,6 +16,9 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+// JMS_GFX 2012: Merged the resolution Factor stuff from P6014.
+
+
 #include "weapon.h"
 
 #include "colors.h"
@@ -47,8 +50,7 @@ initialize_laser (LASER_BLOCK *pLaserBlock)
 		LaserElementPtr->playerNr = pLaserBlock->sender;
 		LaserElementPtr->hit_points = 1;
 		LaserElementPtr->mass_points = 1;
-		LaserElementPtr->state_flags = APPEARING | FINITE_LIFE
-				| pLaserBlock->flags;
+		LaserElementPtr->state_flags = APPEARING | FINITE_LIFE | pLaserBlock->flags;
 		LaserElementPtr->life_span = LASER_LIFE;
 		LaserElementPtr->collision_func = (CollisionFunc*)weapon_collision;
 		LaserElementPtr->blast_offset = 1;
@@ -60,15 +62,12 @@ initialize_laser (LASER_BLOCK *pLaserBlock)
 				+ SINE (FACING_TO_ANGLE (pLaserBlock->face),
 				DISPLAY_TO_WORLD (pLaserBlock->pixoffs));
 		SetPrimType (&DisplayArray[LaserElementPtr->PrimIndex], LINE_PRIM);
-		SetPrimColor (&DisplayArray[LaserElementPtr->PrimIndex],
-				pLaserBlock->color);
+		SetPrimColor (&DisplayArray[LaserElementPtr->PrimIndex], pLaserBlock->color);
 		LaserElementPtr->current.image.frame = DecFrameIndex (stars_in_space);
 		LaserElementPtr->current.image.farray = &stars_in_space;
-		SetVelocityComponents (&LaserElementPtr->velocity,
-				WORLD_TO_VELOCITY ((pLaserBlock->cx + pLaserBlock->ex)
-				- LaserElementPtr->current.location.x),
-				WORLD_TO_VELOCITY ((pLaserBlock->cy + pLaserBlock->ey)
-				- LaserElementPtr->current.location.y));
+		SetVelocityComponents (&LaserElementPtr->velocity, 
+			WORLD_TO_VELOCITY ((pLaserBlock->cx + pLaserBlock->ex) - LaserElementPtr->current.location.x),
+			WORLD_TO_VELOCITY ((pLaserBlock->cy + pLaserBlock->ey) - LaserElementPtr->current.location.y));
 		UnlockElement (hLaserElement);
 	}
 
@@ -123,8 +122,7 @@ initialize_missile (MISSILE_BLOCK *pMissileBlock)
 }
 
 HELEMENT
-weapon_collision (ELEMENT *WeaponElementPtr, POINT *pWPt,
-		ELEMENT *HitElementPtr, POINT *pHPt)
+weapon_collision (ELEMENT *WeaponElementPtr, POINT *pWPt, ELEMENT *HitElementPtr, POINT *pHPt)
 {
 	SIZE damage;
 	HELEMENT hBlastElement;
@@ -133,6 +131,7 @@ weapon_collision (ELEMENT *WeaponElementPtr, POINT *pWPt,
 		return ((HELEMENT)0);
 
 	damage = (SIZE)WeaponElementPtr->mass_points;
+	
 	if (damage
 			&& ((HitElementPtr->state_flags & FINITE_LIFE)
 			|| HitElementPtr->life_span == NORMAL_LIFE))
@@ -159,12 +158,10 @@ weapon_collision (ELEMENT *WeaponElementPtr, POINT *pWPt,
 			damage = TARGET_DAMAGED_FOR_1_PT + (damage >> 1);
 			if (damage > TARGET_DAMAGED_FOR_6_PLUS_PT)
 				damage = TARGET_DAMAGED_FOR_6_PLUS_PT;
-			ProcessSound (SetAbsSoundIndex (GameSounds, damage),
-					HitElementPtr);
+			ProcessSound (SetAbsSoundIndex (GameSounds, damage), HitElementPtr);
 		}
 
-		if (GetPrimType (&DisplayArray[WeaponElementPtr->PrimIndex])
-				!= LINE_PRIM)
+		if (GetPrimType (&DisplayArray[WeaponElementPtr->PrimIndex]) != LINE_PRIM)
 			WeaponElementPtr->state_flags |= DISAPPEARING;
 
 		WeaponElementPtr->hit_points = 0;
@@ -209,21 +206,16 @@ weapon_collision (ELEMENT *WeaponElementPtr, POINT *pWPt,
 			{
 				BlastElementPtr->life_span = 2;
 				BlastElementPtr->current.image.farray = blast;
-				BlastElementPtr->current.image.frame =
-						SetAbsFrameIndex (blast[0], blast_index);
+				BlastElementPtr->current.image.frame = SetAbsFrameIndex (blast[0], blast_index);
 			}
 			else
 			{
-				BlastElementPtr->life_span = num_blast_frames
-						- ANGLE_TO_FACING (FULL_CIRCLE);
+				BlastElementPtr->life_span = num_blast_frames - ANGLE_TO_FACING (FULL_CIRCLE);
 				BlastElementPtr->turn_wait = BlastElementPtr->next_turn = 0;
 				BlastElementPtr->preprocess_func = animation_preprocess;
-				BlastElementPtr->current.image.farray =
-						WeaponElementPtr->next.image.farray;
+				BlastElementPtr->current.image.farray = WeaponElementPtr->next.image.farray;
 				BlastElementPtr->current.image.frame =
-						SetAbsFrameIndex (
-						BlastElementPtr->current.image.farray[0],
-						ANGLE_TO_FACING (FULL_CIRCLE));
+						SetAbsFrameIndex (BlastElementPtr->current.image.farray[0], ANGLE_TO_FACING (FULL_CIRCLE));
 			}
 
 			UnlockElement (hBlastElement);
@@ -253,8 +245,8 @@ ModifySilhouette (ELEMENT *ElementPtr, STAMP *modify_stamp,
 	GetElementStarShip (ElementPtr, &StarShipPtr);
 	if (modify_flags & MODIFY_IMAGE)
 	{
-		ShipIntersect.IntersectStamp.frame = SetAbsFrameIndex (
-				StarShipPtr->RaceDescPtr->ship_info.icons, 1);
+		ShipIntersect.IntersectStamp.frame = SetAbsFrameIndex ( StarShipPtr->RaceDescPtr->ship_info.icons, 1);
+		
 		if (ShipIntersect.IntersectStamp.frame == 0)
 			return (0);
 
@@ -263,6 +255,7 @@ ModifySilhouette (ELEMENT *ElementPtr, STAMP *modify_stamp,
 		ShipIntersect.IntersectStamp.origin.x = 0;
 		ShipIntersect.IntersectStamp.origin.y = 0;
 		ShipIntersect.EndPoint = ShipIntersect.IntersectStamp.origin;
+		
 		do
 		{
 			ObjectIntersect.IntersectStamp.origin.x = ((COUNT)TFB_Random ()
@@ -276,7 +269,7 @@ ModifySilhouette (ELEMENT *ElementPtr, STAMP *modify_stamp,
 				&ShipIntersect, MAX_TIME_VALUE));
 
 		ObjectIntersect.IntersectStamp.origin.x += STATUS_WIDTH >> 1;
-		ObjectIntersect.IntersectStamp.origin.y += 31;
+		ObjectIntersect.IntersectStamp.origin.y += (31 << RESOLUTION_FACTOR); // JMS_GFX
 	}
 
 	ObjectIntersect.IntersectStamp.origin.y +=
@@ -286,8 +279,7 @@ ModifySilhouette (ELEMENT *ElementPtr, STAMP *modify_stamp,
 	{
 		or.corner.x += ObjectIntersect.IntersectStamp.origin.x;
 		or.corner.y += ObjectIntersect.IntersectStamp.origin.y;
-		InitShipStatus (&StarShipPtr->RaceDescPtr->ship_info,
-				StarShipPtr, &or);
+		InitShipStatus (&StarShipPtr->RaceDescPtr->ship_info, StarShipPtr, &or, FALSE);
 	}
 	else
 	{

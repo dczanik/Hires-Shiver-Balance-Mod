@@ -16,6 +16,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+// JMS_GFX 2012: Merged the resolution Factor stuff from P6014.
+
 #ifdef HAVE_UNISTD_H
 #	include <unistd.h>
 #endif
@@ -127,6 +129,9 @@ struct options_struct
 	DECL_CONFIG_OPTION(float, sfxVolumeScale);
 	DECL_CONFIG_OPTION(float, speechVolumeScale);
 	DECL_CONFIG_OPTION(bool, safeMode);
+	DECL_CONFIG_OPTION(int, resolutionFactor); // JMS_GFX
+	DECL_CONFIG_OPTION(bool, forceAspectRatio); // JMS_GFX
+	DECL_CONFIG_OPTION(int, loresBlowupScale); // JMS_GFX
 
 	DECL_CONFIG_OPTION(int, reticles);
 	DECL_CONFIG_OPTION(int, retreat);
@@ -159,8 +164,8 @@ static const struct option_list_value scalerList[] =
 
 static const struct option_list_value meleeScaleList[] = 
 {
-	{"smooth",   TFB_SCALE_TRILINEAR},
-	{"3do",      TFB_SCALE_TRILINEAR},
+	{"smooth",   TFB_SCALE_BILINEAR}, // JMS: Replaced trilinear with bilinear because of performance problems.
+	{"3do",      TFB_SCALE_BILINEAR}, // JMS: Replaced trilinear with bilinear because of performance problems.
 	{"step",     TFB_SCALE_STEP},
 	{"pc",       TFB_SCALE_STEP},
 	{"bilinear", TFB_SCALE_BILINEAR},
@@ -261,12 +266,12 @@ main (int argc, char *argv[])
 		/* .numAddons = */          0,
 
 		INIT_CONFIG_OPTION(  opengl,            false ),
-		INIT_CONFIG_OPTION2( resolution,        640, 480 ),
+		INIT_CONFIG_OPTION2( resolution,        1280, 960 ),
 		INIT_CONFIG_OPTION(  fullscreen,        false ),
 		INIT_CONFIG_OPTION(  scanlines,         false ),
 		INIT_CONFIG_OPTION(  scaler,            0 ),
 		INIT_CONFIG_OPTION(  showFps,           false ),
-		INIT_CONFIG_OPTION(  keepAspectRatio,   false ),
+		INIT_CONFIG_OPTION(  keepAspectRatio,   true ),
 		INIT_CONFIG_OPTION(  gamma,             0.0f ),
 		INIT_CONFIG_OPTION(  soundDriver,       audio_DRIVER_MIXSDL ),
 		INIT_CONFIG_OPTION(  soundQuality,      audio_QUALITY_MEDIUM ),
@@ -278,13 +283,24 @@ main (int argc, char *argv[])
 		INIT_CONFIG_OPTION(  whichIntro,        OPT_PC ),
 		INIT_CONFIG_OPTION(  whichShield,       OPT_PC ),
 		INIT_CONFIG_OPTION(  smoothScroll,      OPT_PC ),
-		INIT_CONFIG_OPTION(  meleeScale,        TFB_SCALE_TRILINEAR ),
+		INIT_CONFIG_OPTION(  meleeScale,        TFB_SCALE_BILINEAR ), // JMS: Replaced trilinear with bilinear because of performance problems.
 		INIT_CONFIG_OPTION(  subtitles,         true ),
 		INIT_CONFIG_OPTION(  stereoSFX,         false ),
 		INIT_CONFIG_OPTION(  musicVolumeScale,  1.0f ),
 		INIT_CONFIG_OPTION(  sfxVolumeScale,    1.0f ),
 		INIT_CONFIG_OPTION(  speechVolumeScale, 1.0f ),
 		INIT_CONFIG_OPTION(  safeMode,          false ),
+<<<<<<<
+=======
+		INIT_CONFIG_OPTION(  resolutionFactor,  2 ),
+		INIT_CONFIG_OPTION(  forceAspectRatio,  false ),
+		INIT_CONFIG_OPTION(  loresBlowupScale,  0 ),
+	};
+	struct options_struct defaults = options;
+	int optionsResult;
+	int gfxDriver;
+	int gfxFlags;
+>>>>>>>
 
 		INIT_CONFIG_OPTION(  reticles,		true ),
 		
@@ -417,12 +433,21 @@ main (int argc, char *argv[])
 	sfxVolumeScale = options.sfxVolumeScale.value;
 	speechVolumeScale = options.speechVolumeScale.value;
 	optAddons = options.addons;
+<<<<<<<
 
 	opt_reticles	 = options.reticles.value;
 
 	opt_retreat	 = options.retreat.value;
 	opt_retreat_wait = options.retreat_wait.value;
 
+=======
+	
+	resolutionFactor = (unsigned int) options.resolutionFactor.value; // JMS_GFX
+	forceAspectRatio = options.forceAspectRatio.value; // JMS_GFX
+	loresBlowupScale = (unsigned int) options.loresBlowupScale.value; // JMS_GFX
+	resFactorWasChanged = FALSE; // JMS_GFX
+	
+>>>>>>>
 	prepareContentDir (options.contentDir, options.addonDir, argv[0]);
 	prepareMeleeDir ();
 	prepareSaveDir ();
@@ -453,8 +478,7 @@ main (int argc, char *argv[])
 		gfxFlags |= TFB_GFXFLAGS_SCANLINES;
 	if (options.showFps.value)
 		gfxFlags |= TFB_GFXFLAGS_SHOWFPS;
-	TFB_InitGraphics (gfxDriver, gfxFlags, options.resolution.width,
-			options.resolution.height);
+	TFB_InitGraphics (gfxDriver, gfxFlags, options.resolution.width, options.resolution.height, resolutionFactor, forceAspectRatio); // JMS_GFX: added resolutionFactor
 	if (options.gamma.set)
 		TFB_SetGamma (options.gamma.value);
 	InitColorMaps ();
@@ -678,8 +702,11 @@ getUserConfigOptions (struct options_struct *options)
 
 	getIntConfigValue  (&options->reticles,     "config.reticles");
 
+	// JMS: Originally, the smooth zoom was TFB_SCALE_TRILINEAR instead of bilinear.
+	// Using bilinear alleviates the smooth zoom performance choppiness problems in 2x and 4x, but
+	// is kinda hacky solution...
 	getBoolConfigValueXlat (&options->meleeScale, "config.smoothmelee",
-			TFB_SCALE_TRILINEAR, TFB_SCALE_STEP);
+							TFB_SCALE_BILINEAR, TFB_SCALE_STEP);
 
 	if (getListConfigValue (&options->soundDriver, "config.audiodriver",
 			audioDriverList))
@@ -696,6 +723,22 @@ getUserConfigOptions (struct options_struct *options)
 	getVolumeConfigValue (&options->musicVolumeScale, "config.musicvol");
 	getVolumeConfigValue (&options->sfxVolumeScale, "config.sfxvol");
 	getVolumeConfigValue (&options->speechVolumeScale, "config.speechvol");
+	
+	// JMS_GFX
+	if (res_IsInteger ("config.resolutionfactor") && !options->resolutionFactor.set)
+	{
+		options->resolutionFactor.value = res_GetInteger ("config.resolutionfactor");
+		options->resolutionFactor.set = true;
+	}
+	
+	// JMS_GFX
+	getBoolConfigValue (&options->forceAspectRatio, "config.forceaspectratio");
+	
+	// JMS_GFX
+	if (res_IsInteger ("config.loresBlowupScale"))
+	{
+		options->loresBlowupScale.value = res_GetInteger ("config.loresBlowupScale");
+	}
 	
 	if (res_IsInteger ("config.player1control"))
 	{
@@ -748,6 +791,7 @@ enum
 	NETPORT2_OPT,
 	NETDELAY_OPT,
 #endif
+	RESFACTOR_OPT, // JMS_GFX
 };
 
 static const char *optString = "+r:foc:b:spC:n:?hM:S:T:m:q:ug:l:i:vwxk";
@@ -801,6 +845,7 @@ static struct option longOptions[] =
 	{"netport2", 1, NULL, NETPORT2_OPT},
 	{"netdelay", 1, NULL, NETDELAY_OPT},
 #endif
+	{"resfactor", 1, NULL, RESFACTOR_OPT}, // JMS_GFX
 	{0, 0, 0, 0}
 };
 
@@ -1164,6 +1209,26 @@ parseOptions (int argc, char *argv[], struct options_struct *options)
 				break;
 			}
 #endif
+			// JMS_GFX: Added the whole following case. It checks whether the resolutionfactor value is sane.
+			case RESFACTOR_OPT:
+			{
+				int temp;
+				if (parseIntOption (optarg, &temp, "resolution factor")
+						== -1)
+				{
+					badArg = true;
+					break;
+				}
+				options->resolutionFactor.value = temp;
+
+				if (options->resolutionFactor.value > 2)
+				{
+					saveError ("Resolution factor has to be 0, 1 or 2.");
+					badArg = true;
+				}
+				options->resolutionFactor.set = true;
+				break;
+			}
 			default:
 				saveError ("Error: Unknown option '%s'",
 						optionIndex < 0 ? "<unknown>" :

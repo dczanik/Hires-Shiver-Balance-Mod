@@ -16,6 +16,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+// JMS_GFX 2012: Merged the resolution Factor stuff from P6014.
+
 #include "tactrans.h"
 
 #include "battlecontrols.h"
@@ -968,7 +970,7 @@ ship_transition (ELEMENT *ElementPtr)
 		}
 		else if ((hShipImage = AllocElement ()))
 		{
-#define TRANSITION_SPEED DISPLAY_TO_WORLD (40)
+#define TRANSITION_SPEED DISPLAY_TO_WORLD ((40 << RESOLUTION_FACTOR)) // JMS_GFX
 #define TRANSITION_LIFE 1
 			COUNT angle;
 

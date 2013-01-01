@@ -51,6 +51,8 @@ extern GenerateFunctions generateWreckFunctions;
 extern GenerateFunctions generateYehatFunctions;
 extern GenerateFunctions generateZoqFotPikFunctions;
 extern GenerateFunctions generateZoqFotPikScoutFunctions;
+extern GenerateFunctions generateZoqFotPikColony0Functions;
+extern GenerateFunctions generateZoqFotPikColony1Functions;
 
 
 const GenerateFunctions *
@@ -121,6 +123,10 @@ getGenerateFunctions (BYTE Index)
 			return &generateZoqFotPikFunctions;
 		case ZOQ_SCOUT_DEFINED:
 			return &generateZoqFotPikScoutFunctions;
+		case ZOQ_COLONY0_DEFINED:
+			return &generateZoqFotPikColony0Functions;
+		case ZOQ_COLONY1_DEFINED:
+			return &generateZoqFotPikColony1Functions;
 		case YEHAT_DEFINED:
 			return &generateYehatFunctions;
 		case PKUNK_DEFINED:

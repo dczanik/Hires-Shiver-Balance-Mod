@@ -16,6 +16,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+// JMS_GFX 2012: Merged the resolution Factor stuff from P6014.
+
 #include "fmv.h"
 
 #include "controls.h"
@@ -82,7 +84,29 @@ SplashScreen (void (* DoProcessing)(DWORD TimeOut))
 	LockMutex (GraphicsLock);
 	SetContext (ScreenContext);
 	s.origin.x = s.origin.y = 0;
-	s.frame = CaptureDrawable (LoadGraphic (TITLE_ANIM));
+
+	//s.frame = CaptureDrawable (LoadGraphic (TITLE_ANIM));
+	
+	//DC: Title Splashscreen.
+	if (resolutionFactor < 1)
+	{
+		printf("Loading 1x Splashscreen\n");
+		s.frame = CaptureDrawable (LoadGraphic (TITLE_ANIM));
+	}
+
+	else if (resolutionFactor == 1)
+	{
+		printf("Loading 2x Splashscreen\n");
+		s.frame = CaptureDrawable (LoadGraphic (TITLE_2X));
+	}
+
+	else if(resolutionFactor > 1)
+	{
+		printf("Loading 4x Splashscreen\n");
+		s.frame = CaptureDrawable (LoadGraphic (TITLE_4X));
+	}
+	// DC: End of spashscreen resolutions.
+	
 	DrawStamp (&s);
 	DestroyDrawable (ReleaseDrawable (s.frame));
 	UnlockMutex (GraphicsLock);

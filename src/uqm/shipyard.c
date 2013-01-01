@@ -16,6 +16,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+// JMS_GFX 2012: Merged the resolution Factor stuff from P6014.
+
 #include "build.h"
 #include "colors.h"
 #include "controls.h"
@@ -37,6 +39,7 @@
 #include "sounds.h"
 #include "libs/graphics/gfx_common.h"
 #include "libs/inplib.h"
+#include "libs/log.h"
 
 
 #ifdef USE_3DO_HANGAR
@@ -52,13 +55,23 @@ static const COORD hangar_x_coords[HANGAR_SHIPS_ROW] =
 
 #else // use PC hangar
 // modified PC 6x2 hangar layout
-#	define HANGAR_SHIPS_ROW  6
-#	define HANGAR_Y          88
-#	define HANGAR_DY         84
+# define HANGAR_SHIPS_ROW  6
+# define HANGAR_Y          ((88 << RESOLUTION_FACTOR) - RES_CASE(0,1,2)) // JMS_GFX
+# define HANGAR_DY         ((84 << RESOLUTION_FACTOR) + RES_CASE(0,1,2)) // JMS_GFX
 
-static const COORD hangar_x_coords[HANGAR_SHIPS_ROW] =
+static const COORD hangar_x_coords_1x[HANGAR_SHIPS_ROW] =
 {
-	0, 38, 76,  131, 169, 207
+	0, 38, 76, 131, 169, 207
+};
+
+static const COORD hangar_x_coords_2x[HANGAR_SHIPS_ROW] =
+{
+	0, 78, 155, 269, 346, 414
+};
+
+static const COORD hangar_x_coords_4x[HANGAR_SHIPS_ROW] =
+{
+	3, 171, 339, 578, 746, 914
 };
 #endif // USE_3DO_HANGAR
 
@@ -238,8 +251,15 @@ DrawRaceStrings (MENU_STATE *pMS, BYTE NewRaceItem)
 		t.pStr = buf;
 		sprintf (buf, "%u", ShipCost[NewRaceItem]);
 		SetContextFont (TinyFont);
-		SetContextForeGroundColor (
-				BUILD_COLOR (MAKE_RGB15 (0x00, 0x1F, 0x00), 0x02));
+
+		if ((ShipCost[NewRaceItem]) <= (GLOBAL_SIS (ResUnits)))
+		{
+			SetContextForeGroundColor (BRIGHT_GREEN_COLOR);
+		} else if ((ShipCost[NewRaceItem]) > (GLOBAL_SIS (ResUnits)))
+		{ /* We don't have enough to purchase this ship. */
+			SetContextForeGroundColor (BRIGHT_RED_COLOR);
+		}
+
 		font_DrawText (&t);
 	}
 	UnbatchGraphics ();
@@ -250,9 +270,9 @@ DrawRaceStrings (MENU_STATE *pMS, BYTE NewRaceItem)
 	UnlockMutex (GraphicsLock);
 }
 
-#define SHIP_WIN_WIDTH 34
-#define SHIP_WIN_HEIGHT (SHIP_WIN_WIDTH + 6)
-#define SHIP_WIN_FRAMES ((SHIP_WIN_WIDTH >> 1) + 1)
+#define SHIP_WIN_WIDTH RES_CASE(34, 78, 156) // JMS_GFX
+#define SHIP_WIN_HEIGHT (SHIP_WIN_WIDTH + RES_CASE(6,6,11)) // JMS_GFX
+#define SHIP_WIN_FRAMES ((SHIP_WIN_WIDTH >> 1) + RES_CASE(1,2,2))
 
 static void
 ShowShipCrew (SHIP_FRAGMENT *StarShipPtr, RECT *pRect)
@@ -279,15 +299,15 @@ ShowShipCrew (SHIP_FRAGMENT *StarShipPtr, RECT *pRect)
 
 	r = *pRect;
 	t.baseline.x = r.corner.x + (r.extent.width >> 1);
-	t.baseline.y = r.corner.y + r.extent.height - 1;
+	t.baseline.y = r.corner.y + r.extent.height - 1 - (RESOLUTION_FACTOR == 1 ? 1 : 0); // JMS_GFX
 	t.align = ALIGN_CENTER;
 	t.pStr = buf;
 	t.CharCount = (COUNT)~0;
 	if (r.corner.y)
 	{
-		r.corner.y = t.baseline.y - 6;
+		r.corner.y = t.baseline.y - (6 << RESOLUTION_FACTOR); //JMS_GFX
 		r.extent.width = SHIP_WIN_WIDTH;
-		r.extent.height = 6;
+		r.extent.height = (6 << RESOLUTION_FACTOR) + (RESOLUTION_FACTOR == 1 ? 1 : 0); // JMS_GFX
 		SetContextForeGroundColor (BLACK_COLOR);
 		DrawFilledRectangle (&r);
 	}
@@ -304,6 +324,7 @@ ShowCombatShip (MENU_STATE *pMS, COUNT which_window,
 	COUNT i, num_ships;
 	HSHIPFRAG hStarShip, hNextShip;
 	SHIP_FRAGMENT *StarShipPtr;
+	static const COORD *hangar_x_coords;
 	struct
 	{
 		SHIP_FRAGMENT *StarShipPtr;
@@ -311,6 +332,20 @@ ShowCombatShip (MENU_STATE *pMS, COUNT which_window,
 		STAMP ship_s, lfdoor_s, rtdoor_s;
 	} ship_win_info[MAX_BUILT_SHIPS], *pship_win_info;
 
+	switch (RESOLUTION_FACTOR) // JMS_GFX
+	{
+		case 2:
+			hangar_x_coords = hangar_x_coords_4x;
+			break;
+		case 1:
+			hangar_x_coords = hangar_x_coords_2x;
+			break;
+		case 0:
+		default:
+			hangar_x_coords = hangar_x_coords_1x;
+			break;
+	}
+	
 	num_ships = 1;
 	pship_win_info = &ship_win_info[0];
 	if (YankedStarShipPtr)
@@ -329,8 +364,7 @@ ShowCombatShip (MENU_STATE *pMS, COUNT which_window,
 		pship_win_info->ship_s.origin.y = (SHIP_WIN_WIDTH >> 1);
 		pship_win_info->ship_s.frame = YankedStarShipPtr->melee_icon;
 
-		pship_win_info->finished_s.x = hangar_x_coords[
-				which_window % HANGAR_SHIPS_ROW];
+		pship_win_info->finished_s.x = hangar_x_coords[which_window % HANGAR_SHIPS_ROW];
 		pship_win_info->finished_s.y = HANGAR_Y + (HANGAR_DY *
 				(which_window / HANGAR_SHIPS_ROW));
 	}
@@ -390,8 +424,7 @@ ShowCombatShip (MENU_STATE *pMS, COUNT which_window,
 			pship_win_info->ship_s.frame = StarShipPtr->melee_icon;
 
 			which_window = StarShipPtr->index;
-			pship_win_info->finished_s.x = hangar_x_coords[
-					which_window % HANGAR_SHIPS_ROW];
+			pship_win_info->finished_s.x = hangar_x_coords[which_window % HANGAR_SHIPS_ROW];
 			pship_win_info->finished_s.y = HANGAR_Y + (HANGAR_DY *
 					(which_window / HANGAR_SHIPS_ROW));
 			++pship_win_info;
@@ -417,7 +450,7 @@ ShowCombatShip (MENU_STATE *pMS, COUNT which_window,
 		FlushInput ();
 		TimeIn = GetTimeCounter ();
 
-		for (j = 0; (j < SHIP_WIN_FRAMES) && !AllDoorsFinished; j++)
+		for (j = 0; (j < (int)SHIP_WIN_FRAMES) && !AllDoorsFinished; j++)
 		{
 			SleepThreadUntil (TimeIn + ONE_SECOND / 24);
 			TimeIn = GetTimeCounter ();
@@ -545,6 +578,7 @@ DoModifyShips (MENU_STATE *pMS)
 {
 #define MODIFY_CREW_FLAG (1 << 8)
 	BOOLEAN select, cancel;
+	static const COORD *hangar_x_coords;
 #ifdef WANT_SHIP_SPINS
 	BOOLEAN special;
 
@@ -552,6 +586,20 @@ DoModifyShips (MENU_STATE *pMS)
 #endif /* WANT_SHIP_SPINS */
 	select = PulsedInputState.menu[KEY_MENU_SELECT];
 	cancel = PulsedInputState.menu[KEY_MENU_CANCEL];
+	
+	switch (RESOLUTION_FACTOR) // JMS_GFX
+	{
+		case 2:
+			hangar_x_coords = hangar_x_coords_4x;
+			break;
+		case 1:
+			hangar_x_coords = hangar_x_coords_2x;
+			break;
+		case 0:
+		default:
+			hangar_x_coords = hangar_x_coords_1x;
+			break;
+	}
 
 	if (GLOBAL (CurrentActivity) & CHECK_ABORT)
 	{
@@ -752,10 +800,9 @@ DoModifyShips (MENU_STATE *pMS)
 							DeltaSISGauges (UNDEFINED_DELTA, UNDEFINED_DELTA,
 									-((int)ShipCost[Index]));
 							r.corner.x = pMS->flash_rect0.corner.x;
-							r.corner.y = pMS->flash_rect0.corner.y
-									+ pMS->flash_rect0.extent.height - 6;
+							r.corner.y = pMS->flash_rect0.corner.y + pMS->flash_rect0.extent.height - (6 << RESOLUTION_FACTOR); // JMS_GFX
 							r.extent.width = SHIP_WIN_WIDTH;
-							r.extent.height = 5;
+							r.extent.height = 5 << RESOLUTION_FACTOR; // JMS_GFX
 							SetContext (SpaceContext);
 							SetFlashRect (&r);
 							UnlockMutex (GraphicsLock);
@@ -845,10 +892,9 @@ DoModifyShips (MENU_STATE *pMS)
 					else
 					{
 						r.corner.x = pMS->flash_rect0.corner.x;
-						r.corner.y = pMS->flash_rect0.corner.y
-								+ pMS->flash_rect0.extent.height - 6;
+						r.corner.y = pMS->flash_rect0.corner.y + pMS->flash_rect0.extent.height - (6 << RESOLUTION_FACTOR);
 						r.extent.width = SHIP_WIN_WIDTH;
-						r.extent.height = 5;
+						r.extent.height = (5 << RESOLUTION_FACTOR); // JMS_GFX
 						SetContext (SpaceContext);
 						SetFlashRect (&r);
 						SetMenuSounds (MENU_SOUND_UP | MENU_SOUND_DOWN,
@@ -876,7 +922,30 @@ DoModifyShips (MENU_STATE *pMS)
 									&& GLOBAL_SIS (ResUnits) >=
 									(DWORD)GLOBAL (CrewCost))
 							{
-								DrawPoint (&r.corner);
+								// Crew dots/rectangles for 1x and 2x resolutions.
+								if (RESOLUTION_FACTOR < 2)
+								{
+									r.extent.width = 1 << RESOLUTION_FACTOR;
+									r.extent.height = r.extent.width;
+									DrawFilledRectangle (&r);
+								}
+								// Crew balls for 4x resolution.
+								else
+								{
+									r.corner.x += 1;
+									r.extent.width = (1 << RESOLUTION_FACTOR) - 2;
+									r.extent.height = 1 << RESOLUTION_FACTOR;
+									DrawFilledRectangle (&r);
+									
+									r.corner.x -= 1;
+									r.corner.y += 1;
+									r.extent.width = 1 << RESOLUTION_FACTOR;
+									r.extent.height = (1 << RESOLUTION_FACTOR) - 2;
+									DrawFilledRectangle (&r);
+									
+									r.corner.y -= 1;
+								}
+								
 								DeltaSISGauges (1, 0, -GLOBAL (CrewCost));
 								crew_delta = 1;
 
@@ -917,9 +986,9 @@ DoModifyShips (MENU_STATE *pMS)
 								ShowShipCrew (StarShipPtr, &pMS->flash_rect0);
 								r.corner.x = pMS->flash_rect0.corner.x;
 								r.corner.y = pMS->flash_rect0.corner.y
-										+ pMS->flash_rect0.extent.height - 6;
+									+ pMS->flash_rect0.extent.height - (6 << RESOLUTION_FACTOR);
 								r.extent.width = SHIP_WIN_WIDTH;
-								r.extent.height = 5;
+								r.extent.height = 5 << RESOLUTION_FACTOR; // JMS_GFX
 								SetContext (SpaceContext);
 								SetFlashRect (&r);
 							}
@@ -946,8 +1015,11 @@ DoModifyShips (MENU_STATE *pMS)
 								crew_delta = -1;
 
 								GetCPodCapacity (&r.corner);
+								r.extent.width = 1 << RESOLUTION_FACTOR;
+								r.extent.height = r.extent.width;
 								SetContextForeGroundColor (BLACK_COLOR);
-								DrawPoint (&r.corner);
+								
+								DrawFilledRectangle (&r);
 
 								SetContext (StatusContext);
 								GetGaugeRect (&r, TRUE);
@@ -980,9 +1052,9 @@ DoModifyShips (MENU_STATE *pMS)
 							ShowShipCrew (StarShipPtr, &pMS->flash_rect0);
 							r.corner.x = pMS->flash_rect0.corner.x;
 							r.corner.y = pMS->flash_rect0.corner.y
-									+ pMS->flash_rect0.extent.height - 6;
+								+ pMS->flash_rect0.extent.height - (6 << RESOLUTION_FACTOR);
 							r.extent.width = SHIP_WIN_WIDTH;
-							r.extent.height = 5;
+							r.extent.height = 5 << RESOLUTION_FACTOR; // JMS_GFX
 							SetContext (SpaceContext);
 							SetFlashRect (&r);
 						}
@@ -1022,12 +1094,11 @@ ChangeFlashRect:
 					pMS->flash_rect0.corner.x =
 							pMS->flash_rect0.corner.y = 0;
 					pMS->flash_rect0.extent.width = SIS_SCREEN_WIDTH;
-					pMS->flash_rect0.extent.height = 61;
+					pMS->flash_rect0.extent.height = RES_CASE(61, 122, 295); // JMS_GFX
 				}
 				else
 				{
-					pMS->flash_rect0.corner.x = hangar_x_coords[
-							pMS->CurState % HANGAR_SHIPS_ROW];
+					pMS->flash_rect0.corner.x = hangar_x_coords[pMS->CurState % HANGAR_SHIPS_ROW]; // JMS_GFX
 					pMS->flash_rect0.corner.y = HANGAR_Y + (HANGAR_DY *
 							(pMS->CurState / HANGAR_SHIPS_ROW));
 					pMS->flash_rect0.extent.width = SHIP_WIN_WIDTH;
@@ -1080,8 +1151,12 @@ DrawBluePrint (MENU_STATE *pMS)
 			DrawShipPiece (ModuleFrame, which_piece, num_frames, TRUE);
 	}
 
-	SetContextForeGroundColor (
+	// JMS_GFX: The lo-res crew pod blueprint retains the lighter color scheme.
+	// Normal blue for hi-res.
+	if (RESOLUTION_FACTOR == 0)
+		SetContextForeGroundColor (
 			BUILD_COLOR (MAKE_RGB15 (0x0A, 0x0A, 0x1F), 0x09));
+	
 	for (num_frames = 0; num_frames < NUM_MODULE_SLOTS; ++num_frames)
 	{
 		BYTE which_piece;
@@ -1097,10 +1172,34 @@ DrawBluePrint (MENU_STATE *pMS)
 
 		while (num_frames--)
 		{
-			POINT pt;
-
-			GetCPodCapacity (&pt);
-			DrawPoint (&pt);
+			RECT r;
+			// Crew dots/rectangles for 1x and 2x resolutions.
+			if (RESOLUTION_FACTOR < 2)
+			{
+				r.extent.width = 1 << RESOLUTION_FACTOR;
+				r.extent.height = r.extent.width;
+				
+				GetCPodCapacity (&r.corner);
+				DrawFilledRectangle (&r);
+			}
+			// Crew balls for 4x resolution.
+			else
+			{
+				GetCPodCapacity (&r.corner);
+				
+				r.corner.x += 1;
+				r.extent.width = (1 << RESOLUTION_FACTOR) - 2;
+				r.extent.height = 1 << RESOLUTION_FACTOR;
+				DrawFilledRectangle (&r);
+				
+				r.corner.x -= 1;
+				r.corner.y += 1;
+				r.extent.width = 1 << RESOLUTION_FACTOR;
+				r.extent.height = (1 << RESOLUTION_FACTOR) - 2;
+				DrawFilledRectangle (&r);
+				
+				r.corner.y -= 1;
+			}
 
 			++GLOBAL_SIS (CrewEnlisted);
 		}
@@ -1111,8 +1210,8 @@ DrawBluePrint (MENU_STATE *pMS)
 		num_frames = GLOBAL_SIS (TotalElementMass);
 		GLOBAL_SIS (TotalElementMass) = 0;
 
-		r.extent.width = 9;
-		r.extent.height = 1;
+		r.extent.width = 9 << RESOLUTION_FACTOR; // JMS_GFX
+		r.extent.height = 1 << RESOLUTION_FACTOR; // JMS_GFX
 		while (num_frames)
 		{
 			COUNT m;
@@ -1133,13 +1232,52 @@ DrawBluePrint (MENU_STATE *pMS)
 		FuelVolume = GLOBAL_SIS (FuelOnBoard) - FUEL_RESERVE;
 		GLOBAL_SIS (FuelOnBoard) = FUEL_RESERVE;
 
-		r.extent.width = 3;
-		r.extent.height = 1;
+		r.extent.width = (3 << RESOLUTION_FACTOR) + RESOLUTION_FACTOR; // JMS_GFX
+		r.extent.height = 1; // JMS_GFX
+		
 		while (FuelVolume)
 		{
 			COUNT m;
-
+			
+			// JMS_GFX
+			COUNT slotNr = 0;
+			DWORD compartmentNr = 0;
+			BYTE moduleType;
+			DWORD fuelAmount;
+			DWORD volume;
+			
+			// JMS_GFX
+			fuelAmount = GLOBAL_SIS (FuelOnBoard);
+			if (fuelAmount >= FUEL_RESERVE)
+			{
+				COUNT slotI;
+				DWORD capacity = FUEL_RESERVE;
+				
+				slotI = NUM_MODULE_SLOTS;
+				while (slotI--)
+				{
+					BYTE moduleType = GLOBAL_SIS (ModuleSlots[slotI]);
+					
+					capacity += GetModuleFuelCapacity (moduleType);
+					
+					//log_add (log_Debug, "fuelAmount %d, capacity %d, moduletype %d, slotI %d", fuelAmount, capacity, moduleType, slotI);
+					
+					if (fuelAmount < capacity)
+					{
+						slotNr = slotI;
+						compartmentNr = capacity - fuelAmount;
+						break;
+					}
+				}
+				
+				moduleType = GLOBAL_SIS (ModuleSlots[slotNr]);
+				volume = GetModuleFuelCapacity (moduleType);
+			}
+				
 			GetFTankCapacity (&r.corner);
+			//log_add(log_Debug, "volume on %u, hefueltankcapacity %u", volume, HEFUEL_TANK_CAPACITY);
+			r.corner.y -= volume == HEFUEL_TANK_CAPACITY ? RES_CASE(0,9,19) : RES_CASE(0,14,28); // JMS_GFX
+			r.corner.x += volume == HEFUEL_TANK_CAPACITY ? RES_CASE(0,1,2) : RES_CASE(0,0,1); // JMS_GFX
 			DrawPoint (&r.corner);
 			r.corner.x += r.extent.width + 1;
 			DrawPoint (&r.corner);

@@ -25,10 +25,10 @@
 
 #include "libs/strlib.h"
 
-#define STAR_STRING_COUNT       133
+#define STAR_STRING_COUNT       149 // JMS: Was 133. Added 15 QS portals+Arilouhome
 #define DEVICE_STRING_COUNT      29
 #define CARGO_STRING_COUNT       10
-#define ELEMENTS_STRING_COUNT   133
+#define ELEMENTS_STRING_COUNT   134 // JMS: Was 133. Added "Biodata".
 #define SCAN_STRING_COUNT        56
 #define STAR_NUMBER_COUNT        14
 #define PLANET_NUMBER_COUNT      33

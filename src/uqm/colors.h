@@ -77,6 +77,13 @@
 #define INVIS_COLOR \
         BUILD_COLOR (MAKE_RGB15 (0x00, 0x03, 0x1B), 0x00)
 
+/* uqm-hd */
+#define BRIGHT_YELLOW_COLOR \
+		BUILD_COLOR (MAKE_RGB15 (0x1F, 0x1F, 0x00), 0x01)
+#define DULL_YELLOW_COLOR \
+		BUILD_COLOR (MAKE_RGB15 (0x0F, 0x0F, 0x00), 0x01)
+/* end uqm-hd */
+
 #define NORMAL_ILLUMINATED_COLOR \
 		WHITE_COLOR
 #define NORMAL_SHADOWED_COLOR \
@@ -236,6 +243,14 @@
 // the date, RU, etc.
 #define STATUS_MESSAGE_TEXT_COLOR \
 		BUILD_COLOR (MAKE_RGB15 (0x00, 0x10, 0x00), 0x6B)
+
+// Text color for the status message when it's displaying a warning (yellow).
+#define STATUS_MESSAGE_WARNING_TEXT_COLOR \
+		BUILD_COLOR (MAKE_RGB15 (0x10, 0x10, 0x00), 0x6B)
+
+// Text color for the status message then it's displaying an alert (red).
+#define STATUS_MESSAGE_ALERT_TEXT_COLOR \
+		BUILD_COLOR (MAKE_RGB15 (0x10, 0x00, 0x00), 0x6B)
 
 // Background color of the status message.
 #define STATUS_MESSAGE_BACKGROUND_COLOR \

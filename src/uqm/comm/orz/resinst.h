@@ -1,4 +1,5 @@
 #define ORZ_PMAP_ANIM "comm.orz.graphics"
+#define ORZ_ANGRY_PMAP_ANIM "comm.orz.angry.graphics"
 #define ORZ_FONT "comm.orz.font"
 #define ORZ_COLOR_MAP "comm.orz.colortable"
 #define ORZ_CONVERSATION_PHRASES "comm.orz.dialogue"

@@ -16,6 +16,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+// JMS_GFX 2012: Merged the resolution Factor stuff from P6014.
+
 #include "element.h"
 #include "init.h"
 #include "races.h"
@@ -89,8 +91,13 @@ spawn_rubble (ELEMENT *AsteroidElementPtr)
 		RubbleElementPtr->turn_wait = RubbleElementPtr->next_turn = 0;
 		SetPrimType (&DisplayArray[RubbleElementPtr->PrimIndex], STAMP_PRIM);
 		RubbleElementPtr->current.image.farray = asteroid;
-		RubbleElementPtr->current.image.frame =
-				SetAbsFrameIndex (asteroid[0], ANGLE_TO_FACING (FULL_CIRCLE));
+		
+		// JMS_GFX
+		if (RESOLUTION_FACTOR == 0)
+			RubbleElementPtr->current.image.frame = SetAbsFrameIndex (asteroid[0], ANGLE_TO_FACING (FULL_CIRCLE));
+		else
+			RubbleElementPtr->current.image.frame = SetAbsFrameIndex (asteroid[0], 30);
+		
 		RubbleElementPtr->current.location = AsteroidElementPtr->current.location;
 		RubbleElementPtr->preprocess_func = animation_preprocess;
 		RubbleElementPtr->death_func = spawn_asteroid;
@@ -112,11 +119,14 @@ asteroid_preprocess (ELEMENT *ElementPtr)
 			--frame_index;
 		else
 			++frame_index;
-		ElementPtr->next.image.frame =
-				SetAbsFrameIndex (ElementPtr->current.image.frame,
-				NORMALIZE_FACING (frame_index));
+		
+		// JMS_GFX
+		if (RESOLUTION_FACTOR == 0)
+			ElementPtr->next.image.frame = SetAbsFrameIndex (ElementPtr->current.image.frame, NORMALIZE_FACING (frame_index));
+		else
+			ElementPtr->next.image.frame = SetAbsFrameIndex (ElementPtr->current.image.frame, frame_index % 30);
+		
 		ElementPtr->state_flags |= CHANGING;
-
 		ElementPtr->turn_wait = (unsigned char)(ElementPtr->thrust_wait & ((1 << 7) - 1));
 	}
 }

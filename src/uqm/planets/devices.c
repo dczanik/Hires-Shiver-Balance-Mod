@@ -16,6 +16,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+// JMS_GFX 2012: Merged the resolution Factor stuff from P6014.
+
 #include "../build.h"
 #include "../colors.h"
 #include "../encount.h"
@@ -36,31 +38,32 @@
 #include "planets.h"
 		// for SaveSolarSysLocation() and tests
 #include "libs/strlib.h"
-
+#include "libs/graphics/gfx_common.h"
+                // for scaling down devices in 4x
 
 // If DEBUG_DEVICES is defined, the device list shown in the game will
 // include the pictures of all devices defined, regardless of which
 // devices the player actually possesses.
 //#define DEBUG_DEVICES
 
-#define DEVICE_ICON_WIDTH  16
-#define DEVICE_ICON_HEIGHT 16
+#define DEVICE_ICON_WIDTH  RES_STAT_SCALE(16) // JMS_GFX
+#define DEVICE_ICON_HEIGHT RES_STAT_SCALE(16) // JMS_GFX
 
-#define DEVICE_ORG_Y       33
-#define DEVICE_SPACING_Y   (DEVICE_ICON_HEIGHT + 2)
+#define DEVICE_ORG_Y       RES_STAT_SCALE(33) // JMS_GFX
+#define DEVICE_SPACING_Y   (DEVICE_ICON_HEIGHT + RES_STAT_SCALE(2)) // JMS_GFX
 
-#define DEVICE_COL_0       4
-#define DEVICE_COL_1       40
+#define DEVICE_COL_0       RES_STAT_SCALE(4) // JMS_GFX
+#define DEVICE_COL_1       RES_STAT_SCALE(40) // JMS_GFX
 
-#define DEVICE_SEL_ORG_X  (DEVICE_COL_0 + DEVICE_ICON_WIDTH)
-#define DEVICE_SEL_WIDTH  (FIELD_WIDTH + 1 - DEVICE_SEL_ORG_X + 1)
+#define DEVICE_SEL_ORG_X  (DEVICE_COL_0 + DEVICE_ICON_WIDTH + RES_CASE(0,2,4))
+#define DEVICE_SEL_WIDTH  (FIELD_WIDTH + RES_STAT_SCALE(1) - DEVICE_SEL_ORG_X + RES_STAT_SCALE(1)) // JMS_GFX
 
-#define ICON_OFS_Y         1
-#define NAME_OFS_Y         2
-#define TEXT_BASELINE      6
-#define TEXT_SPACING_Y     7
+#define ICON_OFS_Y         RES_STAT_SCALE(1) // JMS_GFX
+#define NAME_OFS_Y         RES_STAT_SCALE(2) // JMS_GFX
+#define TEXT_BASELINE      RES_STAT_SCALE(6) // JMS_GFX
+#define TEXT_SPACING_Y     RES_STAT_SCALE(7) // JMS_GFX
 
-#define MAX_VIS_DEVICES    ((129 - DEVICE_ORG_Y) / DEVICE_SPACING_Y)
+#define MAX_VIS_DEVICES    ((RES_STAT_SCALE(129) - DEVICE_ORG_Y) / DEVICE_SPACING_Y) // JMS_GFX
 
 
 typedef enum
@@ -87,8 +90,8 @@ EraseDevicesBackground (void)
 {
 	RECT r;
 
-	r.corner.x = 2 + 1;
-	r.extent.width = FIELD_WIDTH + 1 - 2;
+	r.corner.x = RES_STAT_SCALE(2 + 1); // JMS_GFX
+	r.extent.width = FIELD_WIDTH + RES_STAT_SCALE(1) - RES_STAT_SCALE(2); // JMS_GFX
 	r.corner.y = DEVICE_ORG_Y;
 	r.extent.height = MAX_VIS_DEVICES * DEVICE_SPACING_Y;
 	SetContextForeGroundColor (DEVICES_BACK_COLOR);
@@ -139,20 +142,20 @@ DrawDevicesDisplay (DEVICES_STATE *devState)
 	COORD cy;
 	COUNT i;
 
-	r.corner.x = 2;
-	r.corner.y = 20;
-	r.extent.width = FIELD_WIDTH + 1;
+	r.corner.x = RES_STAT_SCALE(2); // JMS_GFX
+	r.corner.y = RES_STAT_SCALE(20); // JMS_GFX
+	r.extent.width = FIELD_WIDTH + RES_STAT_SCALE(1) + RES_CASE(0,3,3); // JMS_GFX
 	// XXX: Shouldn't the height be 1 less? This draws the bottom border
 	//   1 pixel too low. Or if not, why do we need another box anyway?
-	r.extent.height = 129 - r.corner.y;
+	r.extent.height = RES_STAT_SCALE(129) - r.corner.y + RES_CASE(0,3,2); // JMS_GFX
 	DrawStarConBox (&r, 1,
 			SHADOWBOX_MEDIUM_COLOR, SHADOWBOX_DARK_COLOR,
 			TRUE, DEVICES_BACK_COLOR);
 
 	// print the "DEVICES" title
 	SetContextFont (StarConFont);
-	t.baseline.x = (STATUS_WIDTH >> 1) - 1;
-	t.baseline.y = r.corner.y + 7;
+	t.baseline.x = (STATUS_WIDTH >> 1) - RES_STAT_SCALE(1); // JMS_GFX
+	t.baseline.y = r.corner.y + RES_STAT_SCALE(7); // JMS_GFX
 	t.align = ALIGN_CENTER;
 	t.pStr = GAME_STRING (DEVICE_STRING_BASE);
 	t.CharCount = (COUNT)~0;
@@ -174,8 +177,20 @@ DrawDevicesDisplay (DEVICES_STATE *devState)
 		s.origin.y = cy + ICON_OFS_Y;
 		s.frame = SetAbsFrameIndex (MiscDataFrame,
 				77 + devState->list[devIndex]);
-		DrawStamp (&s);
-
+		if (RESOLUTION_FACTOR < 2)
+		{
+			DrawStamp (&s);			
+		}
+		else
+		{
+			int oldMode, oldScale;
+			oldMode = SetGraphicScaleMode (TFB_SCALE_BILINEAR);
+			oldScale = SetGraphicScale ((int)(GSCALE_IDENTITY / 2));
+			DrawStamp (&s);
+			SetGraphicScale (oldScale);
+			SetGraphicScaleMode (oldMode);
+		}
+		
 		DrawDevice (devState->list[devIndex], i, false);
 	}
 }

@@ -49,6 +49,8 @@
 #include "uqmversion.h"
 #include "options.h"
 
+#include "gameopt.h" // JMS: For naming captain and ship at game start.
+
 volatile int MainExited = FALSE;
 
 // Open or close the periodically occuring QuasiSpace portal.
@@ -186,7 +188,7 @@ while (--ac > 0)
 		return EXIT_FAILURE;
 	}
 	log_add (log_Info, "We've loaded the Kernel");
-
+	
 	GLOBAL (CurrentActivity) = 0;
 	// show splash and init the kernel in the meantime
 	SplashScreen (BackgroundInitKernel);
@@ -202,6 +204,10 @@ while (--ac > 0)
 		InitGameStructures ();
 		InitGameClock ();
 		AddInitialGameEvents();
+		
+		// JMS: Name Captain & Ship at start (not at loading old game).
+		if (LastActivity == (CHECK_LOAD | CHECK_RESTART))
+			AskNameForCaptainAndShip();
 
 		do
 		{

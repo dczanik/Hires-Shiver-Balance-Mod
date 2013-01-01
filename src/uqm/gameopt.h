@@ -25,5 +25,8 @@ extern BOOLEAN GameOptions (void);
 typedef void (NamingCallback) (void);
 extern void SetNamingCallback (NamingCallback *);
 
+// JMS: For naming captain and ship at game start.
+extern void AskNameForCaptainAndShip(void);
+
 #endif  /* _GAMEOPT_H */
 

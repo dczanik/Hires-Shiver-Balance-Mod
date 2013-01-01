@@ -87,15 +87,15 @@ debugKeyPressed (void)
 	clearEscorts ();
 	ActivateStarShip (ARILOU_SHIP, 1);
 	ActivateStarShip (PKUNK_SHIP, 1);
-	ActivateStarShip (VUX_SHIP, 1);
+	ActivateStarShip (PKUNK_SHIP, 1);
 	ActivateStarShip (YEHAT_SHIP, 1);
-	ActivateStarShip (MELNORME_SHIP, 1);
+	ActivateStarShip (PKUNK_SHIP, 1);
 	ActivateStarShip (DRUUGE_SHIP, 1);
-	ActivateStarShip (ILWRATH_SHIP, 1);
-	ActivateStarShip (MYCON_SHIP, 1);
+	ActivateStarShip (CHMMR_SHIP, 1);
+	ActivateStarShip (UTWIG_SHIP, 1);
 	ActivateStarShip (SLYLANDRO_SHIP, 1);
 	ActivateStarShip (UMGAH_SHIP, 1);
-	ActivateStarShip (URQUAN_SHIP, 1);
+	ActivateStarShip (UTWIG_SHIP, 1);
 	ActivateStarShip (BLACK_URQUAN_SHIP, 1);
 
 	resetCrewBattle ();
@@ -104,7 +104,7 @@ debugKeyPressed (void)
 	showSpheres ();
 	activateAllShips ();
 //	forwardToNextEvent (TRUE);
-//	SET_GAME_STATE (MELNORME_CREDIT1, 100);
+  	SET_GAME_STATE (MELNORME_CREDIT1, 100);
 //	GLOBAL_SIS (ResUnits) = 100000;
 
 	// Tests
@@ -293,8 +293,8 @@ equipShip (void)
 		// This is the original TFB testing layout.
 		i = 0;
 		GLOBAL_SIS (ModuleSlots[i++]) = HIGHEFF_FUELSYS;
-		GLOBAL_SIS (ModuleSlots[i++]) = HIGHEFF_FUELSYS;
-		GLOBAL_SIS (ModuleSlots[i++]) = CREW_POD;
+		GLOBAL_SIS (ModuleSlots[i++]) = FUEL_TANK;
+		GLOBAL_SIS (ModuleSlots[i++]) = ANTIMISSILE_DEFENSE;
 		GLOBAL_SIS (ModuleSlots[i++]) = CREW_POD;
 		GLOBAL_SIS (ModuleSlots[i++]) = CREW_POD;
 		GLOBAL_SIS (ModuleSlots[i++]) = CREW_POD;
@@ -306,7 +306,7 @@ equipShip (void)
 		GLOBAL_SIS (ModuleSlots[i++]) = TRACKING_SYSTEM;
 		GLOBAL_SIS (ModuleSlots[i++]) = TRACKING_SYSTEM;
 		GLOBAL_SIS (ModuleSlots[i++]) = SHIVA_FURNACE;
-		GLOBAL_SIS (ModuleSlots[i++]) = CANNON_WEAPON;
+		GLOBAL_SIS (ModuleSlots[i++]) = BLASTER_WEAPON;
 		GLOBAL_SIS (ModuleSlots[i++]) = CANNON_WEAPON;
 		
 		// Landers:
@@ -1604,7 +1604,7 @@ dumpStrings (FILE *out)
 	
 	if (GAMESTR_COUNT != numStrings) {
 		fprintf(stderr, "Warning: GAMESTR_COUNT is %d, but GameStrings "
-				"contains %d strings.\n", GAMESTR_COUNT, numStrings);
+				"contains %lu strings.\n", GAMESTR_COUNT, numStrings);
 	}
 
 	categoryI = 0;
@@ -1612,7 +1612,7 @@ dumpStrings (FILE *out)
 		while (categoryI < numCategories &&
 				stringI >= categories[categoryI + 1].base)
 			categoryI++;
-		fprintf(out, "[ %s + %d ]  %s\n", categories[categoryI].name,
+		fprintf(out, "[ %s + %lu ]  %s\n", categories[categoryI].name,
 				stringI - categories[categoryI].base, GAME_STRING(stringI));
 	}
 }

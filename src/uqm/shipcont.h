@@ -16,12 +16,14 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+// JMS_GFX 2012: Merged the resolution Factor stuff from P6014.
+
 #ifndef _SHIPCONT_H
 #define _SHIPCONT_H
 
 #include "menustat.h"
 
-#define FIELD_WIDTH (STATUS_WIDTH - 5)
+#define FIELD_WIDTH (STATUS_WIDTH - RES_STAT_SCALE(5)) // JMS_GFX
 
 extern void CargoMenu (void);
 extern BOOLEAN RosterMenu (void);

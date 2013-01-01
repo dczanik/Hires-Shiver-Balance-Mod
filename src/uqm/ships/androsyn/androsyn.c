@@ -68,7 +68,6 @@ static RACE_DESC androsynth_desc =
 	},
 	{ /* FLEET_STUFF */
 		INFINITE_RADIUS, /* Initial sphere of influence radius */
-				// XXX: Why infinite radius? Bug?
 		{ /* Known location (center of SoI) */
 			MAX_X_UNIVERSE >> 1, MAX_Y_UNIVERSE >> 1,
 		},
@@ -126,16 +125,180 @@ static RACE_DESC androsynth_desc =
 	0, /* CodeRef */
 };
 
+<<<<<<<
+=======
+#define MAX_THRUST_2XRES 48  // JMS_GFX
+#define THRUST_INCREMENT_2XRES 6 // JMS_GFX
+
+ // JMS_GFX
+static RACE_DESC androsynth_desc_2xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE | SEEKING_WEAPON,
+		15, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		ANDROSYNTH_RACE_STRINGS,
+		ANDROSYNTH_ICON_MASK_PMAP_ANIM,
+		ANDROSYNTH_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		INFINITE_RADIUS, /* Initial sphere of influence radius */
+		{ /* Known location (center of SoI) */
+			MAX_X_UNIVERSE >> 1, MAX_Y_UNIVERSE >> 1,
+		},
+	},
+	{
+		MAX_THRUST_2XRES,
+		THRUST_INCREMENT_2XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			ANDROSYNTH_BIG_MASK_PMAP_ANIM,
+			ANDROSYNTH_MED_MASK_PMAP_ANIM,
+			ANDROSYNTH_SML_MASK_PMAP_ANIM,
+		},
+		{
+			BUBBLE_BIG_MASK_PMAP_ANIM,
+			BUBBLE_MED_MASK_PMAP_ANIM,
+			BUBBLE_SML_MASK_PMAP_ANIM,
+		},
+		{
+			BLAZER_BIG_MASK_PMAP_ANIM,
+			BLAZER_MED_MASK_PMAP_ANIM,
+			BLAZER_SML_MASK_PMAP_ANIM,
+		},
+		{
+			ANDROSYNTH_CAPT_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		ANDROSYNTH_VICTORY_SONG,
+		ANDROSYNTH_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		LONG_RANGE_WEAPON_2XRES >> 2,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+#define MAX_THRUST_4XRES 96  // JMS_GFX
+#define THRUST_INCREMENT_4XRES 12 // JMS_GFX
+
+// JMS_GFX
+static RACE_DESC androsynth_desc_4xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE | SEEKING_WEAPON,
+		15, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		ANDROSYNTH_RACE_STRINGS,
+		ANDROSYNTH_ICON_MASK_PMAP_ANIM,
+		ANDROSYNTH_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		INFINITE_RADIUS, /* Initial sphere of influence radius */
+		{ /* Known location (center of SoI) */
+			MAX_X_UNIVERSE >> 1, MAX_Y_UNIVERSE >> 1,
+		},
+	},
+	{
+		MAX_THRUST_4XRES,
+		THRUST_INCREMENT_4XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			ANDROSYNTH_BIG_MASK_PMAP_ANIM,
+			ANDROSYNTH_MED_MASK_PMAP_ANIM,
+			ANDROSYNTH_SML_MASK_PMAP_ANIM,
+		},
+		{
+			BUBBLE_BIG_MASK_PMAP_ANIM,
+			BUBBLE_MED_MASK_PMAP_ANIM,
+			BUBBLE_SML_MASK_PMAP_ANIM,
+		},
+		{
+			BLAZER_BIG_MASK_PMAP_ANIM,
+			BLAZER_MED_MASK_PMAP_ANIM,
+			BLAZER_SML_MASK_PMAP_ANIM,
+		},
+		{
+			ANDROSYNTH_CAPT_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		ANDROSYNTH_VICTORY_SONG,
+		ANDROSYNTH_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		LONG_RANGE_WEAPON_4XRES >> 2,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+#define BLAZER_DAMAGE 3
+#define BLAZER_MASS 1
+
+>>>>>>>
 static void
 blazer_collision (ELEMENT *ElementPtr0, POINT *pPt0, ELEMENT *ElementPtr1, POINT *pPt1)
 {
+<<<<<<<
+=======
+#define BLAZER_OFFSET (10 << RESOLUTION_FACTOR) // JMS_GFX
+>>>>>>>
 	BYTE old_offs;
 	COUNT old_crew_level;
 	COUNT old_life;
+<<<<<<<
 	STARSHIP *StarShipPtr;
 	
 	GetElementStarShip (ElementPtr0, &StarShipPtr);
 
+=======
+	
+>>>>>>>
 	old_crew_level = ElementPtr0->crew_level;
 	old_life = ElementPtr0->life_span;
 	old_offs = ElementPtr0->blast_offset;
@@ -146,7 +309,23 @@ blazer_collision (ELEMENT *ElementPtr0, POINT *pPt0, ELEMENT *ElementPtr1, POINT
 	ElementPtr0->blast_offset = old_offs;
 	ElementPtr0->life_span = old_life;
 	ElementPtr0->crew_level = old_crew_level;
+<<<<<<<
+=======
+	
+>>>>>>>
 	ElementPtr0->state_flags &= ~(DISAPPEARING | NONSOLID);
+<<<<<<<
+=======
+	collision (ElementPtr0, pPt0, ElementPtr1, pPt1);
+}
+
+#define MISSILE_SPEED DISPLAY_TO_WORLD (8 << RESOLUTION_FACTOR) // JMS_GFX
+
+static void
+bubble_preprocess (ELEMENT *ElementPtr)
+{
+	BYTE thrust_wait, turn_wait;
+>>>>>>>
 	
 	// The comet will bounce off shields and planets.
 	if ((ElementPtr1->state_flags & PLAYER_SHIP
@@ -209,6 +388,12 @@ bubble_preprocess (ELEMENT *ElementPtr)
 static COUNT
 initialize_bubble (ELEMENT *ShipPtr, HELEMENT BubbleArray[])
 {
+<<<<<<<
+=======
+#define ANDROSYNTH_OFFSET (14 << RESOLUTION_FACTOR) // JMS_GFX
+#define MISSILE_OFFSET (3 << RESOLUTION_FACTOR) // JMS_GFX
+#define MISSILE_HITS 3
+>>>>>>>
 	STARSHIP *StarShipPtr;
 	MISSILE_BLOCK MissileBlock;
 
@@ -493,10 +678,11 @@ androsynth_intelligence (ELEMENT *ShipPtr, EVALUATE_DESC *ObjectsOfConcern,
 		if (lpEvalDesc->ObjectPtr)
 		{
 			GetElementStarShip (lpEvalDesc->ObjectPtr, &pEnemyStarShip);
+			// JMS_GFX
 			if (lpEvalDesc->which_turn <= 16
 					&& (StarShipPtr->special_counter > 0
 					|| StarShipPtr->RaceDescPtr->ship_info.energy_level < MAX_ENERGY / 3
-					|| ((WEAPON_RANGE (&pEnemyStarShip->RaceDescPtr->cyborg_control) <= CLOSE_RANGE_WEAPON
+					|| ((WEAPON_RANGE (&pEnemyStarShip->RaceDescPtr->cyborg_control) <= (CLOSE_RANGE_WEAPON << RESOLUTION_FACTOR)
 					&& lpEvalDesc->ObjectPtr->crew_level > BLAZER_DAMAGE)
 					|| (lpEvalDesc->ObjectPtr->crew_level > (BLAZER_DAMAGE * 3)
 					&& MANEUVERABILITY (&pEnemyStarShip->RaceDescPtr->cyborg_control) > SLOW_SHIP))))
@@ -508,6 +694,7 @@ androsynth_intelligence (ELEMENT *ShipPtr, EVALUATE_DESC *ObjectsOfConcern,
 		if (StarShipPtr->special_counter == 0)
 		{
 			StarShipPtr->ship_input_state &= ~SPECIAL;
+			// JMS_GFX
 			if ((ObjectsOfConcern[ENEMY_WEAPON_INDEX].ObjectPtr
 					&& ObjectsOfConcern[ENEMY_WEAPON_INDEX].which_turn <= 4)
 					|| (lpEvalDesc->ObjectPtr
@@ -515,7 +702,7 @@ androsynth_intelligence (ELEMENT *ShipPtr, EVALUATE_DESC *ObjectsOfConcern,
 					&& (WEAPON_RANGE (&pEnemyStarShip->RaceDescPtr->cyborg_control) >=
 					WEAPON_RANGE (&StarShipPtr->RaceDescPtr->cyborg_control) << 1
 					|| (lpEvalDesc->which_turn < 16
-					&& (WEAPON_RANGE (&pEnemyStarShip->RaceDescPtr->cyborg_control) > CLOSE_RANGE_WEAPON
+					&& (WEAPON_RANGE (&pEnemyStarShip->RaceDescPtr->cyborg_control) > (CLOSE_RANGE_WEAPON << RESOLUTION_FACTOR)
 					|| lpEvalDesc->ObjectPtr->crew_level <= BLAZER_DAMAGE)
 					&& (lpEvalDesc->ObjectPtr->crew_level <= (BLAZER_DAMAGE * 3)
 					|| MANEUVERABILITY (&pEnemyStarShip->RaceDescPtr->cyborg_control) <=
@@ -575,4 +762,51 @@ init_androsynth (void)
 
 	return (RaceDescPtr);
 }
+<<<<<<<
+=======
+		{
+			if (ElementPtr->thrust_wait)
+				--ElementPtr->thrust_wait;
+			else
+			{
+#define BLAZER_THRUST (60 << RESOLUTION_FACTOR) // JMS_GFX
+				COUNT facing;
+>>>>>>>
 
+<<<<<<<
+=======
+RACE_DESC*
+init_androsynth (void)
+{
+	RACE_DESC *RaceDescPtr;
+
+	// JMS_GFX: A rather clumsy way of giving ship correct stats at hi-res modes.
+	if (RESOLUTION_FACTOR == 0)
+	{
+		androsynth_desc.preprocess_func = androsynth_preprocess;
+		androsynth_desc.postprocess_func = androsynth_postprocess;
+		androsynth_desc.init_weapon_func = initialize_bubble;
+		androsynth_desc.cyborg_control.intelligence_func = androsynth_intelligence;
+		RaceDescPtr = &androsynth_desc;
+	}
+	else if (RESOLUTION_FACTOR == 1)
+	{
+		androsynth_desc_2xres.preprocess_func = androsynth_preprocess;
+		androsynth_desc_2xres.postprocess_func = androsynth_postprocess;
+		androsynth_desc_2xres.init_weapon_func = initialize_bubble;
+		androsynth_desc_2xres.cyborg_control.intelligence_func = androsynth_intelligence;
+		RaceDescPtr = &androsynth_desc_2xres;
+	}
+	else
+	{
+		androsynth_desc_4xres.preprocess_func = androsynth_preprocess;
+		androsynth_desc_4xres.postprocess_func = androsynth_postprocess;
+		androsynth_desc_4xres.init_weapon_func = initialize_bubble;
+		androsynth_desc_4xres.cyborg_control.intelligence_func = androsynth_intelligence;
+		RaceDescPtr = &androsynth_desc_4xres;
+	}
+
+	return (RaceDescPtr);
+}
+
+>>>>>>>
