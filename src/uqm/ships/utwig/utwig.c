@@ -29,7 +29,11 @@
 #define ENERGY_REGENERATION 0
 #define ENERGY_WAIT 255
 #define MAX_THRUST 36
+#define MAX_THRUST_2XRES (MAX_THRUST << 1)
+#define MAX_THRUST_4XRES (MAX_THRUST << 2)
 #define THRUST_INCREMENT 6
+#define THRUST_INCREMENT_2XRES (THRUST_INCREMENT << 1)
+#define THRUST_INCREMENT_4XRES (THRUST_INCREMENT << 2)
 #define THRUST_WAIT 6
 #define TURN_WAIT 1
 #define SHIP_MASS 8
@@ -37,18 +41,18 @@
 // Energy Lances
 #define WEAPON_ENERGY_COST 0
 #define WEAPON_WAIT 7
-#define UTWIG_OFFSET 9
-#define MISSILE_SPEED 120
+#define UTWIG_OFFSET (9 << RESOLUTION_FACTOR)
+#define MISSILE_SPEED (120 << RESOLUTION_FACTOR)
 #define MISSILE_LIFE 10
 #define MISSILE_HITS 1
 #define MISSILE_DAMAGE 1
-#define MISSILE_OFFSET 1
-#define LAUNCH_XOFFS0 DISPLAY_TO_WORLD (5)
-#define LAUNCH_YOFFS0 -DISPLAY_TO_WORLD (18)
-#define LAUNCH_XOFFS1 DISPLAY_TO_WORLD (13)
-#define LAUNCH_YOFFS1 -DISPLAY_TO_WORLD (9)
-#define LAUNCH_XOFFS2 DISPLAY_TO_WORLD (17)
-#define LAUNCH_YOFFS2 -DISPLAY_TO_WORLD (4)
+#define MISSILE_OFFSET (1 << RESOLUTION_FACTOR)
+#define LAUNCH_XOFFS0 (DISPLAY_TO_WORLD (5) << RESOLUTION_FACTOR)
+#define LAUNCH_YOFFS0 (-DISPLAY_TO_WORLD (18) << RESOLUTION_FACTOR)
+#define LAUNCH_XOFFS1 (DISPLAY_TO_WORLD (13) << RESOLUTION_FACTOR)
+#define LAUNCH_YOFFS1 (-DISPLAY_TO_WORLD (9) << RESOLUTION_FACTOR)
+#define LAUNCH_XOFFS2 (DISPLAY_TO_WORLD (17) << RESOLUTION_FACTOR)
+#define LAUNCH_YOFFS2 (-DISPLAY_TO_WORLD (4) << RESOLUTION_FACTOR)
 
 // Shield
 #define SPECIAL_ENERGY_COST 1
@@ -115,6 +119,150 @@ static RACE_DESC utwig_desc =
 	{
 		0,
 		CLOSE_RANGE_WEAPON,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+// JMS_GFX
+static RACE_DESC utwig_desc_2xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE | SHIELD_DEFENSE | LIGHT_POINT_DEFENSE,
+		22, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY >> 1, MAX_ENERGY,
+		UTWIG_RACE_STRINGS,
+		UTWIG_ICON_MASK_PMAP_ANIM,
+		UTWIG_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		666 / SPHERE_RADIUS_INCREMENT * 2, /* Initial SoI radius */
+		{ /* Known location (center of SoI) */
+			8534, 8797,
+		},
+	},
+	{
+		MAX_THRUST_2XRES,
+		THRUST_INCREMENT_2XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			UTWIG_BIG_MASK_PMAP_ANIM,
+			UTWIG_MED_MASK_PMAP_ANIM,
+			UTWIG_SML_MASK_PMAP_ANIM,
+		},
+		{
+			LANCE_BIG_MASK_PMAP_ANIM,
+			LANCE_MED_MASK_PMAP_ANIM,
+			LANCE_SML_MASK_PMAP_ANIM,
+		},
+		{
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+		},
+		{
+			UTWIG_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		UTWIG_VICTORY_SONG,
+		UTWIG_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		CLOSE_RANGE_WEAPON_2XRES,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+// JMS_GFX
+static RACE_DESC utwig_desc_4xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE | SHIELD_DEFENSE | LIGHT_POINT_DEFENSE,
+		22, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY >> 1, MAX_ENERGY,
+		UTWIG_RACE_STRINGS,
+		UTWIG_ICON_MASK_PMAP_ANIM,
+		UTWIG_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		666 / SPHERE_RADIUS_INCREMENT * 2, /* Initial SoI radius */
+		{ /* Known location (center of SoI) */
+			8534, 8797,
+		},
+	},
+	{
+		MAX_THRUST_4XRES,
+		THRUST_INCREMENT_4XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			UTWIG_BIG_MASK_PMAP_ANIM,
+			UTWIG_MED_MASK_PMAP_ANIM,
+			UTWIG_SML_MASK_PMAP_ANIM,
+		},
+		{
+			LANCE_BIG_MASK_PMAP_ANIM,
+			LANCE_MED_MASK_PMAP_ANIM,
+			LANCE_SML_MASK_PMAP_ANIM,
+		},
+		{
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+		},
+		{
+			UTWIG_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		UTWIG_VICTORY_SONG,
+		UTWIG_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		CLOSE_RANGE_WEAPON_4XRES,
 		NULL,
 	},
 	(UNINIT_FUNC *) NULL,
@@ -420,12 +568,27 @@ init_utwig (void)
 {
 	RACE_DESC *RaceDescPtr;
 
-	utwig_desc.preprocess_func = utwig_preprocess;
-	utwig_desc.init_weapon_func = initialize_lance;
-	utwig_desc.cyborg_control.intelligence_func = utwig_intelligence;
-
-	RaceDescPtr = &utwig_desc;
+	if (RESOLUTION_FACTOR == 0)
+	{
+		utwig_desc.preprocess_func = utwig_preprocess;
+		utwig_desc.init_weapon_func = initialize_lance;
+		utwig_desc.cyborg_control.intelligence_func = utwig_intelligence;
+		RaceDescPtr = &utwig_desc;
+	}
+	else if (RESOLUTION_FACTOR == 1)
+	{
+		utwig_desc_2xres.preprocess_func = utwig_preprocess;
+		utwig_desc_2xres.init_weapon_func = initialize_lance;
+		utwig_desc_2xres.cyborg_control.intelligence_func = utwig_intelligence;
+		RaceDescPtr = &utwig_desc_2xres;
+	}
+	else
+	{
+		utwig_desc_4xres.preprocess_func = utwig_preprocess;
+		utwig_desc_4xres.init_weapon_func = initialize_lance;
+		utwig_desc_4xres.cyborg_control.intelligence_func = utwig_intelligence;
+		RaceDescPtr = &utwig_desc_4xres;
+	}
 
 	return (RaceDescPtr);
 }
-
