@@ -152,3 +152,5 @@
 #define YEL_GAS_XLAT_TAB "planet.yellowgas.translatetable"
 #define YTTRIC_COLOR_TAB "planet.yttric.colortable"
 #define YTTRIC_XLAT_TAB "planet.yttric.translatetable"
+#define ZOQCOLONY_RUINS1_STRTAB "text.zoqfotcolonyruins1"
+#define ZOQCOLONY_RUINS2_STRTAB "text.zoqfotcolonyruins2"

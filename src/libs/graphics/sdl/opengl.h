@@ -21,8 +21,8 @@
 
 #include "libs/graphics/sdl/sdl_common.h"
 
-int TFB_GL_InitGraphics (int driver, int flags, int width, int height);
-int TFB_GL_ConfigureVideo (int driver, int flags, int width, int height, int togglefullscreen);
+int TFB_GL_InitGraphics (int driver, int flags, int width, int height, unsigned int resolutionFactor, BOOLEAN	forceAspectRatio);  // JMS_GFX: Added resolutionFactor
+int TFB_GL_ConfigureVideo (int driver, int flags, int width, int height, int togglefullscreen, unsigned int resolutionFactor, BOOLEAN forceAspectRatio);  // JMS_GFX: Added resolutionFactor
 void TFB_GL_UploadTransitionScreen (void);
 
 #ifdef HAVE_OPENGL

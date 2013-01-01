@@ -236,7 +236,11 @@ DrawOrbitalDisplay (DRAW_ORBITAL_MODE Mode)
 	UnbatchGraphics ();
 
 	// for later RepairBackRect()
-	LoadIntoExtraScreen (&r);
+	// JMS_GFX
+	if (RESOLUTION_FACTOR == 0)
+		LoadIntoExtraScreen (&r);
+	else
+		LoadIntoExtraScreen_Fs (&r);
 }
 
 // Initialise the surface graphics, and start the planet music.
@@ -296,7 +300,7 @@ LoadPlanet (FRAME SurfDefFrame)
 void
 FreePlanet (void)
 {
-	COUNT i;
+	COUNT i, j;
 	PLANET_ORBIT *Orbit = &pSolarSysState->Orbit;
 
 	UninitSphereRotation ();
@@ -340,6 +344,19 @@ FreePlanet (void)
 	Orbit->TopoColors = NULL;
 	HFree (Orbit->ScratchArray);
 	Orbit->ScratchArray = NULL;
+	if (Orbit->map_rotate && Orbit->light_diff)
+	{
+		for (j=0 ; j < MAP_HEIGHT+1 ; j++)
+		{
+			HFree (Orbit->map_rotate[j]);
+			HFree (Orbit->light_diff[j]);
+		}
+	}
+
+	HFree (Orbit->map_rotate);
+	Orbit->map_rotate = NULL;
+	HFree (Orbit->light_diff);
+	Orbit->light_diff = NULL;
 
 	DestroyStringTable (ReleaseStringTable (
 			pSolarSysState->SysInfo.PlanetInfo.DiscoveryString

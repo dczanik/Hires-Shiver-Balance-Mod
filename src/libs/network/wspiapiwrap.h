@@ -19,7 +19,10 @@
 #ifndef _WSPIAPIWRAP_H
 #define _WSPIAPIWRAP_H
 
-// HACK. See wspiapiwrap.c
+/* ************
+   DC: This whole section commented out due to VSC compiling issues. Found here: http://forum.uqm.stack.nl/index.php?topic=4353.0
+
+   // HACK. See wspiapiwrap.c
 #	define getaddrinfo WspiapiGetAddrInfo
 #	define getnameinfo WspiapiGetNameInfo
 #	define freeaddrinfo WspiapiFreeAddrInfo
@@ -28,6 +31,8 @@ int WINAPI WspiapiGetAddrInfo(const char *nodename, const char *servname,
 		const struct addrinfo *hints, struct addrinfo **res);
 int WINAPI WspiapiGetNameInfo (const struct sockaddr *sa, socklen_t salen,
 		char *host, size_t hostlen, char *serv, size_t servlen, int flags);
+*/
+#include <wspiapi.h>  //DC: replaced upper section with this part to (hopefully) compile.
 
 #endif  /* _WSPIAPIWRAP_H */
 

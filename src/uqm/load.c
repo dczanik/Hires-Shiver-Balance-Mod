@@ -16,6 +16,10 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+// JMS 2011: - Added loading res_factor to summary_desc. It'll help making saves between different resolutions compatible.
+
+// JMS_GFX 2012: Merged the resolution Factor stuff from P6014.
+
 #include <assert.h>
 
 #include "load.h"
@@ -369,6 +373,10 @@ LoadEncounter (ENCOUNTER *EncounterPtr, DECODE_REF fh)
 	// Load the stuff after the BRIEF_SHIP_INFO array
 	cread_32s (fh, &EncounterPtr->log_x);
 	cread_32s (fh, &EncounterPtr->log_y);
+	
+	// JMS: Let's make savegames work even between different resolution modes.
+	EncounterPtr->log_x <<= RESOLUTION_FACTOR;
+	EncounterPtr->log_y <<= RESOLUTION_FACTOR;
 }
 
 static void
@@ -426,6 +434,7 @@ static void
 LoadGameState (GAME_STATE *GSPtr, DECODE_REF fh)
 {
 	BYTE dummy8;
+	BYTE res_scale; // JMS
 
 	cread_8   (fh, &dummy8); /* obsolete */
 	cread_8   (fh, &GSPtr->glob_flags);
@@ -435,6 +444,12 @@ LoadGameState (GAME_STATE *GSPtr, DECODE_REF fh)
 	cread_a8  (fh, GSPtr->ElementWorth, NUM_ELEMENT_CATEGORIES);
 	cread_ptr (fh); /* not loading ptr; PRIMITIVE *DisplayArray */
 	cread_16  (fh, &GSPtr->CurrentActivity);
+	
+	// JMS
+	if (LOBYTE (GSPtr->CurrentActivity) != IN_INTERPLANETARY)
+		res_scale = RESOLUTION_FACTOR;
+	else
+		res_scale = 0;
 	
 	cread_16  (fh, NULL); /* CLOCK_STATE alignment padding */
 	LoadClockState (&GSPtr->GameClock, fh);
@@ -449,6 +464,9 @@ LoadGameState (GAME_STATE *GSPtr, DECODE_REF fh)
 	cread_16  (fh, &GSPtr->ShipFacing);
 	cread_8   (fh, &GSPtr->ip_planet);
 	cread_8   (fh, &GSPtr->in_orbit);
+	
+	GSPtr->ShipStamp.origin.x <<= RESOLUTION_FACTOR; // JMS: Let's make savegames work even between different resolution modes.
+	GSPtr->ShipStamp.origin.y <<= RESOLUTION_FACTOR; // JMS: Let's make savegames work even between different resolution modes.
 
 	/* VELOCITY_DESC velocity */
 	cread_16  (fh, &GSPtr->velocity.TravelAngle);
@@ -461,6 +479,15 @@ LoadGameState (GAME_STATE *GSPtr, DECODE_REF fh)
 	cread_16s (fh, &GSPtr->velocity.incr.width);
 	cread_16s (fh, &GSPtr->velocity.incr.height);
 	cread_16  (fh, NULL); /* VELOCITY_DESC padding */
+	
+	GSPtr->velocity.vector.width  <<= res_scale; // JMS: Let's make savegames work even between different resolution modes.
+	GSPtr->velocity.vector.height <<= res_scale; // JMS: Let's make savegames work even between different resolution modes.
+	GSPtr->velocity.fract.width	  <<= res_scale; // JMS: Let's make savegames work even between different resolution modes.
+	GSPtr->velocity.fract.height  <<= res_scale; // JMS: Let's make savegames work even between different resolution modes.
+	GSPtr->velocity.error.width	  <<= res_scale; // JMS: Let's make savegames work even between different resolution modes.
+	GSPtr->velocity.error.height  <<= res_scale; // JMS: Let's make savegames work even between different resolution modes.
+	GSPtr->velocity.incr.width	  <<= res_scale; // JMS: Let's make savegames work even between different resolution modes.
+	GSPtr->velocity.incr.height	  <<= res_scale; // JMS: Let's make savegames work even between different resolution modes.
 
 	cread_32  (fh, &GSPtr->BattleGroupRef);
 	
@@ -472,7 +499,7 @@ LoadGameState (GAME_STATE *GSPtr, DECODE_REF fh)
 
 	cread_a8  (fh, GSPtr->GameState, sizeof (GSPtr->GameState));
 
-	assert (sizeof (GSPtr->GameState) % 4 == 3);
+	//assert (sizeof (GSPtr->GameState) % 4 == 3);
 	cread_8  (fh, NULL); /* GAME_STATE alignment padding */
 }
 
@@ -501,7 +528,12 @@ LoadSisState (SIS_STATE *SSPtr, void *fp)
 		)
 		return FALSE;
 	else
+	{
+		// JMS: Let's make savegames work even between different resolution modes.
+		SSPtr->log_x <<= RESOLUTION_FACTOR;
+		SSPtr->log_y <<= RESOLUTION_FACTOR;
 		return TRUE;
+	}
 }
 
 static BOOLEAN
@@ -522,7 +554,8 @@ LoadSummary (SUMMARY_DESC *SummPtr, void *fp)
 			read_8  (fp, &SummPtr->NumDevices) != 1 ||
 			read_a8 (fp, SummPtr->ShipList, MAX_BUILT_SHIPS) != 1 ||
 			read_a8 (fp, SummPtr->DeviceList, MAX_EXCLUSIVE_DEVICES) != 1 ||
-
+			read_8  (fp, &SummPtr->res_factor) != 1 || // JMS: This'll help making saves between different resolutions compatible.
+		
 			read_16  (fp, NULL) != 1 /* padding */
 		)
 		return FALSE;

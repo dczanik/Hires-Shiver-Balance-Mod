@@ -14,6 +14,8 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+// JMS_GFX 2012: Merged the resolution Factor stuff from P6014.
+
 #ifndef _FLASH_H
 #define _FLASH_H
 
@@ -204,7 +206,7 @@ TimeCount Flash_nextTime (FlashContext *context);
 void Flash_setRect (FlashContext *context, const RECT *rect);
 void Flash_getRect (FlashContext *context, RECT *rect);
 void Flash_setOverlay(FlashContext *context, const POINT *origin,
-		FRAME overlay);
+		FRAME overlay, BOOLEAN cleanup); // JMS_GFX
 void Flash_preUpdate (FlashContext *context);
 void Flash_postUpdate (FlashContext *context);
 void Flash_setCacheSize (FlashContext *context, COUNT size);

@@ -28,6 +28,7 @@
 
 static LOCDATA druuge_desc =
 {
+	DRUUGE_CONVERSATION, /* AlienConv */
 	NULL, /* init_encounter_func */
 	NULL, /* post_encounter_func */
 	NULL, /* uninit_encounter_func */
@@ -919,7 +920,7 @@ init_druuge_comm (void)
 	druuge_desc.uninit_encounter_func = uninit_druuge;
 
 	druuge_desc.AlienTextBaseline.x = TEXT_X_OFFS + (SIS_TEXT_WIDTH >> 1);
-	druuge_desc.AlienTextBaseline.y = 70;
+	druuge_desc.AlienTextBaseline.y = RES_SIS_SCALE(70);
 	druuge_desc.AlienTextWidth = SIS_TEXT_WIDTH - 16;
 
 	if ((GET_GAME_STATE (DRUUGE_MANNER) == 0

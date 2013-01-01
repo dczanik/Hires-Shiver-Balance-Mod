@@ -18,6 +18,8 @@
 
 /* background starfield - used to generate agalaxy.asm */
 
+// JMS_GFX 2012: Merged the resolution Factor stuff from P6014.
+
 #include "element.h"
 #include "globdata.h"
 #include "init.h"
@@ -41,8 +43,9 @@ extern PRIM_LINKS DisplayLinks;
 			+ MED_STAR_COUNT \
 			+ SML_STAR_COUNT)
 
-POINT SpaceOrg;
-static POINT log_star_array[NUM_STARS];
+// JMS: Changed from POINT to DPOINT
+DPOINT SpaceOrg;
+static DPOINT log_star_array[NUM_STARS];
 
 #define NUM_STAR_PLANES 3
 
@@ -50,9 +53,9 @@ typedef struct
 {
 	COUNT min_star_index;
 	COUNT num_stars;
-	POINT *star_array;
-	POINT *pmin_star;
-	POINT *plast_star;
+	DPOINT *star_array; // JMS: Changed from POINT to DPOINT
+	DPOINT *pmin_star;  // JMS: Changed from POINT to DPOINT
+	DPOINT *plast_star; // JMS: Changed from POINT to DPOINT
 } STAR_BLOCK;
 
 STAR_BLOCK StarBlock[NUM_STAR_PLANES] =
@@ -87,7 +90,7 @@ SortStarBlock (STAR_BLOCK *pStarBlock)
 		{
 			if (pStarBlock->star_array[i].y > pStarBlock->star_array[j].y)
 			{
-				POINT temp;
+				DPOINT temp; // JMS: Changed from POINT to DPOINT
 
 				temp = pStarBlock->star_array[i];
 				pStarBlock->star_array[i] = pStarBlock->star_array[j];
@@ -102,12 +105,13 @@ SortStarBlock (STAR_BLOCK *pStarBlock)
 			&pStarBlock->star_array[pStarBlock->num_stars - 1];
 }
 
+// JMS: Changed dx, dy from SIZE to SDWORD
 static void
-WrapStarBlock (SIZE plane, SIZE dx, SIZE dy)
+WrapStarBlock (SIZE plane, SDWORD dx, SDWORD dy)
 {
 	COUNT i;
-	POINT *ppt;
-	SIZE offs_y;
+	DPOINT *ppt; // JMS: Changed from POINT to DPOINT
+	SDWORD offs_y; // JMS: Changed from SIZE to SDWORD
 	COUNT num_stars;
 	STAR_BLOCK *pStarBlock;
 
@@ -237,7 +241,7 @@ void
 InitGalaxy (void)
 {
 	COUNT i, factor;
-	POINT *ppt;
+	DPOINT *ppt; // JMS: Changed POINT to DPOINT
 	PRIM_LINKS Links;
 
 	log_add (log_Debug, "InitGalaxy(): transition_width = %d, "
@@ -254,16 +258,22 @@ InitGalaxy (void)
 
 		if (i == BIG_STAR_COUNT || i == BIG_STAR_COUNT + MED_STAR_COUNT)
 			++factor;
-
-		ppt->x = (COORD)((UWORD)TFB_Random () % SPACE_WIDTH) << factor;
-		ppt->y = (COORD)((UWORD)TFB_Random () % SPACE_HEIGHT) << factor;
+		
+		// JMS Changed COORDS to SDWORDS
+		ppt->x = (SDWORD)((UWORD)TFB_Random () % SPACE_WIDTH) << factor;
+		ppt->y = (SDWORD)((UWORD)TFB_Random () % SPACE_HEIGHT) << factor;
 
 		if (i < BIG_STAR_COUNT + MED_STAR_COUNT)
 		{
 			SetPrimType (&DisplayArray[p], STAMP_PRIM);
 			SetPrimColor (&DisplayArray[p],
 					BUILD_COLOR (MAKE_RGB15 (0x0B, 0x0B, 0x1F), 0x09));
-			DisplayArray[p].Object.Stamp.frame = stars_in_space;
+			
+			// JMS_GFX: This was originally only "DisplayArray[p].Object.Stamp.frame = stars_in_space;"
+			if (RESOLUTION_FACTOR == 0 || (GET_GAME_STATE (ARILOU_SPACE_SIDE) <= 1))
+				DisplayArray[p].Object.Stamp.frame = stars_in_space;
+			else
+				DisplayArray[p].Object.Stamp.frame = stars_in_quasispace;
 		}
 		else
 		{
@@ -287,9 +297,9 @@ InitGalaxy (void)
 	SortStarBlock (&StarBlock[2]);
 }
 
+// JMS: Changed POINT *pt2 to DPOINT *pt2 and dx, dy from SIZE to SDWORD
 static BOOLEAN
-CmpMovePoints (const POINT *pt1, const POINT *pt2, SIZE dx, SIZE dy,
-			   SIZE reduction)
+CmpMovePoints (const POINT *pt1, const DPOINT *pt2, SDWORD dx, SDWORD dy, SIZE reduction)
 {
 	if (optMeleeScale == TFB_SCALE_STEP)
 	{
@@ -303,8 +313,9 @@ CmpMovePoints (const POINT *pt1, const POINT *pt2, SIZE dx, SIZE dy,
 	}
 }
 
+// JMS: Changed dx, dy from SIZE to SDWORD
 void
-MoveGalaxy (VIEW_STATE view_state, SIZE dx, SIZE dy)
+MoveGalaxy (VIEW_STATE view_state, SDWORD dx, SDWORD dy)
 {
 	PRIMITIVE *pprim;
 	static const COUNT star_counts[] =
@@ -320,10 +331,17 @@ MoveGalaxy (VIEW_STATE view_state, SIZE dx, SIZE dy)
 		COUNT reduction;
 		COUNT i;
 		COUNT iss;
-		POINT *ppt;
+		DPOINT *ppt;
+		FRAME tempframe;
 		int wrap_around;
 
 		reduction = zoom_out;
+		
+		// JMS_GFX
+		if (RESOLUTION_FACTOR == 0 || (GET_GAME_STATE (ARILOU_SPACE_SIDE) <= 1))
+			tempframe = stars_in_space;
+		else
+			tempframe = stars_in_quasispace;
 
 		if (view_state == VIEW_CHANGE)
 		{
@@ -333,8 +351,9 @@ MoveGalaxy (VIEW_STATE view_state, SIZE dx, SIZE dy)
 				{
 					for (i = star_counts[iss]; i > 0; --i, ++pprim)
 					{
+						// JMS_GFX: Replaced stars_in_space with tempframe.
 						pprim->Object.Stamp.frame =	SetAbsFrameIndex (
-								stars_in_space,
+								tempframe,
 									(COUNT)(TFB_Random () & 31)
 									+ star_frame_ofs[iss]);
 					}
@@ -371,6 +390,7 @@ MoveGalaxy (VIEW_STATE view_state, SIZE dx, SIZE dy)
 					else
 					{
 						star_object[0] = STAMP_PRIM;
+						star_object[1] = STAMP_PRIM;
 					}
 				}
 
@@ -417,10 +437,11 @@ MoveGalaxy (VIEW_STATE view_state, SIZE dx, SIZE dy)
 		}
 		else
 		{
-			dx = (COORD)(LOG_SPACE_WIDTH >> 1)
+			// JMS: Changed COORDs to SDWORDs
+			dx = (SDWORD)(LOG_SPACE_WIDTH >> 1)
 					- (LOG_SPACE_WIDTH >> ((MAX_REDUCTION + 1)
 					- MAX_VIS_REDUCTION));
-			dy = (COORD)(LOG_SPACE_HEIGHT >> 1)
+			dy = (SDWORD)(LOG_SPACE_HEIGHT >> 1)
 					- (LOG_SPACE_HEIGHT >> ((MAX_REDUCTION + 1)
 					- MAX_VIS_REDUCTION));
 			if (optMeleeScale == TFB_SCALE_STEP)

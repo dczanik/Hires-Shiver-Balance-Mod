@@ -16,6 +16,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+// JMS_GFX 2012: Merged the resolution Factor stuff from P6014.
+
 #ifndef _ELEMENT_H
 #define _ELEMENT_H
 
@@ -196,7 +198,7 @@ extern PRIMITIVE DisplayArray[MAX_DISPLAY_PRIMS];
 #define MAX_SHIP_MASS 10
 #define GRAVITY_MASS(m) ((m) > MAX_SHIP_MASS * 10)
 #define RETREATER_MASS (MAX_SHIP_MASS * 10)
-#define GRAVITY_THRESHOLD (COUNT)255
+#define GRAVITY_THRESHOLD (COUNT)(255 << RESOLUTION_FACTOR) // JMS_GFX
 
 #define OBJECT_CLOAKED(eptr) \
 		(GetPrimType (&GLOBAL (DisplayArray[(eptr)->PrimIndex])) >= NUM_PRIMS \
@@ -239,7 +241,7 @@ extern COUNT PlotIntercept (ELEMENT *ElementPtr0,
 		ELEMENT *ElementPtr1, COUNT max_turns, COUNT margin_of_error);
 
 extern void InitGalaxy (void);
-extern void MoveGalaxy (VIEW_STATE view_state, SIZE dx, SIZE dy);
+extern void MoveGalaxy (VIEW_STATE view_state, SDWORD dx, SDWORD dy);
 
 extern BOOLEAN CalculateGravity (ELEMENT *ElementPtr);
 

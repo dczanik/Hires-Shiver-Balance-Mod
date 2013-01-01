@@ -14,6 +14,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+// JMS_GFX 2012: Merged the resolution Factor stuff from P6014.
+
 /*
  * Eventually this should include all configuration stuff, 
  * for now there's few options which indicate 3do/pc flavors.
@@ -40,8 +42,13 @@ extern int optMeleeScale;
 
 extern int opt_retreat;
 extern DWORD opt_retreat_wait;
-
 extern BOOLEAN opt_reticles;
+// JMS_GFX
+extern unsigned int loresBlowupScale;
+extern unsigned int resolutionFactor;
+extern BOOLEAN forceAspectRatio;
+extern BOOLEAN resFactorWasChanged;
+
 extern BOOLEAN opt3doMusic;
 extern BOOLEAN optRemixMusic;
 extern BOOLEAN optSubtitles;

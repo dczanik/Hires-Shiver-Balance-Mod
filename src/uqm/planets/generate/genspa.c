@@ -81,7 +81,7 @@ GenerateSpathi_generatePlanets (SOLARSYS_STATE *solarSys)
 	if (GET_GAME_STATE (SPATHI_SHIELDED_SELVES))
 		pMinPlanet->data_index |= PLANET_SHIELDED;
 	pMinPlanet->NumPlanets = 1;
-
+	ComputeSpeed(pMinPlanet, FALSE, 1);
 	return true;
 }
 
@@ -107,6 +107,7 @@ GenerateSpathi_generateMoons (SOLARSYS_STATE *solarSys, PLANET_DESC *planet)
 				COSINE (angle, solarSys->MoonDesc[0].radius);
 		solarSys->MoonDesc[0].location.y =
 				SINE (angle, solarSys->MoonDesc[0].radius);
+		ComputeSpeed(&solarSys->MoonDesc[0], TRUE, 1);
 	}
 
 	return true;

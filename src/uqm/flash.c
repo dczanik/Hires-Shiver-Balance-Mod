@@ -14,6 +14,8 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+// JMS_GFX 2012: Merged the resolution Factor stuff from P6014.
+
 // NOTE: A lot of this code is untested. Only highlite and overlay flash
 //       areas, drawing directly to the screen, using a cache, are
 //       currently in use.
@@ -31,7 +33,7 @@
 #include "flash.h"
 
 #include "setup.h"
-		// For GraphicsLock.
+// For GraphicsLock.
 #include "libs/log.h"
 #include "libs/memlib.h"
 #include "libs/threadlib.h"
@@ -44,58 +46,58 @@ static void Flash_clearCache (FlashContext *context);
 static void Flash_initCache (FlashContext *context);
 static void Flash_grabOriginal (FlashContext *context);
 static void Flash_blendFraction (FlashContext *context, int numer, int denom,
-		int *resNumer, int *resDenom);
+								 int *resNumer, int *resDenom);
 static void Flash_makeFrame (FlashContext *context,
-		FRAME dest, int numer, int denom);
+							 FRAME dest, int numer, int denom);
 static inline void Flash_prepareCacheFrame (FlashContext *context,
-		COUNT index);
+											COUNT index);
 static void Flash_drawFrame (FlashContext *context, FRAME frame);
 static void Flash_drawCacheFrame (FlashContext *context, COUNT index);
 static inline void Flash_drawUncachedFrame (FlashContext *context,
-		int numer, int denom);
+											int numer, int denom);
 static inline void Flash_drawCachedFrame (FlashContext *context,
-		int numer, int denom);
+										  int numer, int denom);
 static void Flash_drawCurrentFrame (FlashContext *context);
 
 static CONTEXT workGfxContext;
-		// Off-screen internal drawing context
+// Off-screen internal drawing context
 
 static FlashContext *
 Flash_create (CONTEXT gfxContext)
 {
 	FlashContext *context = HMalloc (sizeof (FlashContext));
-
+	
 	context->gfxContext     = gfxContext;
-
+	
 	context->original       = 0;
-
+	
 	context->startNumer     = 0;
 	context->endNumer       = 1;
 	context->denom          = 1;
-
+	
 	context->fadeInTime     = Flash_DEFAULT_FADE_IN_TIME;
 	context->onTime         = Flash_DEFAULT_ON_TIME;
 	context->fadeOutTime    = Flash_DEFAULT_FADE_OUT_TIME;
 	context->offTime        = Flash_DEFAULT_OFF_TIME;
-
+	
 	context->frameTime      = 0;
-
+	
 	context->state          = FlashState_off;
 	context->lastStateTime  = 0;
 	context->lastFrameTime  = 0;
 	
 	context->started        = false;
 	context->paused         = false;
-
+	
 	context->cache          = 0;
 	context->cacheSize      = Flash_DEFAULT_CACHE_SIZE;
 	
 	context->lastFrameIndex = (COUNT) -1;
-
+	
 	// TODO: Delete the context somewhere
 	if (!workGfxContext)
 		workGfxContext = CreateContext ("Flash.workGfxContext");
-
+	
 	return context;
 }
 
@@ -106,7 +108,7 @@ FlashContext *
 Flash_createHighlight (CONTEXT gfxContext, const RECT *rect)
 {
 	FlashContext *context = Flash_create (gfxContext);
-
+	
 	if (rect == NULL)
 	{
 		// No rectangle specified. It should be specified later with
@@ -119,18 +121,18 @@ Flash_createHighlight (CONTEXT gfxContext, const RECT *rect)
 	else
 		context->rect = *rect;
 	context->type = FlashType_highlight;
-
+	
 	return context;
 }
 
 FlashContext *
 Flash_createTransition (CONTEXT gfxContext, const POINT *origin,
-		FRAME first, FRAME final)
+						FRAME first, FRAME final)
 {
 	FlashContext *context = Flash_create (gfxContext);
 	
 	context->type = FlashType_transition;
-
+	
 	context->u.transition.first = first;
 	context->u.transition.final = final;
 	GetFrameRect (final, &context->rect);
@@ -143,9 +145,9 @@ FlashContext *
 Flash_createOverlay (CONTEXT gfxContext, const POINT *origin, FRAME overlay)
 {
 	FlashContext *context = Flash_create (gfxContext);
-
+	
 	context->type = FlashType_overlay;
-
+	
 	if (origin == NULL || overlay == NULL) {
 		// No overlay specified. It should be specified later with
 		// Flash_setOverlay(), before calling Flash_start().
@@ -155,7 +157,7 @@ Flash_createOverlay (CONTEXT gfxContext, const POINT *origin, FRAME overlay)
 		context->rect.extent.width = 0;
 		context->rect.extent.height = 0;
 	} else
-		Flash_setOverlay (context, origin, overlay);
+		Flash_setOverlay (context, origin, overlay, FALSE);
 	
 	return context;
 }
@@ -164,18 +166,18 @@ Flash_createOverlay (CONTEXT gfxContext, const POINT *origin, FRAME overlay)
 // be considered to be already spent in this state.
 void
 Flash_setState (FlashContext *context, FlashState state,
-		TimeCount timeSpentInState)
+				TimeCount timeSpentInState)
 {
 	TimeCount now;
 	
 	now = GetTimeCounter ();
-
+	
 	context->state = state;
 	Flash_fixState (context);
 	
 	context->lastStateTime = now - timeSpentInState;
 	context->lastFrameTime = now;
-
+	
 	if (context->started)
 		Flash_drawCurrentFrame (context);
 }
@@ -186,18 +188,18 @@ Flash_start (FlashContext *context)
 	if (context->started)
 	{
 		log_add (log_Warning, "Flash_start() called on already started "
-				"FlashContext.\n");
+				 "FlashContext.\n");
 		return;
 	}
 	
 	Flash_initCache (context);
-
+	
 	context->started = true;
 	context->paused = false;
-
+	
 	Flash_grabOriginal (context);
 	context->lastFrameIndex = 0;
-
+	
 	Flash_fixState (context);
 	Flash_drawCurrentFrame (context);
 }
@@ -209,11 +211,11 @@ Flash_terminate (FlashContext *context)
 	{
 		// Restore the flash rectangle:
 		Flash_drawFrame (context, context->original);
-
+		
 		Flash_clearCache (context);
 		DestroyDrawable (ReleaseDrawable (context->original));
 	}
-
+	
 	HFree (context);
 }
 
@@ -268,12 +270,12 @@ void
 Flash_process (FlashContext *context)
 {
 	TimeCount now;
-
+	
 	if (!context->started || context->paused)
 		return;
 	
 	now = GetTimeCounter ();
-
+	
 	if (context->state == FlashState_fadeIn)
 	{
 		if (now >= context->lastStateTime + context->fadeInTime)
@@ -306,13 +308,13 @@ Flash_process (FlashContext *context)
 		Flash_nextState (context);
 		context->lastStateTime = now;
 	}
-
+	
 	Flash_drawCurrentFrame (context);
 }
 
 void
 Flash_setSpeed (FlashContext *context, TimeCount fadeInTime,
-		TimeCount onTime, TimeCount fadeOutTime, TimeCount offTime)
+				TimeCount onTime, TimeCount fadeOutTime, TimeCount offTime)
 {
 	context->fadeInTime = fadeInTime;
 	context->onTime = onTime;
@@ -339,17 +341,17 @@ Flash_setSpeed (FlashContext *context, TimeCount fadeInTime,
 // These numbers are relative to the brighness of each original image.
 void
 Flash_setMergeFactors(FlashContext *context, int startNumer, int endNumer,
-		int denom) {
+					  int denom) {
 	if (context->started)
 	{
 		Flash_drawFrame (context, context->original);
 		Flash_clearCache (context);
 	}
-
+	
 	context->startNumer = startNumer;
 	context->endNumer = endNumer;
 	context->denom = denom;
-
+	
 	if (context->started)
 	{
 		Flash_grabOriginal (context);
@@ -370,9 +372,9 @@ Flash_nextTime (FlashContext *context)
 {
 	if (!context->started || context->paused)
 		return (TimeCount) -1;
-
+	
 	if (context->state == FlashState_fadeIn ||
-			context->state == FlashState_fadeOut)
+		context->state == FlashState_fadeOut)
 	{
 		// When we're fading in or out, we need updates during
 		// the fade.
@@ -393,10 +395,10 @@ static void
 Flash_clearCache (FlashContext *context)
 {
 	COUNT i;
-
+	
 #ifdef BEGIN_AND_END_FRAME_EXCEPTIONS
 	if (context->type == FlashType_transition ||
-			context->type == FlashType_overlay)
+		context->type == FlashType_overlay)
 	{
 		// First frame is not allocated by the flash code, so
 		// we shouldn't free it.
@@ -424,16 +426,16 @@ void
 Flash_setRect (FlashContext *context, const RECT *rect)
 {
 	assert(context->type == FlashType_highlight);
-
+	
 	if (context->started)
 	{
 		Flash_drawFrame (context, context->original);
 		Flash_clearCache (context);
 	}
-
+	
 	context->rect = *rect;
 	context->lastFrameIndex = (COUNT) -1;
-
+	
 	if (context->started)
 	{
 		Flash_grabOriginal (context);
@@ -445,26 +447,31 @@ void
 Flash_getRect (FlashContext *context, RECT *rect)
 {
 	assert (!context->type == FlashType_highlight);
-
+	
 	*rect = context->rect;
 }
 
+// JMS_GFX: The cleanup boolean can be used when changing between normal and hi-res modes.
+// It ensures that an ugly wrong-sized flash overlay from previous resolution is cleaned
+// from the flash process.
 void
-Flash_setOverlay (FlashContext *context, const POINT *origin, FRAME overlay)
+Flash_setOverlay (FlashContext *context, const POINT *origin, FRAME overlay, BOOLEAN cleanup)
 {
 	assert(context->type == FlashType_overlay);
-
-	if (context->started)
+	
+	if (context->started && !cleanup)
 	{
 		Flash_drawFrame (context, context->original);
 		Flash_clearCache (context);
 	}
 	
-	context->u.overlay.frame = overlay;
+	if (!cleanup)
+		context->u.overlay.frame = overlay;
+	
 	GetFrameRect (overlay, &context->rect);
 	context->rect.corner.x += origin->x;
 	context->rect.corner.y += origin->y;
-
+	
 	if (context->started)
 	{
 		Flash_grabOriginal (context);
@@ -499,7 +506,7 @@ static void
 Flash_initCache (FlashContext *context)
 {
 	COUNT i;
-
+	
 	context->cache = HMalloc (context->cacheSize * sizeof (FRAME));
 	for (i = 0; i < context->cacheSize; i++)
 		context->cache[i] = (FRAME) 0;
@@ -509,16 +516,16 @@ void
 Flash_setCacheSize (FlashContext *context, COUNT size)
 {
 	assert (size == 0 || size >= 2);
-
+	
 	if (context->cache != NULL)
 	{
 		Flash_clearCache (context);
 		HFree (context->cache);
 		context->cache = NULL;
 	}
-
+	
 	context->cacheSize = size;
-
+	
 	if (size != 0)
 		Flash_initCache (context);
 }
@@ -533,24 +540,24 @@ static void
 Flash_grabOriginal (FlashContext *context)
 {
 	CONTEXT oldGfxContext;
-
+	
 	if (context->original != (FRAME) 0)
 		DestroyDrawable (ReleaseDrawable (context->original));
-
+	
 	LockMutex (GraphicsLock);
 	oldGfxContext = SetContext (context->gfxContext);
 	context->original = CaptureDrawable (CopyContextRect (&context->rect));
 	SetContext (oldGfxContext);
 	FlushGraphics ();
-			// CopyContextRect() may have queued the command to read
-			// a rectangle from the screen; a FlushGraphics()
-			// is necessary to ensure that it can actually be used.
+	// CopyContextRect() may have queued the command to read
+	// a rectangle from the screen; a FlushGraphics()
+	// is necessary to ensure that it can actually be used.
 	UnlockMutex (GraphicsLock);
 }
 
 static inline void
 Flash_blendFraction (FlashContext *context, int numer, int denom,
-		int *resNumer, int *resDenom)
+					 int *resNumer, int *resDenom)
 {
 	// This function merges two fractions (F0 and F1),
 	// based on another fraction (P) (yielding R).
@@ -562,9 +569,9 @@ Flash_blendFraction (FlashContext *context, int numer, int denom,
 	//     (denom - numer) * startNumer / denom * context->denom
 	
 	assert (numer >= 0 && numer <= denom);
-
+	
 	*resNumer = numer * context->endNumer +
-			(denom - numer) * context->startNumer;
+	(denom - numer) * context->startNumer;
 	*resDenom = denom * context->denom;
 }
 
@@ -575,16 +582,16 @@ Flash_makeFrame (FlashContext *context, FRAME dest, int numer, int denom)
 	STAMP s;
 	int blendedNumer;
 	int blendedDenom;
-
+	
 	s.origin.x = 0;
 	s.origin.y = 0;
-
+	
 	Flash_blendFraction (context, numer, denom, &blendedNumer, &blendedDenom);
-
+	
 	LockMutex (GraphicsLock);
 	oldGfxContext = SetContext (workGfxContext);
 	SetContextFGFrame (dest);
-
+	
 	switch (context->type) {
 		case FlashType_highlight:
 		{
@@ -593,7 +600,7 @@ Flash_makeFrame (FlashContext *context, FRAME dest, int numer, int denom)
 			ClearDrawable ();
 			// Draw the frame at modulated strength (0 < strength <= 128)
 			SetContextDrawMode (MAKE_DRAW_MODE (DRAW_ADDITIVE,
-					DRAW_FACTOR_1 * blendedNumer / blendedDenom));
+												DRAW_FACTOR_1 * blendedNumer / blendedDenom));
 			s.frame = context->original;
 			DrawStamp (&s);
 			break;
@@ -602,21 +609,21 @@ Flash_makeFrame (FlashContext *context, FRAME dest, int numer, int denom)
 		{
 			FRAME first;
 			FRAME final;
-
+			
 			first = context->u.transition.first;
 			if (first == (FRAME) 0)
 				first = context->original;
 			final = context->u.transition.final;
 			if (final == (FRAME) 0)
 				final = context->original;
-
+			
 			// Draw the first frame at full strength
 			SetContextDrawMode (DRAW_REPLACE_MODE);
 			s.frame = first;
 			DrawStamp (&s);
 			// Merge in the final frame
 			SetContextDrawMode (MAKE_DRAW_MODE (DRAW_ALPHA,
-					DRAW_FACTOR_1 * blendedNumer / blendedDenom));
+												DRAW_FACTOR_1 * blendedNumer / blendedDenom));
 			s.frame = final;
 			DrawStamp (&s);
 			break;
@@ -624,14 +631,14 @@ Flash_makeFrame (FlashContext *context, FRAME dest, int numer, int denom)
 		case FlashType_overlay:
 		{
 			POINT oldOrigin;
-
+			
 			// Draw the original at full strength
 			SetContextDrawMode (DRAW_REPLACE_MODE);
 			s.frame = context->original;
 			DrawStamp (&s);
 			// Add or subtract the overlay at partial strength
 			SetContextDrawMode (MAKE_DRAW_MODE (DRAW_ADDITIVE,
-					DRAW_FACTOR_1 * blendedNumer / blendedDenom));
+												DRAW_FACTOR_1 * blendedNumer / blendedDenom));
 			s.frame = context->u.overlay.frame;
 			// Offset the draw origin to hit the right area
 			oldOrigin = SetContextOrigin (GetFrameHot (s.frame));
@@ -640,7 +647,7 @@ Flash_makeFrame (FlashContext *context, FRAME dest, int numer, int denom)
 			break;
 		}
 	}
-
+	
 	SetContext (oldGfxContext);
 	UnlockMutex (GraphicsLock);
 }
@@ -651,24 +658,24 @@ Flash_prepareCacheFrame (FlashContext *context, COUNT index)
 {
 	if (context->cache[index] != (FRAME) 0)
 		return;
-
+	
 #ifdef BEGIN_AND_END_FRAME_EXCEPTIONS
 	if (index == 0 && context->type == FlashType_overlay)
 		context->cache[index] = context->original;
 	else if (index == 0 && context->type == FlashType_transition)
 		context->cache[index] = context->u.transition.first != (FRAME) 0 ?
-				context->u.transition.first : context->original;
+		context->u.transition.first : context->original;
 	else if (index == context->cacheSize - 1 &&
-			context->type == FlashType_transition)
+			 context->type == FlashType_transition)
 		context->cache[index] = context->u.transition.final != (FRAME) 0 ?
-				context->u.transition.final : context->original;
+		context->u.transition.final : context->original;
 	else
 #endif  /* BEGIN_AND_END_FRMAE_EXCEPTIONS */
 	{
 		context->cache[index] = CaptureDrawable (CreateDrawable (WANT_PIXMAP,
-				context->rect.extent.width, context->rect.extent.height, 1));
+																 context->rect.extent.width, context->rect.extent.height, 1));
 		Flash_makeFrame (context, context->cache[index],
-				index, context->cacheSize - 1);
+						 index, context->cacheSize - 1);
 	}
 }
 
@@ -677,14 +684,14 @@ Flash_drawFrame (FlashContext *context, FRAME frame)
 {
 	CONTEXT oldGfxContext;
 	STAMP stamp;
-
+	
 	LockMutex (GraphicsLock);
 	oldGfxContext = SetContext (context->gfxContext);
-
+	
 	stamp.origin = context->rect.corner;
 	stamp.frame = frame;
 	DrawStamp(&stamp);
-
+	
 	SetContext (oldGfxContext);
 	UnlockMutex (GraphicsLock);
 }
@@ -693,10 +700,10 @@ static void
 Flash_drawCacheFrame (FlashContext *context, COUNT index)
 {
 	FRAME frame;
-
+	
 	if (context->lastFrameIndex == index)
 		return;
-
+	
 	frame = context->cache[index];
 	Flash_drawFrame (context, frame);
 	context->lastFrameIndex = index;
@@ -708,12 +715,12 @@ Flash_drawUncachedFrame (FlashContext *context, int numer, int denom)
 #ifdef BEGIN_AND_END_FRAME_EXCEPTIONS
 	// 'lastFrameIndex' is 0 for the first image, 1 for the final
 	// image, and 2 otherwise.
-
+	
 	if (numer == 0 && context->type == FlashType_overlay)
 	{
 		if (context->lastFrameIndex != 0)
 			return;
-
+		
 		Flash_drawFrame (context, context->original);
 		context->lastFrameIndex = 0;
 		return;
@@ -722,7 +729,7 @@ Flash_drawUncachedFrame (FlashContext *context, int numer, int denom)
 	{
 		if (context->lastFrameIndex == 0)
 			return;
-
+		
 		Flash_drawFrame (context, context->u.transition.first);
 		context->lastFrameIndex = 0;
 		return;
@@ -731,24 +738,24 @@ Flash_drawUncachedFrame (FlashContext *context, int numer, int denom)
 	{
 		if (context->lastFrameIndex == 1)
 			return;
-
+		
 		Flash_drawFrame (context, context->u.transition.final);
 		context->lastFrameIndex = 1;
 		return;
 	}
-
+	
 	context->lastFrameIndex = 2;
 #endif  /* BEGIN_AND_END_FRMAE_EXCEPTIONS */
-
+	
 	{
 		// Painting to the screen; we need a temporary frame to draw to.
 		FRAME work;
-
+		
 		work = CaptureDrawable (CreateDrawable (WANT_PIXMAP,
-				context->rect.extent.width, context->rect.extent.height, 1));
+												context->rect.extent.width, context->rect.extent.height, 1));
 		Flash_makeFrame (context, work, numer, denom);
 		Flash_drawFrame (context, work);
-
+		
 		DestroyDrawable (ReleaseDrawable (work));
 	}
 }
@@ -757,7 +764,7 @@ static inline void
 Flash_drawCachedFrame (FlashContext *context, int numer, int denom)
 {
 	COUNT cachePos;
-
+	
 	cachePos = ((context->cacheSize - 1) * numer + (denom / 2)) / denom;
 	Flash_prepareCacheFrame (context, cachePos);
 	Flash_drawCacheFrame (context, cachePos);
@@ -768,7 +775,7 @@ Flash_drawCurrentFrame (FlashContext *context)
 {
 	int numer;
 	int denom;
-
+	
 	if (context->state == FlashState_off)
 	{
 		numer = 0;
@@ -782,21 +789,21 @@ Flash_drawCurrentFrame (FlashContext *context)
 	else
 	{
 		TimeCount now = GetTimeCounter ();
-
+		
 		if (context->state == FlashState_fadeIn)
 			denom = (int) context->fadeInTime;
 		else
 			denom = (int) context->fadeOutTime;
-
+		
 		numer = (int) (now - context->lastStateTime);
-
+		
 		if (numer > denom)
 			numer = denom;
-
+		
 		if (context->state == FlashState_fadeOut)
 			numer = (int) context->fadeOutTime - numer;
 	}
-
+	
 	if (context->cacheSize == 0)
 		Flash_drawUncachedFrame (context, numer, denom);
 	else

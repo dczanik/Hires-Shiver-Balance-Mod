@@ -14,6 +14,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+// JMS_GFX 2012: Merged the resolution Factor stuff from P6014.
+
 #ifndef _SETUP_H
 #define _SETUP_H
 
@@ -31,6 +33,8 @@ extern RESOURCE_INDEX hResIndex;
 extern FRAME Screen;
 extern FRAME ActivityFrame;
 extern FRAME StatusFrame;
+extern FRAME nebulaeFrame;	// JMS
+extern FRAME hyperspacesuns;	// BW
 extern FRAME FlagStatFrame;
 extern FRAME MiscDataFrame;
 extern FRAME FontGradFrame;
@@ -57,6 +61,9 @@ extern CondVar RenderingCond;
 extern QUEUE race_q[];
 		/* Array of lists of ships involved in a battle, one queue per side;
 		 * queue element is STARSHIP */
+
+extern BOOLEAN hires2xPackPresent; // JMS
+extern BOOLEAN hires4xPackPresent; // JMS
 
 extern ACTIVITY LastActivity;
 

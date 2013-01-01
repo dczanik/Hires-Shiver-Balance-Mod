@@ -16,6 +16,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+// JMS_GFX 2012: Merged the resolution Factor stuff from P6014.
+
 #include "lander.h"
 
 #include "lifeform.h"
@@ -119,7 +121,7 @@ const LIFEFORM_DESC CreatureData[] =
 
 	{SPEED_MOTIONLESS | DANGER_MONSTROUS, MAKE_BYTE (1, 1)},
 			// Evil One
-	{BEHAVIOR_UNPREDICTABLE | SPEED_SLOW | DANGER_HARMLESS, MAKE_BYTE (0, 1)},
+	{BEHAVIOR_UNPREDICTABLE | SPEED_SLOW | DANGER_HARMLESS, MAKE_BYTE (1, 1)},
 			// Brainbox Bulldozers
 	{BEHAVIOR_HUNT | AWARENESS_HIGH | SPEED_FAST | DANGER_MONSTROUS, MAKE_BYTE (15, 15)},
 			// Zex's Beauty
@@ -151,7 +153,7 @@ extern PRIM_LINKS DisplayLinks;
 #define ADD_AT_END (1 << 4)
 #define REPAIR_COUNT (0xf)
 
-#define LANDER_SPEED_DENOM 10
+#define LANDER_SPEED_DENOM (10) // JMS_GFX
 
 static BYTE lander_flags;
 static POINT curLanderLoc;
@@ -265,17 +267,20 @@ object_animation (ELEMENT *ElementPtr)
 			else if (ElementPtr->mass_points == EARTHQUAKE_DISASTER)
 			{
 				SIZE s;
+				SIZE frame_amount; // JMS_GFX
 
-				if (frame_index >= 13)
+				frame_amount = 14;
+				
+				if (frame_index >= (frame_amount-1))
 					s = 0;
 				else
-					s = (14 - frame_index) >> 1;
+					s = (frame_amount - frame_index) >> 1;
 				// XXX: Was 0x8000 the background flag on 3DO?
 				//SetPrimColor (pPrim, BUILD_COLOR (0x8000 | MAKE_RGB15 (0x1F, 0x1F, 0x1F), s));
 				SetPrimColor (pPrim, BUILD_COLOR (MAKE_RGB15 (0x1F, 0x1F, 0x1F), s));
-				if (frame_index == 13)
+				if (frame_index == (frame_amount - 1))
 					PlaySound (SetAbsSoundIndex (LanderSounds, EARTHQUAKE_DISASTER),
-							NotPositional (), NULL, GAME_SOUND_PRIORITY);
+							   NotPositional (), NULL, GAME_SOUND_PRIORITY);
 			}
 			
 			if (ElementPtr->mass_points == LAVASPOT_DISASTER
@@ -293,8 +298,8 @@ object_animation (ELEMENT *ElementPtr)
 					angle = FACING_TO_ANGLE (ElementPtr->facing);
 					LockElement (hLavaElement, &LavaElementPtr);
 					LavaElementPtr->next.location = ElementPtr->next.location;
-					LavaElementPtr->next.location.x += COSINE (angle, 4);
-					LavaElementPtr->next.location.y += SINE (angle, 4);
+					LavaElementPtr->next.location.x += COSINE (angle, 4 << RESOLUTION_FACTOR); // JMS_GFX
+					LavaElementPtr->next.location.y += SINE (angle, 4 << RESOLUTION_FACTOR); // JMS_GFX
 					if (LavaElementPtr->next.location.y < 0)
 						LavaElementPtr->next.location.y = 0;
 					else if (LavaElementPtr->next.location.y >= (MAP_HEIGHT << MAG_SHIFT))
@@ -414,6 +419,7 @@ object_animation (ELEMENT *ElementPtr)
 						speed = WORLD_TO_VELOCITY (2 * 1) * 9 / 10;
 						break;
 				}
+				speed = speed << RESOLUTION_FACTOR; // JMS_GFX
 
 				SetVelocityComponents (&ElementPtr->velocity,
 						COSINE (angle, speed), SINE (angle, speed));
@@ -468,8 +474,21 @@ DeltaLanderCrew (SIZE crew_delta, COUNT which_disaster)
 				NotPositional (), NULL, GAME_SOUND_PRIORITY);
 	}
 
-	s.origin.x = 11 + (6 * (crew_delta % NUM_CREW_COLS));
-	s.origin.y = 35 - (6 * (crew_delta / NUM_CREW_COLS));
+	if (RESOLUTION_FACTOR == 0)
+	{
+		s.origin.x = ((11 + ((6 << RESOLUTION_FACTOR) * (crew_delta % NUM_CREW_COLS)))); // JMS_GFX
+		s.origin.y = (35 - (6 * (crew_delta / NUM_CREW_COLS))) << RESOLUTION_FACTOR; // JMS_GFX
+	}
+	else if (RESOLUTION_FACTOR == 1)
+	{
+		s.origin.x = ((23 + ((6 << RESOLUTION_FACTOR) * (crew_delta % NUM_CREW_COLS)))); // JMS_GFX
+		s.origin.y = 1 + ((35 - (6 * (crew_delta / NUM_CREW_COLS))) << RESOLUTION_FACTOR); // JMS_GFX
+	}
+	else
+	{
+		s.origin.x = 32 + ((9 * RESOLUTION_FACTOR) * (crew_delta % NUM_CREW_COLS)); // JMS_GFX
+		s.origin.y = (52 * RESOLUTION_FACTOR - (9 * RESOLUTION_FACTOR * (crew_delta / NUM_CREW_COLS))); // JMS_GFX
+	}
 
 	OldContext = SetContext (RadarContext);
 	DrawStamp (&s);
@@ -499,20 +518,34 @@ FillLanderHold (PLANETSIDE_DESC *pPSD, COUNT scan, COUNT NumRetrieved)
 		start_count = pPSD->ElementLevel;
 		pPSD->ElementLevel += NumRetrieved;
 		if (GET_GAME_STATE (IMPROVED_LANDER_CARGO))
-		{
-			start_count >>= 1;
-			NumRetrieved = (pPSD->ElementLevel >> 1) - start_count;
-		}
+			NumRetrieved = (pPSD->ElementLevel >> 1) - (start_count >> 1);
 
 		s.frame = SetAbsFrameIndex (LanderFrame[0], 43);
 	}
+	
+	log_add(log_Warning, "sc %d, ellevel %d, numr %d, ", start_count, scan == BIOLOGICAL_SCAN ? pPSD->BiologicalLevel : pPSD->ElementLevel, NumRetrieved);
 
+	start_count *= RES_STAT_SCALE(1); // JMS_GFX
+	
+	if (scan == MINERAL_SCAN && GET_GAME_STATE (IMPROVED_LANDER_CARGO))
+		start_count >>= 1;
+	
 	s.origin.x = 0;
-	s.origin.y = -(int)start_count;
+	s.origin.y =  -(int)start_count + RESOLUTION_FACTOR; // JMS_GFX
 	if (!(start_count & 1))
 		s.frame = IncFrameIndex (s.frame);
 
 	OldContext = SetContext (RadarContext);
+	
+	// JMS_GFX
+	if (scan == MINERAL_SCAN && GET_GAME_STATE (IMPROVED_LANDER_CARGO) && RESOLUTION_FACTOR > 0)
+	{
+		NumRetrieved *= RES_STAT_SCALE(1);
+		NumRetrieved >>= 1;
+	}
+		
+	log_add(log_Warning, "SCALED: sc %d, ellevel %d, numr %d, ", start_count, scan == BIOLOGICAL_SCAN ? pPSD->BiologicalLevel : pPSD->ElementLevel, NumRetrieved);
+	
 	while (NumRetrieved--)
 	{
 		if (start_count++ & 1)
@@ -520,7 +553,7 @@ FillLanderHold (PLANETSIDE_DESC *pPSD, COUNT scan, COUNT NumRetrieved)
 		else
 			s.frame = DecFrameIndex (s.frame);
 		DrawStamp (&s);
-		--s.origin.y;
+		s.origin.y -= RES_STAT_SCALE(1); // JMS_GFX
 	}
 	SetContext (OldContext);
 }
@@ -534,6 +567,9 @@ pickupMineralNode (PLANETSIDE_DESC *pPSD, COUNT NumRetrieved,
 	BYTE EType;
 	UNICODE ch;
 	UNICODE *pStr;
+	
+	// JMS: The rest of partially scavenged minerals stay on the surface.
+	bool partialPickup = false;
 
 	if (pPSD->ElementLevel >= pPSD->MaxElementLevel)
 	{
@@ -545,8 +581,48 @@ pickupMineralNode (PLANETSIDE_DESC *pPSD, COUNT NumRetrieved,
 
 	if (pPSD->ElementLevel + NumRetrieved > pPSD->MaxElementLevel)
 	{
+		SIZE which_node;
+		COUNT oldsize = ElementPtr->mass_points;
+		
 		// Deposit could only be picked up partially.
 		NumRetrieved = (COUNT)(pPSD->MaxElementLevel - pPSD->ElementLevel);
+		
+		// JMS: Subtract the scavenged kilotons from the mineral deposit.
+		// The rest will stay on the surface.
+		ElementPtr->mass_points -= NumRetrieved;
+		
+		// JMS: This makes the mineral deposit subtraction keep  
+		// in effect even after leaving & re-entering the planet.
+		which_node = HIBYTE (ElementPtr->scan_node) - 1;
+		pSolarSysState->SysInfo.PlanetInfo.PartiallyScavengedList[MINERAL_SCAN][which_node] = NumRetrieved;
+		
+		// JMS: If the deposit was large and its amount now equates to a smaller
+		// deposit, change its graphics.
+		if ((oldsize > 22 && ElementPtr->mass_points <= 22)
+			|| (oldsize > 15 && ElementPtr->mass_points <= 15))
+		{
+			PRIMITIVE *pPrim = &DisplayArray[ElementPtr->PrimIndex];
+			BYTE gfx_index_change = 0;
+			
+			if (oldsize > 22 && ElementPtr->mass_points <= 15)
+				gfx_index_change = 2;
+			else
+				gfx_index_change = 1;
+			
+			// Change the scan screen gfx.
+			ElementPtr->current.image.frame = SetRelFrameIndex (
+				ElementPtr->current.image.frame, (2 - gfx_index_change));
+			ElementPtr->next.image.frame = ElementPtr->current.image.frame;
+
+			// Notify the engine that the scan screen gfx should be updated.
+			ElementPtr->state_flags |= CHANGING;
+			SET_GAME_STATE (PLANETARY_CHANGE, 1);
+			
+			// Change the surface screen gfx.
+			pPrim->Object.Stamp.frame = SetRelFrameIndex (pPrim->Object.Stamp.frame, -gfx_index_change);
+		}
+		
+		partialPickup = true;
 	}
 
 	FillLanderHold (pPSD, MINERAL_SCAN, NumRetrieved);
@@ -559,9 +635,9 @@ pickupMineralNode (PLANETSIDE_DESC *pPSD, COUNT NumRetrieved,
 	pStr = GAME_STRING (EType + ELEMENTS_STRING_BASE);
 
 	pPSD->MineralText[0].baseline.x = (SURFACE_WIDTH >> 1)
-			+ (ElementControl->EndPoint.x - LanderControl->EndPoint.x);
+			+ ((ElementControl->EndPoint.x - LanderControl->EndPoint.x) << RESOLUTION_FACTOR); // JMS_GFX
 	pPSD->MineralText[0].baseline.y = (SURFACE_HEIGHT >> 1)
-			+ (ElementControl->EndPoint.y - LanderControl->EndPoint.y);
+			+ ((ElementControl->EndPoint.y - LanderControl->EndPoint.y) << RESOLUTION_FACTOR); // JMS_GFX
 	pPSD->MineralText[0].CharCount = (COUNT)~0;
 	pPSD->MineralText[1].pStr = pStr;
 
@@ -582,12 +658,20 @@ pickupMineralNode (PLANETSIDE_DESC *pPSD, COUNT NumRetrieved,
 		pPSD->MineralText[2].CharCount = (COUNT)~0;
 	}
 
-	return true;
+	// JMS
+	if (partialPickup)
+		return false;
+	else
+		return true;
 }
 
 static bool
-pickupBioNode (PLANETSIDE_DESC *pPSD, COUNT NumRetrieved)
+pickupBioNode (PLANETSIDE_DESC *pPSD, COUNT NumRetrieved,
+	const INTERSECT_CONTROL *LanderControl, const INTERSECT_CONTROL *ElementControl)
 {
+	UNICODE *pStr; // JMS
+	UNICODE ch; // JMS
+	
 	if (pPSD->BiologicalLevel >= MAX_SCROUNGED)
 	{
 		// Lander is full.
@@ -601,10 +685,84 @@ pickupBioNode (PLANETSIDE_DESC *pPSD, COUNT NumRetrieved)
 		// Node could only be picked up partially.
 		NumRetrieved = (COUNT)(MAX_SCROUNGED - pPSD->BiologicalLevel);
 	}
+	
+	// JMS: Print biodata amount.
+	pPSD->NumFrames = NUM_TEXT_FRAMES;
+	sprintf (pPSD->AmountBuf, "%u", NumRetrieved);
+	pStr = GAME_STRING (ELEMENTS_STRING_BASE + ELEMENTS_STRING_COUNT - 1);
+	pPSD->MineralText[0].baseline.x = (SURFACE_WIDTH >> 1)
+		+ ((ElementControl->EndPoint.x - LanderControl->EndPoint.x) << RESOLUTION_FACTOR); // JMS_GFX
+	pPSD->MineralText[0].baseline.y = (SURFACE_HEIGHT >> 1)
+		+ ((ElementControl->EndPoint.y - LanderControl->EndPoint.y) << RESOLUTION_FACTOR); // JMS_GFX
+	pPSD->MineralText[0].CharCount = (COUNT)~0;
+	pPSD->MineralText[1].pStr = pStr;
+	
+	while ((ch = *pStr++) && ch != ' ')
+		;
+	if (ch == '\0')
+	{
+		pPSD->MineralText[1].CharCount = (COUNT)~0;
+		pPSD->MineralText[2].CharCount = 0;
+	}
+	else  /* ch == ' ' */
+	{
+		// Name contains a space. Print over
+		// two lines.
+		pPSD->MineralText[1].CharCount = utf8StringCountN(
+			pPSD->MineralText[1].pStr, pStr - 1);
+		pPSD->MineralText[2].pStr = pStr;
+		pPSD->MineralText[2].CharCount = (COUNT)~0;
+	}
 
 	FillLanderHold (pPSD, BIOLOGICAL_SCAN, NumRetrieved);
 
 	return true;
+}
+
+static void
+ExplodeCritter (ELEMENT *ElementPtr)
+{
+	HELEMENT hExplosionElement;
+	SIZE temp_which_node;
+				
+	hExplosionElement = AllocElement ();
+	if (hExplosionElement)
+	{
+		ELEMENT *ExplosionElementPtr;
+		LockElement (hExplosionElement, &ExplosionElementPtr);
+					
+		ExplosionElementPtr->mass_points = DEATH_EXPLOSION;
+		ExplosionElementPtr->state_flags = FINITE_LIFE;
+		ExplosionElementPtr->playerNr = PS_NON_PLAYER;
+		ExplosionElementPtr->next.location = ElementPtr->next.location;
+		ExplosionElementPtr->preprocess_func = object_animation;
+		ExplosionElementPtr->turn_wait = MAKE_BYTE (2, 2);
+		ExplosionElementPtr->life_span = EXPLOSION_LIFE * (LONIBBLE (ExplosionElementPtr->turn_wait));
+					
+		SetPrimType (&DisplayArray[ExplosionElementPtr->PrimIndex], STAMP_PRIM);
+		DisplayArray[ExplosionElementPtr->PrimIndex].Object.Stamp.frame = SetAbsFrameIndex (LanderFrame[0], 46);
+
+		// JMS: This keeps track of the explosion frames. Normally explosion occurs only once (lander explodes).
+		// If we don't zero this variable here, the explosion anim can run only once properly and would
+		// get stuck in the last frame after that on all the subsequent explosions.
+		explosion_index = 0;
+					
+		UnlockElement (hExplosionElement);
+		InsertElement (hExplosionElement, GetHeadElement ());
+					
+		PlaySound (SetAbsSoundIndex (LanderSounds, LANDER_DESTROYED), NotPositional (), NULL, GAME_SOUND_PRIORITY + 1);
+					
+		ElementPtr->state_flags |= DISAPPEARING; // JMS: Delete the critter frame
+		ElementPtr->mass_points = 0;			 // JMS: Make sure critter/explosion doesn't give biodata.
+					
+		// JMS: This marks the exploded critter "collected". (even though there was no biodata to collect).
+		// This ensures the critter isn't resurrected when visiting the planet next time.
+		temp_which_node = HIBYTE (ElementPtr->scan_node) - 1;
+		pSolarSysState->SysInfo.PlanetInfo.ScanRetrieveMask[BIOLOGICAL_SCAN] |= (1L << temp_which_node); // Mark this bio blip's state as "collected".
+		//pSolarSysState->CurNode = (COUNT)~0; // GenerateLifeForms will update the states of ALL bio-blips when run.
+		//callGenerateForScanType (pSolarSysState, pSolarSysState->pOrbitalDesc, &pSolarSysState->CurNode, BIOLOGICAL_SCAN); // Re-run GenerateLifeForms so the changed state takes effect
+		SET_GAME_STATE (PLANETARY_CHANGE, 1); // Save the changes to the file containing the states of all lifeforms.
+	}
 }
 
 static void
@@ -620,10 +778,18 @@ shotCreature (ELEMENT *ElementPtr, BYTE value,
 	--ElementPtr->hit_points;
 	if (ElementPtr->hit_points == 0)
 	{
-		// Can creature.
-		ElementPtr->mass_points = value;
-		DisplayArray[ElementPtr->PrimIndex].Object.Stamp.frame =
-				pSolarSysState->PlanetSideFrame[0];
+		// Brainbox bulldozers (Tractors at moon) explode.
+		if ((ElementPtr->mass_points & ~CREATURE_AWARE) == 24)
+		{
+			ExplodeCritter (ElementPtr);
+		}
+		// Can other creatures.
+		else
+		{
+			ElementPtr->mass_points = value;
+			DisplayArray[ElementPtr->PrimIndex].Object.Stamp.frame =
+			pSolarSysState->PlanetSideFrame[0];
+		}
 	}
 	else if (CreatureData[ElementPtr->mass_points & ~CREATURE_AWARE]
 			.Attributes & SPEED_MASK)
@@ -734,7 +900,11 @@ CheckObjectCollision (COUNT index)
 						{
 							case EARTHQUAKE_DISASTER:
 							case LAVASPOT_DISASTER:
-								if (TFB_Random () % 100 < 25)
+								if (scan == LAVASPOT_DISASTER 
+									&& RESOLUTION_FACTOR == 2 
+									&& TFB_Random () % 100 < 9)
+									DeltaLanderCrew (-1, scan);
+								else if (TFB_Random () % 100 < 25)
 									DeltaLanderCrew (-1, scan);
 								break;
 						}
@@ -818,7 +988,8 @@ CheckObjectCollision (COUNT index)
 								continue;
 							break;
 						case BIOLOGICAL_SCAN:
-							if (!pickupBioNode (pPSD, NumRetrieved))
+							if (!pickupBioNode (pPSD, NumRetrieved, &LanderControl,
+									&ElementControl))
 								continue;
 							break;
 					}
@@ -861,18 +1032,29 @@ lightning_process (ELEMENT *ElementPtr)
 		}
 		else
 		{
+			static const Color color_tab[] =
+			{
+				BUILD_COLOR (MAKE_RGB15_INIT (0x11, 0x11, 0x11), 0x18),
+				BUILD_COLOR (MAKE_RGB15_INIT (0x13, 0x13, 0x13), 0x17),
+				BUILD_COLOR (MAKE_RGB15_INIT (0x15, 0x15, 0x15), 0x15),
+				BUILD_COLOR (MAKE_RGB15_INIT (0x17, 0x17, 0x17), 0x14),
+				BUILD_COLOR (MAKE_RGB15_INIT (0x19, 0x19, 0x19), 0x13),
+				BUILD_COLOR (MAKE_RGB15_INIT (0x1B, 0x1B, 0x1B), 0x12),
+				BUILD_COLOR (MAKE_RGB15_INIT (0x1D, 0x1D, 0x1D), 0x10),
+				BUILD_COLOR (MAKE_RGB15_INIT (0x1F, 0x1F, 0x1F), 0x0f),
+			};
+			
 			SIZE s;
 			
-			// XXX: Color cycling is largely unused, because the color
-			//   never actually changes RGB values (see MAKE_RGB15 below).
-			//   This did, however, work in DOS SC2 version (fade effect).
 			s = 7 - ((SIZE)ElementPtr->cycle - (SIZE)ElementPtr->life_span);
 			if (s < 0)
 				s = 0;
+			
 			// XXX: Was 0x8000 the background flag on 3DO?
 			//SetPrimColor (pPrim, BUILD_COLOR (0x8000 | MAKE_RGB15 (0x1F, 0x1F, 0x1F), s));
-			SetPrimColor (pPrim, BUILD_COLOR (MAKE_RGB15 (0x1F, 0x1F, 0x1F), s));
-
+			//SetPrimColor (pPrim, BUILD_COLOR (MAKE_RGB15 (0x1F, 0x1F, 0x1F), s));
+			SetPrimColor (pPrim, color_tab[s]);
+			
 			if (ElementPtr->mass_points == LIGHTNING_DISASTER)
 			{
 				/* This one always strikes the lander and can hurt */
@@ -918,14 +1100,29 @@ AddLightning (void)
 
 		rand_val = TFB_Random ();
 		LightningElementPtr->life_span = 10 + (HIWORD (rand_val) % 10) + 1;
-		LightningElementPtr->next.location.x = (curLanderLoc.x
+		
+		if (RESOLUTION_FACTOR == 0)
+		{
+			LightningElementPtr->next.location.x = (curLanderLoc.x
 				+ ((MAP_WIDTH << MAG_SHIFT) - ((SURFACE_WIDTH >> 1) - 6))
 				+ (LOBYTE (rand_val) % (SURFACE_WIDTH - 12))
 				) % (MAP_WIDTH << MAG_SHIFT);
-		LightningElementPtr->next.location.y = (curLanderLoc.y
+			LightningElementPtr->next.location.y = (curLanderLoc.y
 				+ ((MAP_HEIGHT << MAG_SHIFT) - ((SURFACE_HEIGHT >> 1) - 6))
 				+ (HIBYTE (rand_val) % (SURFACE_HEIGHT - 12))
 				) % (MAP_HEIGHT << MAG_SHIFT);
+		}
+		else
+		{
+			LightningElementPtr->next.location.x = (curLanderLoc.x
+				+ ((MAP_WIDTH << MAG_SHIFT) - ((SURFACE_WIDTH >> 1) - 6))
+				+ (rand_val % (SURFACE_WIDTH - (12 << RESOLUTION_FACTOR)))
+				) % (MAP_WIDTH << MAG_SHIFT);
+			LightningElementPtr->next.location.y = (curLanderLoc.y
+				+ ((MAP_HEIGHT << MAG_SHIFT) - ((SURFACE_HEIGHT >> 1) - 6))
+				+ (rand_val % (SURFACE_HEIGHT - (12 << RESOLUTION_FACTOR)))
+				) % (MAP_HEIGHT << MAG_SHIFT);
+		}
 
 		LightningElementPtr->cycle = LightningElementPtr->life_span;
 		
@@ -976,7 +1173,7 @@ AddGroundDisaster (COUNT which_disaster)
 
 		if (which_disaster == EARTHQUAKE_DISASTER)
 		{
-			SetPrimType (pPrim, STAMPFILL_PRIM);
+			SetPrimType (pPrim, STAMP_PRIM); // JMS: was STAMPFILL_PRIM (this rendered it totally white).
 			pPrim->Object.Stamp.frame = LanderFrame[1];
 			GroundDisasterElementPtr->turn_wait = MAKE_BYTE (2, 2);
 		}
@@ -991,7 +1188,7 @@ AddGroundDisaster (COUNT which_disaster)
 		GroundDisasterElementPtr->life_span =
 				GetFrameCount (pPrim->Object.Stamp.frame)
 				* (LONIBBLE (GroundDisasterElementPtr->turn_wait) + 1) - 1;
-
+		
 		UnlockElement (hGroundDisasterElement);
 
 		PutElement (hGroundDisasterElement);
@@ -1233,15 +1430,11 @@ ScrollPlanetSide (SIZE dx, SIZE dy, int landingOffset)
 			pPSD->MineralText[0].baseline.x -= dx;
 			pPSD->MineralText[0].baseline.y -= dy;
 			font_DrawText (&pPSD->MineralText[0]);
-			pPSD->MineralText[1].baseline.x =
-					pPSD->MineralText[0].baseline.x;
-			pPSD->MineralText[1].baseline.y =
-					pPSD->MineralText[0].baseline.y + 7;
+			pPSD->MineralText[1].baseline.x = pPSD->MineralText[0].baseline.x;
+			pPSD->MineralText[1].baseline.y = pPSD->MineralText[0].baseline.y + (7 << RESOLUTION_FACTOR); // JMS_GFX
 			font_DrawText (&pPSD->MineralText[1]);
-			pPSD->MineralText[2].baseline.x =
-					pPSD->MineralText[1].baseline.x;
-			pPSD->MineralText[2].baseline.y =
-					pPSD->MineralText[1].baseline.y + 7;
+			pPSD->MineralText[2].baseline.x = pPSD->MineralText[1].baseline.x;
+			pPSD->MineralText[2].baseline.y = pPSD->MineralText[1].baseline.y + (7 << RESOLUTION_FACTOR); // JMS_GFX
 			font_DrawText (&pPSD->MineralText[2]);
 		}
 	}
@@ -1274,7 +1467,7 @@ animationInterframe (TimeCount *TimeIn, COUNT periods)
 }
 
 static void
-AnimateLaunch (FRAME farray)
+AnimateLaunch (FRAME farray, BOOLEAN landing)
 {
 	RECT r;
 	STAMP s;
@@ -1296,7 +1489,7 @@ AnimateLaunch (FRAME farray)
 		NextTime = GetTimeCounter () + (ONE_SECOND / 22);
 
 		BatchGraphics ();
-		RepairBackRect (&r);
+		RepairBackRect (&r, TRUE);
 #ifdef SPIN_ON_LAUNCH
 		RotatePlanetSphere (FALSE);
 #else
@@ -1314,7 +1507,10 @@ AnimateLaunch (FRAME farray)
 		LockMutex (GraphicsLock);
 	}
 
-	RepairBackRect (&r);
+	// This clears the last lander return / launch) anim frame from the planet window.
+	if (RESOLUTION_FACTOR == 0 || !landing)
+		RepairBackRect (&r, FALSE);
+	
 	UnlockMutex (GraphicsLock);
 }
 
@@ -1403,7 +1599,7 @@ static void
 InitPlanetSide (POINT pt)
 {
 	// Adjust landing location by a random jitter.
-#define RANDOM_MISS 64
+#define RANDOM_MISS (64 << RESOLUTION_FACTOR) // JMS_GFX
 	// Jitter the X landing point.
 	pt.x -= RANDOM_MISS - TFB_Random () % (RANDOM_MISS << 1);
 	if (pt.x < 0)
@@ -1497,9 +1693,9 @@ LanderFire (SIZE facing)
 
 	angle = FACING_TO_ANGLE (facing);
 	SetVelocityComponents (
-			&WeaponElementPtr->velocity,
-			COSINE (angle, WORLD_TO_VELOCITY (2 * 3)) + wdx,
-			SINE (angle, WORLD_TO_VELOCITY (2 * 3)) + wdy);
+		&WeaponElementPtr->velocity,
+		COSINE (angle, WORLD_TO_VELOCITY ((2 * 3) << RESOLUTION_FACTOR)) + wdx,
+		SINE (angle, WORLD_TO_VELOCITY ((2 * 3) << RESOLUTION_FACTOR)) + wdy); // JMS_GFX
 
 	UnlockElement (hWeaponElement);
 
@@ -1568,11 +1764,11 @@ DoPlanetSide (LanderInputState *pMS)
 
 		angle = FACING_TO_ANGLE (GetFrameIndex (LanderFrame[0]));
 		landerSpeedNumer = GET_GAME_STATE (IMPROVED_LANDER_SPEED) ?
-				WORLD_TO_VELOCITY (2 * 14) :
-				WORLD_TO_VELOCITY (2 * 8);
-
+			WORLD_TO_VELOCITY (2 * (14 << RESOLUTION_FACTOR)) :
+			WORLD_TO_VELOCITY (2 * (8 << RESOLUTION_FACTOR));
+		
 #ifdef FAST_FAST
-landerSpeedNumer = WORLD_TO_VELOCITY (48);
+landerSpeedNumer = WORLD_TO_VELOCITY (48 << RESOLUTION_FACTOR); // JMS
 #endif
 
 		SetVelocityComponents (&GLOBAL (velocity),
@@ -1635,11 +1831,11 @@ landerSpeedNumer = WORLD_TO_VELOCITY (48);
 
 				angle = FACING_TO_ANGLE (index);
 				landerSpeedNumer = GET_GAME_STATE (IMPROVED_LANDER_SPEED) ?
-						WORLD_TO_VELOCITY (2 * 14) :
-						WORLD_TO_VELOCITY (2 * 8);
+						WORLD_TO_VELOCITY ((2 * 14) << RESOLUTION_FACTOR) :
+						WORLD_TO_VELOCITY ((2 * 8) << RESOLUTION_FACTOR);
 
 #ifdef FAST_FAST
-landerSpeedNumer = WORLD_TO_VELOCITY (48);
+landerSpeedNumer = WORLD_TO_VELOCITY (48 << RESOLUTION_FACTOR);
 #endif
 
 				SetVelocityComponents (&GLOBAL (velocity),
@@ -1775,7 +1971,7 @@ IdlePlanetSide (LanderInputState *inputState, TimeCount howLong)
 	while (GetTimeCounter () < TimeOut)
 	{
 		// 10 to clear the lander off of the screen
-		ScrollPlanetSide (0, 0, -(SURFACE_HEIGHT / 2 + 10));
+		ScrollPlanetSide (0, 0, -(SURFACE_HEIGHT / 2 + (10 << RESOLUTION_FACTOR))); // JMS_GFX
 		SleepThreadUntil (inputState->NextTime);
 		inputState->NextTime += PLANET_SIDE_RATE;
 	}
@@ -1785,21 +1981,35 @@ static void
 LandingTakeoffSequence (LanderInputState *inputState, BOOLEAN landing)
 {
 // We cannot solve a quadratic equation in a macro, so use a sensible max
-#define MAX_OFFSETS  20
-// 10 to clear the lander off of the screen
-#define DISTANCE_COVERED  (SURFACE_HEIGHT / 2 + 10)
+#define MAX_OFFSETS 20
+#define MAX_OFFSETS_4X 400 // JMS_GFX
+// 10 << RESOLUTION_FACTOR to clear the lander off of the screen
+#define DISTANCE_COVERED  (SURFACE_HEIGHT / 2 + (10 << RESOLUTION_FACTOR))
 	int landingOfs[MAX_OFFSETS];
 	int start;
 	int end;
 	int delta;
 	int index;
-
+	int max_offsets; // JMS_GFX
+	int landingOfs4x[MAX_OFFSETS_4X]; // JMS_GFX
+	
 	// Produce smooth acceleration deltas from a simple 1..x progression
 	delta = 0;
-	for (index = 0; index < MAX_OFFSETS && delta < DISTANCE_COVERED; ++index)
+	
+	// JMS_GFX: At 4x resolution we run out of default offsets. -> Use larger offset value.
+	max_offsets = MAX_OFFSETS;
+	if (RESOLUTION_FACTOR == 2) 
+		max_offsets = MAX_OFFSETS_4X;
+	
+	for (index = 0; index < max_offsets && delta < DISTANCE_COVERED; ++index)
 	{
 		delta += index + 1;
-		landingOfs[index] = -delta;
+		
+		// JMS_GFX
+		if (RESOLUTION_FACTOR == 2)
+			landingOfs4x[index] = -delta;
+		else
+			landingOfs[index] = -delta;
 	}
 	assert (delta >= DISTANCE_COVERED && "Increase MAX_OFFSETS!");
 
@@ -1822,7 +2032,12 @@ LandingTakeoffSequence (LanderInputState *inputState, BOOLEAN landing)
 	// Draw the landing/takeoff lander positions
 	for (index = start; index != end; index += delta)
 	{
-		ScrollPlanetSide (0, 0, landingOfs[index]);
+		// JMS_GFX
+		if (RESOLUTION_FACTOR == 2)
+			ScrollPlanetSide (0, 0, landingOfs4x[index]);
+		else
+			ScrollPlanetSide (0, 0, landingOfs[index]);
+		
 		SleepThreadUntil (inputState->NextTime);
 		inputState->NextTime += PLANET_SIDE_RATE;
 	}
@@ -1931,7 +2146,7 @@ PlanetSide (POINT planetLoc)
 	explosion_index = 0;
 
 	AnimateLanderWarmup ();
-	AnimateLaunch (LanderFrame[5]);
+	AnimateLaunch (LanderFrame[5], TRUE);
 	InitPlanetSide (planetLoc);
 
 	landerInputState.NextTime = GetTimeCounter () + PLANET_SIDE_RATE;
@@ -1962,7 +2177,7 @@ PlanetSide (POINT planetLoc)
 
 			LandingTakeoffSequence (&landerInputState, FALSE);
 			ReturnToOrbit ();
-			AnimateLaunch (LanderFrame[6]);
+			AnimateLaunch (LanderFrame[6], FALSE);
 			
 			LockMutex (GraphicsLock);
 			DeltaSISGauges (crew_left, 0, 0);
@@ -2086,9 +2301,8 @@ InitLander (BYTE LanderFlags)
 		if ((int)free_space < (int)(MAX_SCROUNGED << capacity_shift))
 		{
 			r.corner.x = 1;
-			r.extent.width = 4;
-			r.extent.height = MAX_SCROUNGED
-					- (free_space >> capacity_shift) + 1;
+			r.extent.width = RES_STAT_SCALE(4) + RESOLUTION_FACTOR; // JMS_GFX
+			r.extent.height = RES_STAT_SCALE(MAX_SCROUNGED - (free_space >> capacity_shift) + 1);
 			SetContextForeGroundColor (BLACK_COLOR);
 			DrawFilledRectangle (&r);
 		}

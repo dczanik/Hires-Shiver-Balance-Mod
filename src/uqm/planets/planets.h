@@ -16,10 +16,21 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+// JMS_GFX 2012: Merged the resolution Factor stuff from P6014.
+
 #ifndef _PLANETS_H
 #define _PLANETS_H
 
 #define END_INTERPLANETARY START_INTERPLANETARY
+
+#define ORBITING_PLANETS TRUE
+#define ROTATING_PLANETS TRUE
+#define TEXTURED_PLANETS (TRUE || ROTATING_PLANETS)
+// TEXTURED_PLANETS should always be defined TRUE if ROTATING_PLANETS is.
+#define ONE_YEAR 365.25
+#ifndef M_PI
+#define M_PI 3.141592653589
+#endif
 
 enum PlanetScanTypes
 {
@@ -31,7 +42,9 @@ enum PlanetScanTypes
 };
 
 #define MAP_WIDTH SIS_SCREEN_WIDTH
-#define MAP_HEIGHT (75 - SAFE_Y)
+#define MAP_HEIGHT RES_CASE(75,150,330) // JMS_GFX
+#define ORIGINAL_MAP_WIDTH 242			// JMS_GFX
+#define ORIGINAL_MAP_HEIGHT 75			// JMS_GFX
 
 enum
 {
@@ -67,14 +80,14 @@ enum
 
 #define NUM_SCANDOT_TRANSITIONS 4
 
-#define MIN_MOON_RADIUS 35
-#define MOON_DELTA 20
+#define MIN_MOON_RADIUS (35 << RESOLUTION_FACTOR) // JMS_GFX
+#define MOON_DELTA (20 << RESOLUTION_FACTOR) // JMS_GFX
 
 #define MAX_SUNS 1
 #define MAX_PLANETS 16
 #define MAX_MOONS 4
 
-#define MAP_BORDER_HEIGHT  5
+#define MAP_BORDER_HEIGHT  RES_CASE(5,10,10) // JMS_GFX
 #define SCAN_SCREEN_HEIGHT (SIS_SCREEN_HEIGHT - MAP_HEIGHT - MAP_BORDER_HEIGHT)
 
 #define PLANET_ROTATION_TIME (ONE_SECOND * 12)
@@ -99,34 +112,11 @@ typedef struct solarsys_state SOLARSYS_STATE;
 #include "plandata.h"
 #include "sundata.h"
 
-
-struct planet_desc
+typedef struct 
 {
-	DWORD rand_seed;
-
-	BYTE data_index;
-	BYTE NumPlanets;
-	SIZE radius;
-	POINT location;
-
-	Color temp_color;
-	COUNT NextIndex;
-	STAMP image;
-
-	PLANET_DESC *pPrevDesc;
-			// The Sun or planet that this world is orbiting around.
-};
-
-struct star_desc
-{
-	POINT star_pt;
-	BYTE Type;
-	BYTE Index;
-	BYTE Prefix;
-	BYTE Postfix;
-};
-
-typedef void (*PLAN_GEN_FUNC) (BYTE control);
+	POINT p[4];
+	DWORD m[4];
+} MAP3D_POINT;
 
 struct planet_orbit
 {
@@ -151,7 +141,46 @@ struct planet_orbit
 			// temp RGBA data for whatever transforms (nuked often)
 	FRAME WorkFrame;
 			// any extra frame workspace (for dynamic objects)
+	// BW: extra stuff for animated IP
+	DWORD **light_diff;
+	MAP3D_POINT **map_rotate;
+	// doubly dynamically allocated depending on map size
 };
+
+struct planet_desc
+{
+	DWORD rand_seed;
+
+	BYTE data_index;
+	BYTE NumPlanets;
+	SIZE radius;
+	COUNT angle;
+	POINT location;
+	double orb_speed;
+	double rot_speed;
+
+	Color temp_color;
+	COUNT NextIndex;
+	STAMP image;
+
+	PLANET_DESC *pPrevDesc;
+			// The Sun or planet that this world is orbiting around.
+	// BW : new stuff for animated solar systems
+	PLANET_ORBIT orbit;
+	COUNT size;
+	int rotFrameIndex, rotPointIndex, rotDirection, rotwidth, rotheight;
+};
+
+struct star_desc
+{
+	POINT star_pt;
+	BYTE Type;
+	BYTE Index;
+	BYTE Prefix;
+	BYTE Postfix;
+};
+
+typedef void (*PLAN_GEN_FUNC) (BYTE control);
 
 // See doc/devel/generate for information on how this structure is
 // filled.
@@ -257,16 +286,18 @@ extern void XFormIPLoc (POINT *pIn, POINT *pOut, BOOLEAN ToDisplay);
 extern PLAN_GEN_FUNC GenerateIP (BYTE Index);
 extern void DrawOval (RECT *pRect, BYTE num_off_pixels);
 extern void DrawFilledOval (RECT *pRect);
+extern void ComputeSpeed(PLANET_DESC *planet, BOOLEAN GeneratingMoons, UWORD rand_val);
 extern void FillOrbits (SOLARSYS_STATE *system, BYTE NumPlanets,
 		PLANET_DESC *pBaseDesc, BOOLEAN TypesDefined);
 extern void InitLander (BYTE LanderFlags);
 
-extern void InitSphereRotation (int direction, BOOLEAN shielded);
+extern void InitSphereRotation (int direction, BOOLEAN shielded, COUNT width, COUNT height);
 extern void UninitSphereRotation (void);
 extern void PrepareNextRotationFrame (void);
+extern void PrepareNextRotationFrameForIP (PLANET_DESC *pPlanetDesc, SIZE frameCounter);
 extern void DrawPlanetSphere (int x, int y);
 extern void DrawDefaultPlanetSphere (void);
-extern void RenderPlanetSphere (FRAME Frame, int offset, BOOLEAN doThrob);
+extern void RenderPlanetSphere (PLANET_ORBIT *Orbit, FRAME Frame, int offset, BOOLEAN shielded, BOOLEAN doThrob, COUNT width, COUNT height, COUNT radius);
 extern void SetShieldThrobEffect (FRAME FromFrame, int offset, FRAME ToFrame);
 
 extern void ZoomInPlanetSphere (void);
@@ -275,6 +306,8 @@ extern void RotatePlanetSphere (BOOLEAN keepRate);
 extern void DrawScannedObjects (BOOLEAN Reversed);
 extern void GeneratePlanetSurface (PLANET_DESC *pPlanetDesc,
 		FRAME SurfDefFrame);
+extern void GeneratePlanetSurfaceForIP (PLANET_DESC *pPlanetDesc,
+		FRAME SurfDefFrame, COUNT width, COUNT height);
 extern void DeltaTopography (COUNT num_iterations, SBYTE *DepthArray,
 		RECT *pRect, SIZE depth_delta);
 

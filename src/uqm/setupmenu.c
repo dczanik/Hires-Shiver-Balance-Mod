@@ -16,6 +16,12 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+// JMS 2011: Originally, the smooth zoom was TFB_SCALE_TRILINEAR instead of bilinear.
+// Using bilinear alleviates the smooth zoom performance choppiness problems in 2x and 4x, but
+// is kinda hacky solution...
+
+// JMS_GFX 2012: Merged resolution Factor stuff from P6014.
+
 #include "setupmenu.h"
 
 #include "controls.h"
@@ -38,11 +44,15 @@
 #include "resinst.h"
 #include "nameref.h"
 
+#include "gamestr.h"
+
+#include "libs/graphics/bbox.h"
+
 static STRING SetupTab;
 
 typedef struct setup_menu_state {
 	BOOLEAN (*InputFunc) (struct setup_menu_state *pInputState);
-
+	
 	BOOLEAN initialized;
 	int anim_frame_count;
 	DWORD NextTime;
@@ -67,25 +77,14 @@ static void rebind_control (WIDGET_CONTROLENTRY *widget);
 static void clear_control (WIDGET_CONTROLENTRY *widget);
 
 #ifdef HAVE_OPENGL
-#define RES_OPTS 4
+#define RES_OPTS 5 // JMS_GFX was 4
 #else
-#define RES_OPTS 2
+#define RES_OPTS 5 // JMS_GFX was 2
 #endif
 
 #define MENU_COUNT          8
-
-#ifdef RETREAT_SETUPMENU
-#define CHOICE_COUNT	   24
-#else
-#define CHOICE_COUNT	   23
-#endif
-
-#ifdef RETREAT_SETUPMENU
-#define SLIDER_COUNT        4
-#else
+#define CHOICE_COUNT       23 
 #define SLIDER_COUNT        3
-#endif
-
 #define BUTTON_COUNT       10
 #define LABEL_COUNT         4
 #define TEXTENTRY_COUNT     1
@@ -105,35 +104,23 @@ static WIDGET_CONTROLENTRY controlentries[CONTROLENTRY_COUNT];
 typedef int (*HANDLER)(WIDGET *, int);
 
 static int choice_widths[CHOICE_COUNT] = {
-	3, 2, 3, 3, 2, 2, 2, 2, 2, 2, 
-	2, 2, 3, 2, 2, 3, 3, 2,	3, 3, 
-	3, 2, 2
-#ifdef RETREAT_SETUPMENU
-	, 3
-#endif
-};
+	3, 2, 3, 2, 2, 2, 2, 2, 2, 2, 
+	2, 2, 2, 2, 2, 3, 3, 2,	3, 3, 
+	3, 2, 3 };
 
 static HANDLER button_handlers[BUTTON_COUNT] = {
 	quit_main_menu, quit_sub_menu, do_graphics, do_engine,
 	do_audio, do_resources, do_keyconfig, do_advanced, do_editkeys, 
 	do_keyconfig };
 
+// JMS: The 8 was 9 - removed one since the pulsating slave shield is removed.
 static int menu_sizes[MENU_COUNT] = {
-	7, 5, 7, 10, 2, 5,
-
-/*
- * Outer #ifdef is original to UQM and makes compilation of an OpenGL
- * option conditional. Inner #ifdefs are added by the retreat patch
- * and make compilation of the new setup menu option conditional.
- */
-	4
+	7, 6, 7, 8, 2, 5,
 #ifdef HAVE_OPENGL
-	+1
-#endif /* HAVE_OPENGL */
-#ifdef RETREAT_SETUPMENU
-	+2
+	5,
+#else
+	4,
 #endif
-	,
 	11
 };
 
@@ -152,6 +139,7 @@ static WIDGET *main_widgets[] = {
 
 static WIDGET *graphics_widgets[] = {
 	(WIDGET *)(&choices[0]),
+	(WIDGET *)(&choices[22]), // JMS: lores blowup
 	(WIDGET *)(&choices[10]),
 	(WIDGET *)(&choices[2]),
 	(WIDGET *)(&choices[3]),
@@ -174,8 +162,7 @@ static WIDGET *engine_widgets[] = {
 	(WIDGET *)(&choices[8]),
 	(WIDGET *)(&choices[13]),
 	(WIDGET *)(&choices[11]),
-	(WIDGET *)(&choices[17]),
-	(WIDGET *)(&choices[22]),
+	//(WIDGET *)(&choices[17]), // JMS: Removed the pulsating shield
 	(WIDGET *)(&buttons[1]) };
 
 static WIDGET *advanced_widgets[] = {
@@ -185,12 +172,8 @@ static WIDGET *advanced_widgets[] = {
 	(WIDGET *)(&choices[12]),
 	(WIDGET *)(&choices[15]),
 	(WIDGET *)(&choices[16]),
-#ifdef RETREAT_SETUPMENU
-	(WIDGET *)(&choices[23]),
-	(WIDGET *)(&sliders[3]),
-#endif
 	(WIDGET *)(&buttons[1]) };
-	
+
 static WIDGET *keyconfig_widgets[] = {
 	(WIDGET *)(&choices[18]),
 	(WIDGET *)(&choices[19]),
@@ -367,10 +350,10 @@ static void
 rename_template (WIDGET_TEXTENTRY *self)
 {
 	/* TODO: This will have to change if the size of the
-	   input_templates name is changed.  It would probably be nice
-	   to track this symbolically or ensure that self->value's
-	   buffer is always at least this big; this will require some
-	   reworking of widgets */
+	 input_templates name is changed.  It would probably be nice
+	 to track this symbolically or ensure that self->value's
+	 buffer is always at least this big; this will require some
+	 reworking of widgets */
 	strncpy (input_templates[choices[20].selected].name, self->value, 30);
 	input_templates[choices[20].selected].name[29] = 0;
 }
@@ -386,14 +369,14 @@ SetDefaults (void)
 	GLOBALOPTS opts;
 	
 	GetGlobalOptions (&opts);
-	if (opts.res == OPTVAL_CUSTOM)
-	{
-		choices[0].numopts = RES_OPTS + 1;
-	}
-	else
-	{
-		choices[0].numopts = RES_OPTS;
-	}
+	/*if (opts.res == OPTVAL_CUSTOM)
+	 {
+	 choices[0].numopts = RES_OPTS + 1;
+	 }
+	 else
+	 {*/
+	choices[0].numopts = RES_OPTS;
+	//}
 	choices[0].selected = opts.res;
 	choices[1].selected = opts.driver;
 	choices[2].selected = opts.scaler;
@@ -416,21 +399,11 @@ SetDefaults (void)
 	choices[19].selected = opts.player2;
 	choices[20].selected = 0;
 	choices[21].selected = opts.musicremix;
-	choices[22].selected = opts.reticles;
-#ifdef RETREAT_SETUPMENU
-	choices[23].selected = opts.retreat;
-#endif
+	choices[22].selected = opts.loresBlowup; // JMS
+	
 	sliders[0].value = opts.musicvol;
 	sliders[1].value = opts.sfxvol;
 	sliders[2].value = opts.speechvol;
-#ifdef RETREAT_SETUPMENU
-	/* 
-	 * This value is stored in melee frames (1/24 second), but
-	 * we want the slider to work with seconds, so we need
-	 * to perform conversion here.
-	 */
-	 sliders[3].value = (opts.retreat_wait / 24);
-#endif
 }
 
 static void
@@ -458,20 +431,11 @@ PropagateResults (void)
 	opts.player1 = choices[18].selected;
 	opts.player2 = choices[19].selected;
 	opts.musicremix = choices[21].selected;
-	opts.reticles = choices[22].selected;
-#ifdef RETREAT_SETUPMENU
-	opts.retreat = choices[23].selected;
-#endif
+	opts.loresBlowup = choices[22].selected; // JMS
+	
 	opts.musicvol = sliders[0].value;
 	opts.sfxvol = sliders[1].value;
 	opts.speechvol = sliders[2].value;
-#ifdef RETREAT_SETUPMENU
-	/*
-	 * As above, we need to convert between seconds
-	 * and frames for this value.
-	 */
-	opts.retreat_wait = (sliders[3].value * 24);
-#endif
 	SetGlobalOptions (&opts);
 }
 
@@ -480,7 +444,7 @@ DoSetupMenu (SETUP_MENU_STATE *pInputState)
 {
 	/* Cancel any presses of the Pause key. */
 	GamePaused = FALSE;
-
+	
 	if (!pInputState->initialized) 
 	{
 		SetDefaultMenuRepeatDelay ();
@@ -489,7 +453,7 @@ DoSetupMenu (SETUP_MENU_STATE *pInputState)
 		Widget_SetFont (StarConFont);
 		Widget_SetWindowColors (SHADOWBOX_BACKGROUND_COLOR,
 				SHADOWBOX_DARK_COLOR, SHADOWBOX_MEDIUM_COLOR);
-
+		
 		current = NULL;
 		next = (WIDGET *)(&menus[0]);
 		(*next->receiveFocus) (next, WIDGET_EVENT_DOWN);
@@ -503,15 +467,15 @@ DoSetupMenu (SETUP_MENU_STATE *pInputState)
 	
 	BatchGraphics ();
 	(*next->draw)(next, 0, 0);
-
+	
 	if (current != next)
 	{
 		ScreenTransition (3, NULL);
 		current = next;
 	}
-
+	
 	UnbatchGraphics ();
-
+	
 	if (PulsedInputState.menu[KEY_MENU_UP])
 	{
 		Widget_Event (WIDGET_EVENT_UP);
@@ -540,11 +504,11 @@ DoSetupMenu (SETUP_MENU_STATE *pInputState)
 	{
 		Widget_Event (WIDGET_EVENT_DELETE);
 	}
-
+	
 	SleepThreadUntil (pInputState->NextTime + MENU_FRAME_RATE);
 	pInputState->NextTime = GetTimeCounter ();
 	return !((GLOBAL (CurrentActivity) & CHECK_ABORT) || 
-		 (next == NULL));
+			 (next == NULL));
 }
 
 static void
@@ -559,7 +523,7 @@ static BOOLEAN
 OnTextEntryChange (TEXTENTRY_STATE *pTES)
 {
 	WIDGET_TEXTENTRY *widget = (WIDGET_TEXTENTRY *) pTES->CbParam;
-
+	
 	widget->cursor_pos = pTES->CursorPos;
 	if (pTES->JoystickMode)
 		widget->state |= WTE_BLOCKCUR;
@@ -577,10 +541,10 @@ static BOOLEAN
 OnTextEntryFrame (TEXTENTRY_STATE *pTES)
 {
 	redraw_menu ();
-
+	
 	SleepThreadUntil (pTES->NextTime);
 	pTES->NextTime = GetTimeCounter () + MENU_FRAME_RATE;
-
+	
 	return TRUE; // continue
 }
 
@@ -589,15 +553,15 @@ OnTextEntryEvent (WIDGET_TEXTENTRY *widget)
 {	// Going to edit the text
 	TEXTENTRY_STATE tes;
 	UNICODE revert_buf[256];
-
+	
 	// position cursor at the end of text
 	widget->cursor_pos = utf8StringCount (widget->value);
 	widget->state = WTE_EDITING;
 	redraw_menu ();
-
+	
 	// make a backup copy for revert on cancel
 	utf8StringCopy (revert_buf, sizeof (revert_buf), widget->value);
-
+	
 	// text entry setup
 	tes.Initialized = FALSE;
 	tes.NextTime = GetTimeCounter () + MENU_FRAME_RATE;
@@ -607,7 +571,7 @@ OnTextEntryEvent (WIDGET_TEXTENTRY *widget)
 	tes.CbParam = widget;
 	tes.ChangeCallback = OnTextEntryChange;
 	tes.FrameCallback = OnTextEntryFrame;
-
+	
 	SetMenuSounds (MENU_SOUND_NONE, MENU_SOUND_SELECT);
 	if (!DoTextEntry (&tes))
 	{	// editing failed (canceled) -- revert the changes
@@ -621,10 +585,10 @@ OnTextEntryEvent (WIDGET_TEXTENTRY *widget)
 		}
 	}
 	SetMenuSounds (MENU_SOUND_ARROWS, MENU_SOUND_SELECT);
-
+	
 	widget->state = WTE_NORMAL;
 	redraw_menu ();
-
+	
 	return TRUE; // event handled
 }
 
@@ -634,7 +598,7 @@ rebind_control (WIDGET_CONTROLENTRY *widget)
 	int template = choices[20].selected;
 	int control = widget->controlindex;
 	int index = widget->highlighted;
-
+	
 	FlushInput ();
 	DrawLabelAsWindow (&labels[3], NULL);
 	RebindInputState (template, control, index);
@@ -648,7 +612,7 @@ clear_control (WIDGET_CONTROLENTRY *widget)
 	int template = choices[20].selected;
 	int control = widget->controlindex;
 	int index = widget->highlighted;
-      
+	
 	RemoveInputState (template, control, index);
 	populate_editkeys (template);
 }	
@@ -661,34 +625,40 @@ init_widgets (void)
 {
 	const char *buffer[100], *str, *title;
 	int count, i, index;
-
+	
 	if (bank == NULL)
 	{
 		bank = StringBank_Create ();
 	}
 	
-	if (setup_frame == NULL)
+	if (setup_frame == NULL || resFactorWasChanged)
 	{
-		setup_frame = CaptureDrawable (LoadGraphic (MENUBKG_PMAP_ANIM));
+		// JMS: Load the different menus depending on the resolution factor.
+		if (resolutionFactor < 1)
+			setup_frame = CaptureDrawable (LoadGraphic (MENUBKG_PMAP_ANIM));
+		if (resolutionFactor == 1)
+			setup_frame = CaptureDrawable (LoadGraphic (MENUBKG_PMAP_ANIM2X));
+		if (resolutionFactor > 1)
+			setup_frame = CaptureDrawable (LoadGraphic (MENUBKG_PMAP_ANIM4X));
 	}
-
+	
 	count = GetStringTableCount (SetupTab);
-
+	
 	if (count < 3)
 	{
 		log_add (log_Fatal, "PANIC: Setup string table too short to even hold all indices!");
 		exit (EXIT_FAILURE);
 	}
-
+	
 	/* Menus */
 	title = StringBank_AddOrFindString (bank, GetStringAddress (SetAbsStringTableIndex (SetupTab, 0)));
 	if (SplitString (GetStringAddress (SetAbsStringTableIndex (SetupTab, 1)), '\n', 100, buffer, bank) != MENU_COUNT)
 	{
 		/* TODO: Ignore extras instead of dying. */
-		log_add (log_Fatal, "PANIC: Incorrect number of Menu Subtitles");
+		log_add (log_Fatal, "PANIC: Incorrect number of Menu Subtitles:");
 		exit (EXIT_FAILURE);
 	}
-
+	
 	for (i = 0; i < MENU_COUNT; i++)
 	{
 		menus[i].tag = WIDGET_TYPE_MENU_SCREEN;
@@ -707,14 +677,14 @@ init_widgets (void)
 		menus[i].child = menu_widgets[i];
 		menus[i].highlighted = 0;
 	}
-		
+	
 	/* Options */
 	if (SplitString (GetStringAddress (SetAbsStringTableIndex (SetupTab, 2)), '\n', 100, buffer, bank) != CHOICE_COUNT)
 	{
-		log_add (log_Fatal, "PANIC: Incorrect number of Choice Options");
+		log_add (log_Fatal, "PANIC: Incorrect number of Choice Options: %d. Should be %d", CHOICE_COUNT, SplitString (GetStringAddress (SetAbsStringTableIndex (SetupTab, 2)), '\n', 100, buffer, bank));
 		exit (EXIT_FAILURE);
 	}
-
+	
 	for (i = 0; i < CHOICE_COUNT; i++)
 	{
 		choices[i].tag = WIDGET_TYPE_CHOICE;
@@ -732,13 +702,13 @@ init_widgets (void)
 		choices[i].maxcolumns = choice_widths[i];
 		choices[i].onChange = NULL;
 	}
-
+	
 	/* Fill in the options now */
 	index = 3;  /* Index into string table */
 	for (i = 0; i < CHOICE_COUNT; i++)
 	{
 		int j, optcount;
-
+		
 		if (index >= count)
 		{
 			log_add (log_Fatal, "PANIC: String table cut short while reading choices");
@@ -758,7 +728,7 @@ init_widgets (void)
 		for (j = 0; j < optcount; j++)
 		{
 			int k, tipcount;
-
+			
 			if (index >= count)
 			{
 				log_add (log_Fatal, "PANIC: String table cut short while reading choices");
@@ -776,10 +746,10 @@ init_widgets (void)
 			}
 		}
 	}
-
+	
 	/* The first choice is resolution, and is handled specially */
 	choices[0].numopts = RES_OPTS;
-
+	
 	/* Choices 18-20 are also special, being the names of the key configurations */
 	for (i = 0; i < 6; i++)
 	{
@@ -787,24 +757,24 @@ init_widgets (void)
 		choices[19].options[i].optname = input_templates[i].name;
 		choices[20].options[i].optname = input_templates[i].name;
 	}
-
+	
 	/* Choice 20 has a special onChange handler, too. */
 	choices[20].onChange = change_template;
-
+	
 	/* Sliders */
 	if (index >= count)
 	{
 		log_add (log_Fatal, "PANIC: String table cut short while reading sliders");
 		exit (EXIT_FAILURE);
 	}
-
+	
 	if (SplitString (GetStringAddress (SetAbsStringTableIndex (SetupTab, index++)), '\n', 100, buffer, bank) != SLIDER_COUNT)
 	{
 		/* TODO: Ignore extras instead of dying. */
 		log_add (log_Fatal, "PANIC: Incorrect number of Slider Options");
 		exit (EXIT_FAILURE);
 	}
-
+	
 	for (i = 0; i < SLIDER_COUNT; i++)
 	{
 		sliders[i].tag = WIDGET_TYPE_SLIDER;
@@ -824,7 +794,7 @@ init_widgets (void)
 		sliders[i].tooltip[1] = "";
 		sliders[i].tooltip[2] = "";
 	}
-
+	
 	for (i = 0; i < SLIDER_COUNT; i++)
 	{
 		int j, tipcount;
@@ -845,21 +815,21 @@ init_widgets (void)
 			sliders[i].tooltip[j] = buffer[j];
 		}
 	}
-
+	
 	/* Buttons */
 	if (index >= count)
 	{
 		log_add (log_Fatal, "PANIC: String table cut short while reading buttons");
 		exit (EXIT_FAILURE);
 	}
-
+	
 	if (SplitString (GetStringAddress (SetAbsStringTableIndex (SetupTab, index++)), '\n', 100, buffer, bank) != BUTTON_COUNT)
 	{
 		/* TODO: Ignore extras instead of dying. */
 		log_add (log_Fatal, "PANIC: Incorrect number of Button Options");
 		exit (EXIT_FAILURE);
 	}
-
+	
 	for (i = 0; i < BUTTON_COUNT; i++)
 	{
 		buttons[i].tag = WIDGET_TYPE_BUTTON;
@@ -874,7 +844,7 @@ init_widgets (void)
 		buttons[i].tooltip[1] = "";
 		buttons[i].tooltip[2] = "";
 	}
-
+	
 	for (i = 0; i < BUTTON_COUNT; i++)
 	{
 		int j, tipcount;
@@ -895,21 +865,21 @@ init_widgets (void)
 			buttons[i].tooltip[j] = buffer[j];
 		}
 	}
-
+	
 	/* Labels */
 	if (index >= count)
 	{
 		log_add (log_Fatal, "PANIC: String table cut short while reading labels");
 		exit (EXIT_FAILURE);
 	}
-
+	
 	if (SplitString (GetStringAddress (SetAbsStringTableIndex (SetupTab, index++)), '\n', 100, buffer, bank) != LABEL_COUNT)
 	{
 		/* TODO: Ignore extras instead of dying. */
 		log_add (log_Fatal, "PANIC: Incorrect number of Label Options");
 		exit (EXIT_FAILURE);
 	}
-
+	
 	for (i = 0; i < LABEL_COUNT; i++)
 	{
 		labels[i].tag = WIDGET_TYPE_LABEL;
@@ -922,7 +892,7 @@ init_widgets (void)
 		labels[i].line_count = 0;
 		labels[i].lines = NULL;
 	}
-
+	
 	for (i = 0; i < LABEL_COUNT; i++)
 	{
 		int j, linecount;
@@ -941,14 +911,14 @@ init_widgets (void)
 			labels[i].lines[j] = buffer[j];
 		}
 	}
-
+	
 	/* Text Entry boxes */
 	if (index >= count)
 	{
 		log_add (log_Fatal, "PANIC: String table cut short while reading text entries");
 		exit (EXIT_FAILURE);
 	}
-
+	
 	if (SplitString (GetStringAddress (SetAbsStringTableIndex (SetupTab, index++)), '\n', 100, buffer, bank) != TEXTENTRY_COUNT)
 	{
 		log_add (log_Fatal, "PANIC: Incorrect number of Text Entries");
@@ -970,13 +940,13 @@ init_widgets (void)
 		textentries[i].state = WTE_NORMAL;
 		textentries[i].cursor_pos = 0;
 	}
-
+	
 	if (index >= count)
 	{
 		log_add (log_Fatal, "PANIC: String table cut short while reading text entries");
 		exit (EXIT_FAILURE);
 	}
-
+	
 	if (SplitString (GetStringAddress (SetAbsStringTableIndex (SetupTab, index++)), '\n', 100, buffer, bank) != TEXTENTRY_COUNT)
 	{
 		/* TODO: Ignore extras instead of dying. */
@@ -989,14 +959,14 @@ init_widgets (void)
 		textentries[i].value[textentries[i].maxlen] = 0;
 	}
 	textentries[0].onChange = rename_template;
-
+	
 	/* Control Entry boxes */
 	if (index >= count)
 	{
 		log_add (log_Fatal, "PANIC: String table cut short while reading control entries");
 		exit (EXIT_FAILURE);
 	}
-
+	
 	if (SplitString (GetStringAddress (SetAbsStringTableIndex (SetupTab, index++)), '\n', 100, buffer, bank) != CONTROLENTRY_COUNT)
 	{
 		log_add (log_Fatal, "PANIC: Incorrect number of Control Entries");
@@ -1019,12 +989,12 @@ init_widgets (void)
 		controlentries[i].onChange = rebind_control;
 		controlentries[i].onDelete = clear_control;
 	}
-
+	
 	/* Check for garbage at the end */
 	if (index < count)
 	{
 		log_add (log_Warning, "WARNING: Setup strings had %d garbage entries at the end.",
-				count - index);
+				 count - index);
 	}
 }
 
@@ -1032,7 +1002,7 @@ static void
 clean_up_widgets (void)
 {
 	int i;
-
+	
 	for (i = 0; i < CHOICE_COUNT; i++)
 	{
 		if (choices[i].options)
@@ -1040,7 +1010,7 @@ clean_up_widgets (void)
 			HFree (choices[i].options);
 		}
 	}
-
+	
 	for (i = 0; i < LABEL_COUNT; i++)
 	{
 		if (labels[i].lines)
@@ -1048,7 +1018,7 @@ clean_up_widgets (void)
 			HFree ((void *)labels[i].lines);
 		}
 	}
-
+	
 	/* Clear out the master tables */
 	
 	if (SetupTab)
@@ -1072,7 +1042,7 @@ void
 SetupMenu (void)
 {
 	SETUP_MENU_STATE s;
-
+	
 	s.InputFunc = DoSetupMenu;
 	s.initialized = FALSE;
 	SetMenuSounds (MENU_SOUND_ARROWS, MENU_SOUND_SELECT);
@@ -1087,7 +1057,7 @@ SetupMenu (void)
 		exit (EXIT_FAILURE);
 	}
 	done = FALSE;
-
+	
 	DoInput (&s, TRUE);
 	GLOBAL (CurrentActivity) &= ~CHECK_ABORT;
 	PropagateResults ();
@@ -1125,10 +1095,10 @@ GetGlobalOptions (GLOBALOPTS *opts)
 		opts->scaler = OPTVAL_NO_SCALE;
 	}
 	opts->fullscreen = (GfxFlags & TFB_GFXFLAGS_FULLSCREEN) ?
-			OPTVAL_ENABLED : OPTVAL_DISABLED;
+	OPTVAL_ENABLED : OPTVAL_DISABLED;
 	opts->subtitles = optSubtitles ? OPTVAL_ENABLED : OPTVAL_DISABLED;
 	opts->scanlines = (GfxFlags & TFB_GFXFLAGS_SCANLINES) ? 
-		OPTVAL_ENABLED : OPTVAL_DISABLED;
+	OPTVAL_ENABLED : OPTVAL_DISABLED;
 	opts->menu = (optWhichMenu == OPT_3DO) ? OPTVAL_3DO : OPTVAL_PC;
 	opts->text = (optWhichFonts == OPT_3DO) ? OPTVAL_3DO : OPTVAL_PC;
 	opts->cscan = (optWhichCoarseScan == OPT_3DO) ? OPTVAL_3DO : OPTVAL_PC;
@@ -1136,23 +1106,23 @@ GetGlobalOptions (GLOBALOPTS *opts)
 	opts->intro = (optWhichIntro == OPT_3DO) ? OPTVAL_3DO : OPTVAL_PC;
 	opts->shield = (optWhichShield == OPT_3DO) ? OPTVAL_3DO : OPTVAL_PC;
 	opts->fps = (GfxFlags & TFB_GFXFLAGS_SHOWFPS) ? 
-			OPTVAL_ENABLED : OPTVAL_DISABLED;
+	OPTVAL_ENABLED : OPTVAL_DISABLED;
 	opts->meleezoom = (optMeleeScale == TFB_SCALE_STEP) ? 
-			OPTVAL_PC : OPTVAL_3DO;
+	OPTVAL_PC : OPTVAL_3DO;
 	opts->stereo = optStereoSFX ? OPTVAL_ENABLED : OPTVAL_DISABLED;
 	/* These values are read in, but won't change during a run. */
 	opts->music3do = opt3doMusic ? OPTVAL_ENABLED : OPTVAL_DISABLED;
 	opts->musicremix = optRemixMusic ? OPTVAL_ENABLED : OPTVAL_DISABLED;
 	switch (snddriver) {
-	case audio_DRIVER_OPENAL:
-		opts->adriver = OPTVAL_OPENAL;
-		break;
-	case audio_DRIVER_MIXSDL:
-		opts->adriver = OPTVAL_MIXSDL;
-		break;
-	default:
-		opts->adriver = OPTVAL_SILENCE;
-		break;
+		case audio_DRIVER_OPENAL:
+			opts->adriver = OPTVAL_OPENAL;
+			break;
+		case audio_DRIVER_MIXSDL:
+			opts->adriver = OPTVAL_MIXSDL;
+			break;
+		default:
+			opts->adriver = OPTVAL_SILENCE;
+			break;
 	}
 	if (soundflags & audio_QUALITY_HIGH)
 	{
@@ -1166,73 +1136,106 @@ GetGlobalOptions (GLOBALOPTS *opts)
 	{
 		opts->aquality = OPTVAL_MEDIUM;
 	}
-
+	
+	
 	/* Work out resolution.  On the way, try to guess a good default
 	 * for config.alwaysgl, then overwrite it if it was set previously. */
+	opts->loresBlowup = res_GetInteger ("config.loresBlowupScale");
 	opts->driver = OPTVAL_PURE_IF_POSSIBLE;
 	switch (ScreenWidthActual)
 	{
-	case 320:
-		if (GraphicsDriver == TFB_GFXDRIVER_SDL_PURE)
-		{
-			opts->res = OPTVAL_320_240;
-		}
-		else
-		{
-			if (ScreenHeightActual != 240)
+		case 320:
+			if (GraphicsDriver == TFB_GFXDRIVER_SDL_PURE)
 			{
-				opts->res = OPTVAL_CUSTOM;
+				opts->res = OPTVAL_320_240;
 			}
 			else
 			{
 				opts->res = OPTVAL_320_240;
 				opts->driver = OPTVAL_ALWAYS_GL;
 			}
-		}
-		break;
-	case 640:
-		if (GraphicsDriver == TFB_GFXDRIVER_SDL_PURE)
-		{
-			opts->res = OPTVAL_640_480;
-		}
-		else
-		{
-			if (ScreenHeightActual != 480)
+			break;
+		case 640:
+			if (resolutionFactor == 1 && forceAspectRatio) // JMS_GFX
 			{
-				opts->res = OPTVAL_CUSTOM;
+				opts->res = OPTVAL_REAL_640_480_FORCED_4TO3;
+				opts->loresBlowup = NO_BLOWUP;
+			}
+			else if (resolutionFactor == 1 && !forceAspectRatio) // JMS_GFX
+			{
+				opts->res = OPTVAL_REAL_640_480;
+				opts->loresBlowup = NO_BLOWUP;
+			}
+			else if (GraphicsDriver == TFB_GFXDRIVER_SDL_PURE)
+			{
+				opts->res = OPTVAL_320_240;
+				opts->loresBlowup = OPTVAL_320_TO_640;
 			}
 			else
 			{
-				opts->res = OPTVAL_640_480;
+				opts->res = OPTVAL_320_240;
+				opts->loresBlowup = OPTVAL_320_TO_640;
 				opts->driver = OPTVAL_ALWAYS_GL;
 			}
-		}
-		break;
-	case 800:
-		if (ScreenHeightActual != 600)
-		{
-			opts->res = OPTVAL_CUSTOM;
-		}
-		else
-		{
-			opts->res = OPTVAL_800_600;
-		}
-		break;
-	case 1024:
-		if (ScreenHeightActual != 768)
-		{
-			opts->res = OPTVAL_CUSTOM;
-		}
-		else
-		{
-			opts->res = OPTVAL_1024_768;
-		}		
-		break;
-	default:
-		opts->res = OPTVAL_CUSTOM;
-		break;
+			break;
+		case 800:
+			if (resolutionFactor == 1 && forceAspectRatio) // JMS_GFX
+			{
+				opts->res = OPTVAL_REAL_640_480_FORCED_4TO3;
+				opts->loresBlowup = NO_BLOWUP;
+			}
+			else
+			{
+				opts->res = OPTVAL_320_240;
+				opts->loresBlowup = OPTVAL_320_TO_800;
+			}
+			break;
+		case 1024:
+			opts->res = OPTVAL_320_240;
+			opts->loresBlowup = OPTVAL_320_TO_1024;	
+			break;
+		case 1280:							 // JMS_GFX
+			if (forceAspectRatio) // JMS_GFX
+			{
+				opts->res = OPTVAL_REAL_1280_960_FORCED_4TO3;// JMS_GFX
+				opts->loresBlowup = NO_BLOWUP;	 // JMS_GFX
+			}
+			else
+			{
+				opts->res = OPTVAL_REAL_1280_960;// JMS_GFX
+				opts->loresBlowup = NO_BLOWUP;	 // JMS_GFX
+			}
+			break;							 // JMS_GFX
+		case 1680:							 // JMS_GFX
+			if (resolutionFactor == 1) // JMS_GFX
+			{
+				opts->res = OPTVAL_REAL_640_480_FORCED_4TO3;
+				opts->loresBlowup = NO_BLOWUP;
+			}
+			else
+			{
+				opts->res = OPTVAL_REAL_1280_960_FORCED_4TO3;// JMS_GFX
+				opts->loresBlowup = NO_BLOWUP;	 // JMS_GFX
+			}
+			break;
+		case 1920:							 // JMS_GFX
+			if (resolutionFactor == 1) // JMS_GFX
+			{
+				opts->res = OPTVAL_REAL_640_480_FORCED_4TO3;
+				opts->loresBlowup = NO_BLOWUP;
+			}
+			else
+			{
+				opts->res = OPTVAL_REAL_1280_960_FORCED_4TO3;// JMS_GFX
+				opts->loresBlowup = NO_BLOWUP;	 // JMS_GFX
+			}
+			break;
+		default:
+			opts->res = OPTVAL_320_240;
+			opts->loresBlowup = NO_BLOWUP;
+			break;
 	}
-
+	
 	if (res_IsBoolean ("config.alwaysgl"))
 	{
 		if (res_GetBoolean ("config.alwaysgl"))
@@ -1244,18 +1247,13 @@ GetGlobalOptions (GLOBALOPTS *opts)
 			opts->driver = OPTVAL_PURE_IF_POSSIBLE;
 		}
 	}
-
+	
 	opts->player1 = PlayerControls[0];
 	opts->player2 = PlayerControls[1];
-
+	
 	opts->musicvol = (((int)(musicVolumeScale * 100.0f) + 2) / 5) * 5;
 	opts->sfxvol = (((int)(sfxVolumeScale * 100.0f) + 2) / 5) * 5;
 	opts->speechvol = (((int)(speechVolumeScale * 100.0f) + 2) / 5) * 5;
-	opts->reticles = opt_reticles;
-#ifdef RETREAT_SETUPMENU
-	opts->retreat = opt_retreat;
-	opts->retreat_wait = opt_retreat_wait;
-#endif
 }
 
 void
@@ -1265,74 +1263,162 @@ SetGlobalOptions (GLOBALOPTS *opts)
 	int NewWidth = ScreenWidthActual;
 	int NewHeight = ScreenHeightActual;
 	int NewDriver = GraphicsDriver;
-
+	
+	unsigned int oldResFactor = resolutionFactor; // JMS_GFX
+	
 	NewGfxFlags &= ~TFB_GFXFLAGS_SCALE_ANY;
-
+	
 	switch (opts->res) {
-	case OPTVAL_320_240:
-		NewWidth = 320;
-		NewHeight = 240;
+		case OPTVAL_320_240:
+			NewWidth = 320;
+			NewHeight = 240;
 #ifdef HAVE_OPENGL	       
-		NewDriver = (opts->driver == OPTVAL_ALWAYS_GL ? TFB_GFXDRIVER_SDL_OPENGL : TFB_GFXDRIVER_SDL_PURE);
+			NewDriver = (opts->driver == OPTVAL_ALWAYS_GL ? TFB_GFXDRIVER_SDL_OPENGL : TFB_GFXDRIVER_SDL_PURE);
 #else
-		NewDriver = TFB_GFXDRIVER_SDL_PURE;
+			NewDriver = TFB_GFXDRIVER_SDL_PURE;
 #endif
-		break;
-	case OPTVAL_640_480:
-		NewWidth = 640;
-		NewHeight = 480;
-#ifdef HAVE_OPENGL
-		NewDriver = (opts->driver == OPTVAL_ALWAYS_GL ? TFB_GFXDRIVER_SDL_OPENGL : TFB_GFXDRIVER_SDL_PURE);
+			resolutionFactor = 0;				// JMS_GFX
+			forceAspectRatio = FALSE;			// JMS_GFX
+			screen_y_correction = 0;			// JMS_GFX
+			break;
+		case OPTVAL_REAL_640_480:				// JMS_GFX
+			NewWidth = 640;						// JMS_GFX
+			NewHeight = 480;					// JMS_GFX
+#ifdef HAVE_OPENGL	       
+			NewDriver = TFB_GFXDRIVER_SDL_OPENGL;
 #else
-		NewDriver = TFB_GFXDRIVER_SDL_PURE;
+			NewDriver = TFB_GFXDRIVER_SDL_PURE;
 #endif
-		break;
-	case OPTVAL_800_600:
-		NewWidth = 800;
-		NewHeight = 600;
-		NewDriver = TFB_GFXDRIVER_SDL_OPENGL;
-		break;
-	case OPTVAL_1024_768:
-		NewWidth = 1024;
-		NewHeight = 768;
-		NewDriver = TFB_GFXDRIVER_SDL_OPENGL;
-		break;
-	default:
-		/* Don't mess with the custom value */
-		break;
+			resolutionFactor = 1;				// JMS_GFX
+			forceAspectRatio = FALSE;			// JMS_GFX
+			screen_y_correction = 0;			// JMS_GFX
+			break;								// JMS_GFX
+		case OPTVAL_REAL_1280_960:				// JMS_GFX
+			NewWidth = 1280;					// JMS_GFX
+			NewHeight = 960;					// JMS_GFX
+#ifdef HAVE_OPENGL	       
+			NewDriver = TFB_GFXDRIVER_SDL_OPENGL;
+#else
+			NewDriver = TFB_GFXDRIVER_SDL_PURE;
+#endif
+			resolutionFactor = 2;				// JMS_GFX
+			forceAspectRatio = FALSE;			// JMS_GFX
+			screen_y_correction = 0;			// JMS_GFX
+			break;								// JMS_GFX
+		case OPTVAL_REAL_640_480_FORCED_4TO3:	// JMS_GFX
+			NewWidth = 640;						// JMS_GFX
+			NewHeight = 480;					// JMS_GFX
+#ifdef HAVE_OPENGL	       
+			NewDriver = TFB_GFXDRIVER_SDL_OPENGL;
+#else
+			NewDriver = TFB_GFXDRIVER_SDL_PURE;
+#endif
+			resolutionFactor = 1;				// JMS_GFX
+			forceAspectRatio = TRUE;			// JMS_GFX
+			screen_y_correction = 0;			// JMS_GFX
+			break;								// JMS_GFX
+		case OPTVAL_REAL_1280_960_FORCED_4TO3:	// JMS_GFX
+			NewWidth = 1280;					// JMS_GFX
+			NewHeight = 960;					// JMS_GFX
+#ifdef HAVE_OPENGL	       
+			NewDriver = TFB_GFXDRIVER_SDL_OPENGL;
+#else
+			NewDriver = TFB_GFXDRIVER_SDL_PURE;
+#endif
+			resolutionFactor = 2;				// JMS_GFX
+			forceAspectRatio = TRUE;			// JMS_GFX
+			screen_y_correction = 0;			// JMS_GFX
+			break;								// JMS_GFX
+		default:
+			/* Don't mess with the custom value */
+			resolutionFactor = 0; // JMS_GFX
+			screen_y_correction = 0; // JMS_GFX
+			break;
 	}
-
+	
+	if (NewWidth == 320 && NewHeight == 240)
+	{
+		switch (opts->loresBlowup) {
+			case NO_BLOWUP:
+				// JMS: Default value: Don't do anything.
+				break;
+			case OPTVAL_320_TO_640:					// JMS_GFX
+				NewWidth = 640;						// JMS_GFX
+				NewHeight = 480;					// JMS_GFX
+#ifdef HAVE_OPENGL	       
+				NewDriver = (opts->driver == OPTVAL_ALWAYS_GL ? TFB_GFXDRIVER_SDL_OPENGL : TFB_GFXDRIVER_SDL_PURE);
+#else
+				NewDriver = TFB_GFXDRIVER_SDL_PURE;
+#endif
+				resolutionFactor = 0;				// JMS_GFX
+				screen_y_correction = 0;			// JMS_GFX
+				break;
+			case OPTVAL_320_TO_800:					// JMS_GFX
+				NewWidth = 800;						// JMS_GFX
+				NewHeight = 600;					// JMS_GFX
+				NewDriver = TFB_GFXDRIVER_SDL_OPENGL;// JMS_GFX
+				resolutionFactor = 0;				// JMS_GFX
+				screen_y_correction = 0;			// JMS_GFX
+				break;								// JMS_GFX
+			case OPTVAL_320_TO_1024:				// JMS_GFX
+				NewWidth = 1024;					// JMS_GFX
+				NewHeight = 768;					// JMS_GFX
+				NewDriver = TFB_GFXDRIVER_SDL_OPENGL;// JMS_GFX
+				resolutionFactor = 0;				// JMS_GFX
+				screen_y_correction = 0;			// JMS_GFX
+				break;								// JMS_GFX
+			default:
+				break;
+		}
+	}
+	else
+		opts->loresBlowup = NO_BLOWUP;
+	
+	if (oldResFactor != resolutionFactor)
+		resFactorWasChanged = TRUE;
+	
 	res_PutInteger ("config.reswidth", NewWidth);
 	res_PutInteger ("config.resheight", NewHeight);
 	res_PutBoolean ("config.alwaysgl", opts->driver == OPTVAL_ALWAYS_GL);
 	res_PutBoolean ("config.usegl", NewDriver == TFB_GFXDRIVER_SDL_OPENGL);
-
-	switch (opts->scaler) {
-	case OPTVAL_BILINEAR_SCALE:
-		NewGfxFlags |= TFB_GFXFLAGS_SCALE_BILINEAR;
-		res_PutString ("config.scaler", "bilinear");
-		break;
-	case OPTVAL_BIADAPT_SCALE:
-		NewGfxFlags |= TFB_GFXFLAGS_SCALE_BIADAPT;
-		res_PutString ("config.scaler", "biadapt");
-		break;
-	case OPTVAL_BIADV_SCALE:
-		NewGfxFlags |= TFB_GFXFLAGS_SCALE_BIADAPTADV;
-		res_PutString ("config.scaler", "biadv");
-		break;
-	case OPTVAL_TRISCAN_SCALE:
-		NewGfxFlags |= TFB_GFXFLAGS_SCALE_TRISCAN;
-		res_PutString ("config.scaler", "triscan");
-		break;
-	case OPTVAL_HQXX_SCALE:
-		NewGfxFlags |= TFB_GFXFLAGS_SCALE_HQXX;
-		res_PutString ("config.scaler", "hq");
-		break;
-	default:
-		/* OPTVAL_NO_SCALE has no equivalent in gfxflags. */
-		res_PutString ("config.scaler", "no");
-		break;
+	
+	// JMS_GFX
+	res_PutInteger ("config.resolutionfactor", resolutionFactor);
+	res_PutBoolean ("config.forceaspectratio", forceAspectRatio);
+	res_PutInteger ("config.loresBlowupScale", opts->loresBlowup);
+	
+	if (NewWidth == 320 && NewHeight == 240)
+	{
+		switch (opts->scaler) {
+			case OPTVAL_BILINEAR_SCALE:
+				NewGfxFlags |= TFB_GFXFLAGS_SCALE_BILINEAR;
+				res_PutString ("config.scaler", "bilinear");
+				break;
+			case OPTVAL_BIADAPT_SCALE:
+				NewGfxFlags |= TFB_GFXFLAGS_SCALE_BIADAPT;
+				res_PutString ("config.scaler", "biadapt");
+				break;
+			case OPTVAL_BIADV_SCALE:
+				NewGfxFlags |= TFB_GFXFLAGS_SCALE_BIADAPTADV;
+				res_PutString ("config.scaler", "biadv");
+				break;
+			case OPTVAL_TRISCAN_SCALE:
+				NewGfxFlags |= TFB_GFXFLAGS_SCALE_TRISCAN;
+				res_PutString ("config.scaler", "triscan");
+				break;
+			case OPTVAL_HQXX_SCALE:
+				NewGfxFlags |= TFB_GFXFLAGS_SCALE_HQXX;
+				res_PutString ("config.scaler", "hq");
+				break;
+			default:
+				/* OPTVAL_NO_SCALE has no equivalent in gfxflags. */
+				res_PutString ("config.scaler", "no");
+				break;
+		}
 	}
+	else
+		res_PutString ("config.scaler", "no");
+	
 	if (opts->scanlines) {
 		NewGfxFlags |= TFB_GFXFLAGS_SCANLINES;
 	} else {
@@ -1341,19 +1427,43 @@ SetGlobalOptions (GLOBALOPTS *opts)
 	if (opts->fullscreen)
 		NewGfxFlags |= TFB_GFXFLAGS_FULLSCREEN;
 	else
+	{
 		NewGfxFlags &= ~TFB_GFXFLAGS_FULLSCREEN;
-
+		screen_y_correction = 0; // JMS_GFX
+	}
+	
 	res_PutBoolean ("config.scanlines", opts->scanlines);
 	res_PutBoolean ("config.fullscreen", opts->fullscreen);
-
-
+	
+	
 	if ((NewWidth != ScreenWidthActual) ||
 	    (NewHeight != ScreenHeightActual) ||
 	    (NewDriver != GraphicsDriver) ||
+		(resFactorWasChanged) || // JMS_GFX
 	    (NewGfxFlags != GfxFlags)) 
 	{
 		FlushGraphics ();
 		UninitVideoPlayer ();
+		
+		// JMS_GFX
+		if (resFactorWasChanged)
+		{
+			// Tell the game the new screen's size.
+			ScreenWidth  = 320 << resolutionFactor; // res_GetInteger ("config.reswidth");
+			ScreenHeight = 240 << resolutionFactor; // res_GetInteger ("config.resheight");
+			
+			// These solve the FUCKING context problem that plagued the setupmenu when changing to higher resolution.
+			TFB_BBox_Reset ();
+			TFB_BBox_Init (ScreenWidth, ScreenHeight);
+			
+			// Change how big area of the screen is update-able.
+			DestroyDrawable (ReleaseDrawable (Screen));
+			Screen = CaptureDrawable (CreateDisplay (WANT_MASK | WANT_PIXMAP, &screen_width, &screen_height));
+			SetContext (ScreenContext);
+			SetContextFGFrame ((FRAME)NULL);
+			SetContextFGFrame (Screen);
+		}
+		
 		TFB_DrawScreen_ReinitVideo (NewDriver, NewGfxFlags, NewWidth, NewHeight);
 		FlushGraphics ();
 		InitVideoPlayer (TRUE);
@@ -1365,22 +1475,22 @@ SetGlobalOptions (GLOBALOPTS *opts)
 	optWhichCoarseScan = (opts->cscan == OPTVAL_3DO) ? OPT_3DO : OPT_PC;
 	optSmoothScroll = (opts->scroll == OPTVAL_3DO) ? OPT_3DO : OPT_PC;
 	optWhichShield = (opts->shield == OPTVAL_3DO) ? OPT_3DO : OPT_PC;
-	optMeleeScale = (opts->meleezoom == OPTVAL_3DO) ? TFB_SCALE_TRILINEAR : TFB_SCALE_STEP;
+	
+	// JMS: Originally, the smooth zoom was TFB_SCALE_TRILINEAR instead of bilinear.
+	// Using bilinear alleviates the smooth zoom performance choppiness problems in 2x and 4x, but
+	// is kinda hacky solution...
+	optMeleeScale = (opts->meleezoom == OPTVAL_3DO) ? TFB_SCALE_BILINEAR : TFB_SCALE_STEP;
+	
 	optWhichIntro = (opts->intro == OPTVAL_3DO) ? OPT_3DO : OPT_PC;
-	opt_reticles = opts->reticles;
-#ifdef RETREAT_SETUPMENU
-	opt_retreat = opts->retreat;
-	opt_retreat_wait = opts->retreat_wait;
-#endif
 	PlayerControls[0] = opts->player1;
 	PlayerControls[1] = opts->player2;
-
+	
 	res_PutBoolean ("config.subtitles", opts->subtitles == OPTVAL_ENABLED);
 	res_PutBoolean ("config.textmenu", opts->menu == OPTVAL_PC);
 	res_PutBoolean ("config.textgradients", opts->text == OPTVAL_PC);
 	res_PutBoolean ("config.iconicscan", opts->cscan == OPTVAL_3DO);
 	res_PutBoolean ("config.smoothscroll", opts->scroll == OPTVAL_3DO);
-
+	
 	res_PutBoolean ("config.3domusic", opts->music3do == OPTVAL_ENABLED);
 	res_PutBoolean ("config.remixmusic", opts->musicremix == OPTVAL_ENABLED);
 	res_PutBoolean ("config.3domovies", opts->intro == OPTVAL_3DO);
@@ -1390,42 +1500,36 @@ SetGlobalOptions (GLOBALOPTS *opts)
 	res_PutBoolean ("config.pulseshield", opts->shield == OPTVAL_3DO);
 	res_PutInteger ("config.player1control", opts->player1);
 	res_PutInteger ("config.player2control", opts->player2);
-
-	res_PutInteger ("config.reticles", opts->reticles == OPTVAL_ENABLED);
-#ifdef RETREAT_SETUPMENU
-	res_PutInteger ("config.retreat", opts->retreat);
-	res_PutInteger ("config.retreat_wait", opts->retreat_wait);
-#endif
-
+	
 	switch (opts->adriver) {
-	case OPTVAL_SILENCE:
-		res_PutString ("config.audiodriver", "none");
-		break;
-	case OPTVAL_MIXSDL:
-		res_PutString ("config.audiodriver", "mixsdl");
-		break;
-	case OPTVAL_OPENAL:
-		res_PutString ("config.audiodriver", "openal");
-	default:
-		/* Shouldn't happen; leave config untouched */
-		break;
+		case OPTVAL_SILENCE:
+			res_PutString ("config.audiodriver", "none");
+			break;
+		case OPTVAL_MIXSDL:
+			res_PutString ("config.audiodriver", "mixsdl");
+			break;
+		case OPTVAL_OPENAL:
+			res_PutString ("config.audiodriver", "openal");
+		default:
+			/* Shouldn't happen; leave config untouched */
+			break;
 	}
-
+	
 	switch (opts->aquality) {
-	case OPTVAL_LOW:
-		res_PutString ("config.audioquality", "low");
-		break;
-	case OPTVAL_MEDIUM:
-		res_PutString ("config.audioquality", "medium");
-		break;
-	case OPTVAL_HIGH:
-		res_PutString ("config.audioquality", "high");
-		break;
-	default:
-		/* Shouldn't happen; leave config untouched */
-		break;
+		case OPTVAL_LOW:
+			res_PutString ("config.audioquality", "low");
+			break;
+		case OPTVAL_MEDIUM:
+			res_PutString ("config.audioquality", "medium");
+			break;
+		case OPTVAL_HIGH:
+			res_PutString ("config.audioquality", "high");
+			break;
+		default:
+			/* Shouldn't happen; leave config untouched */
+			break;
 	}
-
+	
 	res_PutInteger ("config.musicvol", opts->musicvol);
 	res_PutInteger ("config.sfxvol", opts->sfxvol);
 	res_PutInteger ("config.speechvol", opts->speechvol);
@@ -1435,14 +1539,14 @@ SetGlobalOptions (GLOBALOPTS *opts)
 	// update actual volumes
 	SetMusicVolume (musicVolume);
 	SetSpeechVolume (speechVolumeScale);
-
+	
 	res_PutString ("keys.1.name", input_templates[0].name);
 	res_PutString ("keys.2.name", input_templates[1].name);
 	res_PutString ("keys.3.name", input_templates[2].name);
 	res_PutString ("keys.4.name", input_templates[3].name);
 	res_PutString ("keys.5.name", input_templates[4].name);
 	res_PutString ("keys.6.name", input_templates[5].name);
-
+	
 	SaveResourceIndex (configDir, "uqm.cfg", "config.", TRUE);
 	SaveKeyConfiguration (configDir, "flight.cfg");
 }

@@ -22,6 +22,7 @@
 
 static LOCDATA blackurq_desc =
 {
+	BLACKURQ_CONVERSATION, /* AlienConv */
 	NULL, /* init_encounter_func */
 	NULL, /* post_encounter_func */
 	NULL, /* uninit_encounter_func */
@@ -91,8 +92,7 @@ static LOCDATA blackurq_desc =
 		{
 			33, /* StartIndex */
 			5, /* NumFrames */
-			CIRCULAR_ANIM
-					| WAIT_TALKING, /* AnimFlags */
+			CIRCULAR_ANIM | WAIT_TALKING, /* AnimFlags */
 			ONE_SECOND / 10, 0, /* FrameRate */
 			ONE_SECOND, ONE_SECOND * 3, /* RestartRate */
 			0, /* BlockMask */

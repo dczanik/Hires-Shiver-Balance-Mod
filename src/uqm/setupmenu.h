@@ -16,12 +16,12 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+// JMS_GFX 2012: Merged resolution Factor stuff from P6014.
+
 #ifndef _SETUPMENU_H
 #define _SETUPMENU_H
 
 #include "controls.h"
-
-#include "setup.h" // For MULTI_FLEE_SETUPMENU
 
 typedef enum {
 	OPTVAL_DISABLED,
@@ -44,11 +44,18 @@ typedef enum {
 
 typedef enum {
 	OPTVAL_320_240,
-	OPTVAL_640_480,
-	OPTVAL_800_600,
-	OPTVAL_1024_768,
-	OPTVAL_CUSTOM
+	OPTVAL_REAL_640_480, // JMS_GFX
+	OPTVAL_REAL_1280_960, // DC_GFX
+	OPTVAL_REAL_640_480_FORCED_4TO3, // JMS_GFX
+	OPTVAL_REAL_1280_960_FORCED_4TO3, // JMS_GFX
 } OPT_RESTYPE;
+
+typedef enum {
+	NO_BLOWUP,
+	OPTVAL_320_TO_640,
+	OPTVAL_320_TO_800,
+	OPTVAL_320_TO_1024,
+} OPT_LORESBLOWUPTYPE;
 
 typedef enum {
 	OPTVAL_PURE_IF_POSSIBLE,
@@ -73,20 +80,14 @@ typedef enum {
 typedef struct globalopts_struct {
 	OPT_SCALETYPE scaler;
 	OPT_RESTYPE res;
+	OPT_LORESBLOWUPTYPE loresBlowup;
 	OPT_DRIVERTYPE driver;
 	OPT_ADRIVERTYPE adriver;
 	OPT_AQUALITYTYPE aquality;
-	OPT_ENABLABLE fullscreen, subtitles, scanlines, fps, stereo, music3do, musicremix, reticles;
-#ifdef RETREAT_SETUPMENU
-	OPT_RETREAT retreat;
-#endif
+	OPT_ENABLABLE fullscreen, subtitles, scanlines, fps, stereo, music3do, musicremix;
 	OPT_CONSOLETYPE menu, text, cscan, scroll, intro, meleezoom, shield;
 	CONTROL_TEMPLATE player1, player2;
-	int speechvol, musicvol, sfxvol
-#ifdef RETREAT_SETUPMENU
-	    ,retreat_wait
-#endif
-	;
+	int speechvol, musicvol, sfxvol;
 } GLOBALOPTS;
 
 void SetupMenu (void);
