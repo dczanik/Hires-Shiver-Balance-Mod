@@ -27,7 +27,11 @@
 #define ENERGY_REGENERATION MAX_ENERGY
 #define ENERGY_WAIT 150
 #define MAX_THRUST 18
+#define MAX_THRUST_2XRES (MAX_THRUST << 1)
+#define MAX_THRUST_4XRES (MAX_THRUST << 2)
 #define THRUST_INCREMENT 6
+#define THRUST_INCREMENT_2XRES (THRUST_INCREMENT << 1)
+#define THRUST_INCREMENT_4XRES (THRUST_INCREMENT << 2)
 #define THRUST_WAIT 3
 #define TURN_WAIT 5
 #define SHIP_MASS 2
@@ -45,7 +49,7 @@
 // Retropropulsion
 #define SPECIAL_ENERGY_COST 1
 #define SPECIAL_WAIT 2
-#define JUMP_DIST 120
+#define JUMP_DIST (120 << RESOLUTION_FACTOR)
 
 static RACE_DESC umgah_desc =
 {
@@ -108,6 +112,150 @@ static RACE_DESC umgah_desc =
 	{
 		0,
 		(LONG_RANGE_WEAPON << 2),
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+// JMS_GFX
+static RACE_DESC umgah_desc_2xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE | IMMEDIATE_WEAPON,
+		7, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		UMGAH_RACE_STRINGS,
+		UMGAH_ICON_MASK_PMAP_ANIM,
+		UMGAH_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		833 / SPHERE_RADIUS_INCREMENT * 2, /* Initial SoI radius */
+		{ /* Known location (center of SoI) */
+			1798, 6000,
+		},
+	},
+	{
+		MAX_THRUST_2XRES,
+		THRUST_INCREMENT_2XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			UMGAH_BIG_MASK_PMAP_ANIM,
+			UMGAH_MED_MASK_PMAP_ANIM,
+			UMGAH_SML_MASK_PMAP_ANIM,
+		},
+		{
+			SPRITZ_MASK_PMAP_ANIM,
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+		},
+		{
+			CONE_BIG_MASK_ANIM,
+			CONE_MED_MASK_ANIM,
+			CONE_SML_MASK_ANIM,
+		},
+		{
+			UMGAH_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		UMGAH_VICTORY_SONG,
+		UMGAH_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		(LONG_RANGE_WEAPON_2XRES << 2),
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+// JMS_GFX
+static RACE_DESC umgah_desc_4xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE | IMMEDIATE_WEAPON,
+		7, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		UMGAH_RACE_STRINGS,
+		UMGAH_ICON_MASK_PMAP_ANIM,
+		UMGAH_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		833 / SPHERE_RADIUS_INCREMENT * 2, /* Initial SoI radius */
+		{ /* Known location (center of SoI) */
+			1798, 6000,
+		},
+	},
+	{
+		MAX_THRUST_4XRES,
+		THRUST_INCREMENT_4XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			UMGAH_BIG_MASK_PMAP_ANIM,
+			UMGAH_MED_MASK_PMAP_ANIM,
+			UMGAH_SML_MASK_PMAP_ANIM,
+		},
+		{
+			SPRITZ_MASK_PMAP_ANIM,
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+		},
+		{
+			CONE_BIG_MASK_ANIM,
+			CONE_MED_MASK_ANIM,
+			CONE_SML_MASK_ANIM,
+		},
+		{
+			UMGAH_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		UMGAH_VICTORY_SONG,
+		UMGAH_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		(LONG_RANGE_WEAPON_4XRES << 2),
 		NULL,
 	},
 	(UNINIT_FUNC *) NULL,
@@ -326,10 +474,10 @@ umgah_intelligence (ELEMENT *ShipPtr, EVALUATE_DESC *ObjectsOfConcern, COUNT Con
 		else
 			this_turn = (BYTE)lpEvalDesc->which_turn;
 
-		EnoughJuice = (BOOLEAN)(WORLD_TO_TURN (
+		EnoughJuice = (BOOLEAN)((WORLD_TO_TURN (
 				JUMP_DIST * StarShipPtr->RaceDescPtr->ship_info.energy_level
 				/ SPECIAL_ENERGY_COST
-				) > this_turn);
+				) >> RESOLUTION_FACTOR) > this_turn);
 		delta_x = lpEvalDesc->ObjectPtr->next.location.x -
 				ShipPtr->next.location.x;
 		delta_y = lpEvalDesc->ObjectPtr->next.location.y -
@@ -396,19 +544,35 @@ umgah_intelligence (ELEMENT *ShipPtr, EVALUATE_DESC *ObjectsOfConcern, COUNT Con
 		StarShipPtr->RaceDescPtr->characteristics.special_wait = 0xFF;
 }
 
-
 RACE_DESC*
 init_umgah (void)
 {
 	RACE_DESC *RaceDescPtr;
 
-	umgah_desc.preprocess_func = umgah_preprocess;
-	umgah_desc.postprocess_func = umgah_postprocess;
-	umgah_desc.init_weapon_func = initialize_cone;
-	umgah_desc.cyborg_control.intelligence_func = umgah_intelligence;
-
-	RaceDescPtr = &umgah_desc;
+	if (RESOLUTION_FACTOR == 0)
+	{
+		umgah_desc.preprocess_func = umgah_preprocess;
+		umgah_desc.postprocess_func = umgah_postprocess;
+		umgah_desc.init_weapon_func = initialize_cone;
+		umgah_desc.cyborg_control.intelligence_func = umgah_intelligence;
+		RaceDescPtr = &umgah_desc;
+	}
+	else if (RESOLUTION_FACTOR == 1)
+	{
+		umgah_desc_2xres.preprocess_func = umgah_preprocess;
+		umgah_desc_2xres.postprocess_func = umgah_postprocess;
+		umgah_desc_2xres.init_weapon_func = initialize_cone;
+		umgah_desc_2xres.cyborg_control.intelligence_func = umgah_intelligence;
+		RaceDescPtr = &umgah_desc_2xres;
+	}
+	else
+	{
+		umgah_desc_4xres.preprocess_func = umgah_preprocess;
+		umgah_desc_4xres.postprocess_func = umgah_postprocess;
+		umgah_desc_4xres.init_weapon_func = initialize_cone;
+		umgah_desc_4xres.cyborg_control.intelligence_func = umgah_intelligence;
+		RaceDescPtr = &umgah_desc_4xres;
+	}
 
 	return (RaceDescPtr);
 }
-
