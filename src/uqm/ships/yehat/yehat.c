@@ -39,15 +39,15 @@
 // Pulse Cannons
 #define WEAPON_ENERGY_COST 1
 #define WEAPON_WAIT 0
-#define YEHAT_OFFSET 16 << RESOLUTION_FACTOR
-#define LAUNCH_OFFS 32 << RESOLUTION_FACTOR
+#define YEHAT_OFFSET (16 << RESOLUTION_FACTOR)
+#define LAUNCH_OFFS (32 << RESOLUTION_FACTOR)
 #define MISSILE_SPEED 80
 #define MISSILE_SPEED_2XRES (MISSILE_SPEED << 1)
 #define MISSILE_SPEED_4XRES (MISSILE_SPEED << 2)
 #define MISSILE_LIFE 10
 #define MISSILE_HITS 1
 #define MISSILE_DAMAGE 1
-#define MISSILE_OFFSET 1 << RESOLUTION_FACTOR
+#define MISSILE_OFFSET (1 << RESOLUTION_FACTOR)
 
 // Shield
 #define SPECIAL_ENERGY_COST 3
@@ -285,7 +285,7 @@ initialize_standard_missiles (ELEMENT *ShipPtr, HELEMENT MissileArray[])
 	MissileBlock.sender = ShipPtr->playerNr;
 	MissileBlock.flags = IGNORE_SIMILAR;
 	MissileBlock.pixoffs = YEHAT_OFFSET;
-	MissileBlock.speed = MISSILE_SPEED;
+	MissileBlock.speed = (MISSILE_SPEED << RESOLUTION_FACTOR);
 	MissileBlock.hit_points = MISSILE_HITS;
 	MissileBlock.damage = MISSILE_DAMAGE;
 	MissileBlock.life = MISSILE_LIFE;

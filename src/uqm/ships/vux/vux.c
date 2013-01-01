@@ -30,7 +30,11 @@
 #define ENERGY_REGENERATION 1
 #define ENERGY_WAIT 7
 #define MAX_THRUST 21
+#define MAX_THRUST_2XRES (MAX_THRUST << 1)
+#define MAX_THRUST_4XRES (MAX_THRUST << 2)
 #define THRUST_INCREMENT 7
+#define THRUST_INCREMENT_2XRES (THRUST_INCREMENT << 1)
+#define THRUST_INCREMENT_4XRES (THRUST_INCREMENT << 2)
 #define THRUST_WAIT 4
 #define TURN_WAIT 6
 #define SHIP_MASS 6
@@ -38,21 +42,21 @@
 // Laser
 #define WEAPON_ENERGY_COST 1
 #define WEAPON_WAIT 0
-#define VUX_OFFSET 12
-#define LASER_BASE 150
+#define VUX_OFFSET (12 << RESOLUTION_FACTOR)
+#define LASER_BASE (150 << RESOLUTION_FACTOR)
 #define LASER_RANGE DISPLAY_TO_WORLD (LASER_BASE + VUX_OFFSET)
 
 // Limpet
 #define SPECIAL_ENERGY_COST 3
 #define SPECIAL_WAIT 7
-#define LIMPET_SPEED 25
-#define LIMPET_OFFSET 8
-#define LIMPET_LIFE 72
+#define LIMPET_SPEED (25 << RESOLUTION_FACTOR)
+#define LIMPET_OFFSET (8 << RESOLUTION_FACTOR)
+#define LIMPET_LIFE (72 << RESOLUTION_FACTOR)
 #define LIMPET_HITS 1
-#define LIMPET_DAMAGE 0
+#define LIMPET_DAMAGE 5
 #define TRACK_WAIT 0
-#define WORST_TOPSPEED 8
-#define WORST_ACCEL 4
+#define WORST_TOPSPEED (8 << RESOLUTION_FACTOR)
+#define WORST_ACCEL (4 << RESOLUTION_FACTOR)
 
 // Aggressive Entry
 #define MAXX_ENTRY_DIST DISPLAY_TO_WORLD ((144) << 1)
@@ -119,6 +123,150 @@ static RACE_DESC vux_desc =
 	{
 		0,
 		CLOSE_RANGE_WEAPON,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+// JMS_GFX
+static RACE_DESC vux_desc_2xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE | SEEKING_SPECIAL | IMMEDIATE_WEAPON,
+		12, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		VUX_RACE_STRINGS,
+		VUX_ICON_MASK_PMAP_ANIM,
+		VUX_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		900 / SPHERE_RADIUS_INCREMENT * 2, /* Initial SoI radius */
+		{ /* Known location (center of SoI) */
+			4412, 1558,
+		},
+	},
+	{
+		MAX_THRUST_2XRES,
+		THRUST_INCREMENT_2XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			VUX_BIG_MASK_PMAP_ANIM,
+			VUX_MED_MASK_PMAP_ANIM,
+			VUX_SML_MASK_PMAP_ANIM,
+		},
+		{
+			SLIME_MASK_PMAP_ANIM,
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+		},
+		{
+			LIMPETS_BIG_MASK_PMAP_ANIM,
+			LIMPETS_MED_MASK_PMAP_ANIM,
+			LIMPETS_SML_MASK_PMAP_ANIM,
+		},
+		{
+			VUX_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		VUX_VICTORY_SONG,
+		VUX_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		CLOSE_RANGE_WEAPON_2XRES,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+// JMS_GFX
+static RACE_DESC vux_desc_4xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE | SEEKING_SPECIAL | IMMEDIATE_WEAPON,
+		12, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		VUX_RACE_STRINGS,
+		VUX_ICON_MASK_PMAP_ANIM,
+		VUX_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		900 / SPHERE_RADIUS_INCREMENT * 2, /* Initial SoI radius */
+		{ /* Known location (center of SoI) */
+			4412, 1558,
+		},
+	},
+	{
+		MAX_THRUST_4XRES,
+		THRUST_INCREMENT_4XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			VUX_BIG_MASK_PMAP_ANIM,
+			VUX_MED_MASK_PMAP_ANIM,
+			VUX_SML_MASK_PMAP_ANIM,
+		},
+		{
+			SLIME_MASK_PMAP_ANIM,
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+		},
+		{
+			LIMPETS_BIG_MASK_PMAP_ANIM,
+			LIMPETS_MED_MASK_PMAP_ANIM,
+			LIMPETS_SML_MASK_PMAP_ANIM,
+		},
+		{
+			VUX_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		VUX_VICTORY_SONG,
+		VUX_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		CLOSE_RANGE_WEAPON_4XRES,
 		NULL,
 	},
 	(UNINIT_FUNC *) NULL,
@@ -503,13 +651,30 @@ init_vux (void)
 {
 	RACE_DESC *RaceDescPtr;
 
-	vux_desc.preprocess_func = vux_preprocess;
-	vux_desc.postprocess_func = vux_postprocess;
-	vux_desc.init_weapon_func = initialize_horrific_laser;
-	vux_desc.cyborg_control.intelligence_func = vux_intelligence;
-
-	RaceDescPtr = &vux_desc;
+	if (RESOLUTION_FACTOR == 0)
+	{
+		vux_desc.preprocess_func = vux_preprocess;
+		vux_desc.postprocess_func = vux_postprocess;
+		vux_desc.init_weapon_func = initialize_horrific_laser;
+		vux_desc.cyborg_control.intelligence_func = vux_intelligence;
+		RaceDescPtr = &vux_desc;
+	}
+	else if (RESOLUTION_FACTOR == 1)
+	{
+		vux_desc_2xres.preprocess_func = vux_preprocess;
+		vux_desc_2xres.postprocess_func = vux_postprocess;
+		vux_desc_2xres.init_weapon_func = initialize_horrific_laser;
+		vux_desc_2xres.cyborg_control.intelligence_func = vux_intelligence;
+		RaceDescPtr = &vux_desc_2xres;
+	}
+	else
+	{
+		vux_desc_4xres.preprocess_func = vux_preprocess;
+		vux_desc_4xres.postprocess_func = vux_postprocess;
+		vux_desc_4xres.init_weapon_func = initialize_horrific_laser;
+		vux_desc_4xres.cyborg_control.intelligence_func = vux_intelligence;
+		RaceDescPtr = &vux_desc_4xres;
+	}
 
 	return (RaceDescPtr);
 }
-
