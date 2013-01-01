@@ -80,6 +80,9 @@ QUEUE disp_q;
 BOOLEAN hires2xPackPresent; // JMS_GFX
 BOOLEAN hires4xPackPresent; // JMS_GFX
 
+BOOLEAN balance_2x_present;
+BOOLEAN balance_4x_present;
+
 uio_Repository *repository;
 uio_DirHandle *rootDir;
 
@@ -144,25 +147,29 @@ LoadKernel (int argc, char *argv[])
 		loadAddon ("3dovideo");
 	}
 
+	// JMS_GFX
+	if (resolutionFactor == 1 && loadAddon ("hires2x") && loadAddon ("balance-2x"))
+	{
+		hires2xPackPresent = TRUE;
+		balance_2x_present = TRUE;
+		printf ("loading addon hires2x\n");
+		log_add (log_Info, "loading addon balance-2x");
+	}
+	else if (resolutionFactor == 2 && loadAddon ("hires4x") && loadAddon ("balance-4x"))
+	{
+		hires4xPackPresent = TRUE;
+		balance_4x_present = TRUE;
+		printf ("loading addon hires4x\n");
+		log_add (log_Info, "loading addon balance-4x");
+	}
+	// END JMS_GFX
+
 	// Never run Balance Mod without the effects package.
-	if (!loadAddon("balance"))
+	if (!(balance_4x_present || balance_2x_present || loadAddon("balance")))
 	{
 		log_add(log_Error, "The Balance Mod effects package is missing.");
 		return FALSE;
 	}
-
-	// JMS_GFX
-	if (resolutionFactor == 1 && loadAddon ("hires2x"))
-	{
-		hires2xPackPresent = TRUE;
-		printf ("loading addon hires2x\n");
-	}
-	else if (resolutionFactor == 2 && loadAddon ("hires4x"))
-	{
-		hires4xPackPresent = TRUE;
-		printf ("loading addon hires4x\n");
-	}
-	// END JMS_GFX
 
 	/* Now load the rest of the addons, in order. */
 	prepareAddons (optAddons);

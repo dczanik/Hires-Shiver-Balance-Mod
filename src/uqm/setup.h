@@ -65,6 +65,9 @@ extern QUEUE race_q[];
 extern BOOLEAN hires2xPackPresent; // JMS
 extern BOOLEAN hires4xPackPresent; // JMS
 
+extern BOOLEAN balance_2x_present;
+extern BOOLEAN balance_4x_present;
+
 extern ACTIVITY LastActivity;
 
 extern BYTE PlayerControl[];
