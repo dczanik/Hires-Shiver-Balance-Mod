@@ -44,8 +44,8 @@
 #define SPECIAL_WAIT ((ONE_SECOND / BATTLE_FRAME_RATE) * 3)
 
 #define SHIP_MASS (MAX_SHIP_MASS * 10)
-#define SAMATRA_OFFSET 9
-#define MISSILE_SPEED DISPLAY_TO_WORLD (8)
+#define SAMATRA_OFFSET (9 << RESOLUTION_FACTOR) // JMS_GFX
+#define MISSILE_SPEED DISPLAY_TO_WORLD (8 << RESOLUTION_FACTOR) // JMS_GFX
 
 static RACE_DESC samatra_desc =
 {
@@ -201,7 +201,7 @@ spawn_comet (ELEMENT *ElementPtr)
 {
 #define COMET_OFFSET 0
 #define COMET_HITS 12
-#define COMET_SPEED DISPLAY_TO_WORLD (12)
+#define COMET_SPEED DISPLAY_TO_WORLD (12 << RESOLUTION_FACTOR) // JMS_GFX
 #define COMET_LIFE 2
 	MISSILE_BLOCK MissileBlock;
 	HELEMENT hComet;
@@ -584,7 +584,7 @@ sentinel_preprocess (ELEMENT *ElementPtr)
 	}
 }
 
-#define RECOIL_VELOCITY WORLD_TO_VELOCITY (DISPLAY_TO_WORLD (10))
+#define RECOIL_VELOCITY WORLD_TO_VELOCITY (DISPLAY_TO_WORLD (10 << RESOLUTION_FACTOR)) // JMS_GFX
 #define MAX_RECOIL_VELOCITY (RECOIL_VELOCITY * 4)
 
 static void
@@ -766,17 +766,31 @@ samatra_preprocess (ELEMENT *ElementPtr)
 	else
 	{
 #define MAX_GENERATORS 8
-		POINT offs[] =
+		POINT offs_1x[] =
 		{
-			{-127-9,  -53+18},
+			{-127-9,  -53+18}, // Top left generator
 			{ -38-9,  -88+18},
 			{  44-9,  -85+18},
 			{ 127-9,  -60+18},
 			{ 124-9,   28+18},
 			{  73-9,   61+18},
 			{ -87-9,   58+18},
-			{-136-9,   29+18},
+			{-136-9,   29+18}, // Top right generator
 		};
+		
+		POINT offs_4x[] =
+		{
+			{-305, -234}, // Top left generator
+			{-414, -96 },
+			{-396,  140},
+			{-208,  262},
+			{215,   262},
+			{410,   140},
+			{441,  -87 },
+			{329,  -214}, // Top right generator
+		};
+		
+		POINT *offs = RESOLUTION_FACTOR == 2 ? offs_4x : offs_1x;
 
 		for (StarShipPtr->RaceDescPtr->num_generators = 0;
 				StarShipPtr->RaceDescPtr->num_generators < MAX_GENERATORS;
@@ -788,7 +802,7 @@ samatra_preprocess (ELEMENT *ElementPtr)
 			if (hGenerator)
 			{
 				ELEMENT *GeneratorPtr;
-
+				
 				LockElement (hGenerator, &GeneratorPtr);
 				GeneratorPtr->hit_points = GENERATOR_HITS;
 				GeneratorPtr->mass_points = MAX_SHIP_MASS * 10;
@@ -801,12 +815,12 @@ samatra_preprocess (ELEMENT *ElementPtr)
 						);
 				GeneratorPtr->current.location.x =
 						((LOG_SPACE_WIDTH >> 1)
-						+ DISPLAY_TO_WORLD (offs[StarShipPtr->RaceDescPtr->num_generators].x))
-						& ~((SCALED_ONE << MAX_VIS_REDUCTION) - 1);
+						+ DISPLAY_TO_WORLD ((offs[StarShipPtr->RaceDescPtr->num_generators].x)))
+						& ~((SCALED_ONE << MAX_VIS_REDUCTION) - 1); // JMS_GFX
 				GeneratorPtr->current.location.y =
 						((LOG_SPACE_HEIGHT >> 1)
-						+ DISPLAY_TO_WORLD (offs[StarShipPtr->RaceDescPtr->num_generators].y))
-						& ~((SCALED_ONE << MAX_VIS_REDUCTION) - 1);
+						+ DISPLAY_TO_WORLD ((offs[StarShipPtr->RaceDescPtr->num_generators].y)))
+						& ~((SCALED_ONE << MAX_VIS_REDUCTION) - 1); // JMS_GFX
 				GeneratorPtr->current.image.farray =
 						StarShipPtr->RaceDescPtr->ship_data.special;
 				GeneratorPtr->current.image.frame =

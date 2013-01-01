@@ -124,6 +124,158 @@ static RACE_DESC chmmr_desc =
 	0, /* CodeRef */
 };
 
+// JMS_GFX
+#define MAX_THRUST_2XRES 70
+#define THRUST_INCREMENT_2XRES 14
+
+// JMS_GFX
+static RACE_DESC chmmr_desc_2xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE | IMMEDIATE_WEAPON | SEEKING_SPECIAL | HEAVY_POINT_DEFENSE,
+		30, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		CHMMR_RACE_STRINGS,
+		CHMMR_ICON_MASK_PMAP_ANIM,
+		CHMMR_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL//, SHIP_IS_NOT_DAMAGED
+	},
+	{ /* FLEET_STUFF */
+		0, /* Initial sphere of influence radius */
+		{ /* Known location (center of SoI) */
+			0, 0,
+		},
+	},
+	{
+		MAX_THRUST_2XRES,
+		THRUST_INCREMENT_2XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			CHMMR_BIG_MASK_PMAP_ANIM,
+			CHMMR_MED_MASK_PMAP_ANIM,
+			CHMMR_SML_MASK_PMAP_ANIM,
+		},
+		{
+			MUZZLE_BIG_MASK_PMAP_ANIM,
+			MUZZLE_MED_MASK_PMAP_ANIM,
+			MUZZLE_SML_MASK_PMAP_ANIM,
+		},
+		{
+			SATELLITE_BIG_MASK_PMAP_ANIM,
+			SATELLITE_MED_MASK_PMAP_ANIM,
+			SATELLITE_SML_MASK_PMAP_ANIM,
+		},
+		{
+			CHMMR_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		CHMMR_VICTORY_SONG,
+		CHMMR_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		CLOSE_RANGE_WEAPON_2XRES,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+// JMS_GFX
+#define MAX_THRUST_4XRES 140
+#define THRUST_INCREMENT_4XRES 28
+
+// JMS_GFX
+static RACE_DESC chmmr_desc_4xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE | IMMEDIATE_WEAPON | SEEKING_SPECIAL | HEAVY_POINT_DEFENSE,
+		30, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		CHMMR_RACE_STRINGS,
+		CHMMR_ICON_MASK_PMAP_ANIM,
+		CHMMR_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL//, SHIP_IS_NOT_DAMAGED
+	},
+	{ /* FLEET_STUFF */
+		0, /* Initial sphere of influence radius */
+		{ /* Known location (center of SoI) */
+			0, 0,
+		},
+	},
+	{
+		MAX_THRUST_4XRES,
+		THRUST_INCREMENT_4XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			CHMMR_BIG_MASK_PMAP_ANIM,
+			CHMMR_MED_MASK_PMAP_ANIM,
+			CHMMR_SML_MASK_PMAP_ANIM,
+		},
+		{
+			MUZZLE_BIG_MASK_PMAP_ANIM,
+			MUZZLE_MED_MASK_PMAP_ANIM,
+			MUZZLE_SML_MASK_PMAP_ANIM,
+		},
+		{
+			SATELLITE_BIG_MASK_PMAP_ANIM,
+			SATELLITE_MED_MASK_PMAP_ANIM,
+			SATELLITE_SML_MASK_PMAP_ANIM,
+		},
+		{
+			CHMMR_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		CHMMR_VICTORY_SONG,
+		CHMMR_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		CLOSE_RANGE_WEAPON_4XRES,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
 static void
 animate (ELEMENT *ElementPtr)
 {
@@ -131,10 +283,8 @@ animate (ELEMENT *ElementPtr)
 		--ElementPtr->turn_wait;
 	else
 	{
-		ElementPtr->next.image.frame =
-				IncFrameIndex (ElementPtr->current.image.frame);
+		ElementPtr->next.image.frame = IncFrameIndex (ElementPtr->current.image.frame);
 		ElementPtr->state_flags |= CHANGING;
-
 		ElementPtr->turn_wait = ElementPtr->next_turn;
 	}
 }
@@ -156,14 +306,13 @@ laser_death (ELEMENT *ElementPtr)
 
 		LockElement (StarShipPtr->hShip, &ShipPtr);
 
-		dx = ElementPtr->current.location.x
-				- ShipPtr->current.location.x;
-		dy = ElementPtr->current.location.y
-				- ShipPtr->current.location.y;
+		dx = ElementPtr->current.location.x - ShipPtr->current.location.x;
+		dy = ElementPtr->current.location.y - ShipPtr->current.location.y;
+		
 		if (((BYTE)TFB_Random () & 0x07)
 				&& (dist = (long)dx * dx + (long)dy * dy) >=
-				(long)DISPLAY_TO_WORLD (CHMMR_OFFSET + 10)
-				* DISPLAY_TO_WORLD (CHMMR_OFFSET + 10)
+				(long)DISPLAY_TO_WORLD ((CHMMR_OFFSET + 10) << RESOLUTION_FACTOR) // JMS_GFX
+				* DISPLAY_TO_WORLD ((CHMMR_OFFSET + 10) << RESOLUTION_FACTOR) // JMS_GFX
 				&& (hIonSpots = AllocElement ()))
 		{
 			COUNT angle, magnitude;
@@ -171,16 +320,16 @@ laser_death (ELEMENT *ElementPtr)
 
 			LockElement (hIonSpots, &IonSpotsPtr);
 			IonSpotsPtr->playerNr = ElementPtr->playerNr;
-			IonSpotsPtr->state_flags = FINITE_LIFE | NONSOLID
-					| IGNORE_SIMILAR | APPEARING;
+			IonSpotsPtr->state_flags = FINITE_LIFE | NONSOLID | IGNORE_SIMILAR | APPEARING;
 			IonSpotsPtr->turn_wait = IonSpotsPtr->next_turn = 0;
-			IonSpotsPtr->life_span = 9;
+			IonSpotsPtr->life_span = RES_CASE(9,9,14);
+			// BW: account for the extra frames in the hires version
 
 			angle = ARCTAN (dx, dy);
 			magnitude = ((COUNT)TFB_Random ()
 					% ((square_root (dist) + 1)
-					- DISPLAY_TO_WORLD (CHMMR_OFFSET + 10)))
-					+ DISPLAY_TO_WORLD (CHMMR_OFFSET + 10);
+					- DISPLAY_TO_WORLD ((CHMMR_OFFSET + 10) << RESOLUTION_FACTOR))) // JMS_GFX
+					+ DISPLAY_TO_WORLD ((CHMMR_OFFSET + 10) << RESOLUTION_FACTOR); // JMS_GFX
 			IonSpotsPtr->current.location.x =
 					ShipPtr->current.location.x
 					+ COSINE (angle, magnitude);
@@ -198,9 +347,7 @@ laser_death (ELEMENT *ElementPtr)
 
 			SetElementStarShip (IonSpotsPtr, StarShipPtr);
 
-			SetPrimType (&(GLOBAL (DisplayArray))[
-					IonSpotsPtr->PrimIndex
-					], STAMP_PRIM);
+			SetPrimType (&(GLOBAL (DisplayArray))[IonSpotsPtr->PrimIndex], STAMP_PRIM);
 
 			UnlockElement (hIonSpots);
 			PutElement (hIonSpots);
@@ -227,15 +374,13 @@ initialize_megawatt_laser (ELEMENT *ShipPtr, HELEMENT LaserArray[])
 
 	GetElementStarShip (ShipPtr, &StarShipPtr);
 	LaserBlock.face = StarShipPtr->ShipFacing;
-	GetFrameRect (SetAbsFrameIndex (
-			StarShipPtr->RaceDescPtr->ship_data.weapon[0], LaserBlock.face
-			), &r);
-	LaserBlock.cx = DISPLAY_ALIGN (ShipPtr->next.location.x)
-			+ DISPLAY_TO_WORLD (r.corner.x);
-	LaserBlock.cy = DISPLAY_ALIGN (ShipPtr->next.location.y)
-			+ DISPLAY_TO_WORLD (r.corner.y);
-	LaserBlock.ex = COSINE (FACING_TO_ANGLE (LaserBlock.face), LASER_RANGE);
-	LaserBlock.ey = SINE (FACING_TO_ANGLE (LaserBlock.face), LASER_RANGE);
+	GetFrameRect (SetAbsFrameIndex (StarShipPtr->RaceDescPtr->ship_data.weapon[0], LaserBlock.face), &r);
+	
+	LaserBlock.cx = DISPLAY_ALIGN (ShipPtr->next.location.x) + DISPLAY_TO_WORLD (r.corner.x);
+	LaserBlock.cy = DISPLAY_ALIGN (ShipPtr->next.location.y) + DISPLAY_TO_WORLD (r.corner.y);
+	
+	LaserBlock.ex = COSINE (FACING_TO_ANGLE (LaserBlock.face), (LASER_RANGE << RESOLUTION_FACTOR)); // JMS_GFX
+	LaserBlock.ey = SINE (FACING_TO_ANGLE (LaserBlock.face), (LASER_RANGE << RESOLUTION_FACTOR)); // JMS_GFX
 	LaserBlock.sender = ShipPtr->playerNr;
 	LaserBlock.flags = IGNORE_SIMILAR;
 	LaserBlock.pixoffs = 0;
@@ -250,8 +395,7 @@ initialize_megawatt_laser (ELEMENT *ShipPtr, HELEMENT LaserArray[])
 
 		LaserPtr->mass_points = 2;
 		LaserPtr->death_func = laser_death;
-		LaserPtr->turn_wait = (BYTE)((StarShipPtr->special_counter + 1)
-				% NUM_CYCLES);
+		LaserPtr->turn_wait = (BYTE)((StarShipPtr->special_counter + 1) % NUM_CYCLES);
 
 		UnlockElement (LaserArray[0]);
 	}
@@ -260,7 +404,11 @@ initialize_megawatt_laser (ELEMENT *ShipPtr, HELEMENT LaserArray[])
 }
 
 static void
+<<<<<<<
 chmmr_postprocess (ELEMENT *ElementPtr)
+=======
+chmmr_intelligence (ELEMENT *ShipPtr, EVALUATE_DESC *ObjectsOfConcern, COUNT ConcernCounter)
+>>>>>>>
 {
 	STARSHIP *StarShipPtr;
 
@@ -283,13 +431,11 @@ chmmr_postprocess (ELEMENT *ElementPtr)
 		{
 			LockElement (hMuzzleFlash, &MuzzleFlashPtr);
 			MuzzleFlashPtr->playerNr = ElementPtr->playerNr;
-			MuzzleFlashPtr->state_flags = FINITE_LIFE | NONSOLID
-					| IGNORE_SIMILAR | APPEARING;
+			MuzzleFlashPtr->state_flags = FINITE_LIFE | NONSOLID | IGNORE_SIMILAR | APPEARING;
 			MuzzleFlashPtr->life_span = 1;
 
 			MuzzleFlashPtr->current = ElementPtr->next;
-			MuzzleFlashPtr->current.image.farray =
-					StarShipPtr->RaceDescPtr->ship_data.weapon;
+			MuzzleFlashPtr->current.image.farray = StarShipPtr->RaceDescPtr->ship_data.weapon;
 			MuzzleFlashPtr->current.image.frame = SetAbsFrameIndex (
 					StarShipPtr->RaceDescPtr->ship_data.weapon[0],
 					StarShipPtr->ShipFacing + ANGLE_TO_FACING (FULL_CIRCLE)
@@ -307,18 +453,13 @@ chmmr_postprocess (ELEMENT *ElementPtr)
 		UnlockElement (GetTailElement ());
 	}
 
-	if ((StarShipPtr->cur_status_flags & SPECIAL)
-			&& DeltaEnergy (ElementPtr, -SPECIAL_ENERGY_COST))
+	if ((StarShipPtr->cur_status_flags & SPECIAL) && DeltaEnergy (ElementPtr, -SPECIAL_ENERGY_COST))
 	{
 		COUNT facing;
 		ELEMENT *ShipElementPtr;
 
 		LockElement (ElementPtr->hTarget, &ShipElementPtr);
-		
-		ProcessSound (SetAbsSoundIndex (
-				StarShipPtr->RaceDescPtr->ship_data.ship_sounds, 1),
-				ShipElementPtr);
-
+		ProcessSound (SetAbsSoundIndex (StarShipPtr->RaceDescPtr->ship_data.ship_sounds, 1), ShipElementPtr);
 		UnlockElement (ElementPtr->hTarget);
 
 		facing = 0;
@@ -341,6 +482,22 @@ chmmr_postprocess (ELEMENT *ElementPtr)
 					DISPLAY_TO_WORLD (8 + 9 + 11 + 14),
 					DISPLAY_TO_WORLD (8 + 9 + 11 + 14 + 18),
 				};
+				static const SIZE shadow_offs_2xres[] =
+				{
+					DISPLAY_TO_WORLD (16),
+					DISPLAY_TO_WORLD (16 + 18),
+					DISPLAY_TO_WORLD (16 + 18 + 22),
+					DISPLAY_TO_WORLD (16 + 18 + 22 + 28),
+					DISPLAY_TO_WORLD (16 + 18 + 22 + 28 + 36),
+				};
+				static const SIZE shadow_offs_4xres[] =
+				{
+					DISPLAY_TO_WORLD (32),
+					DISPLAY_TO_WORLD (32 + 36),
+					DISPLAY_TO_WORLD (32 + 36 + 44),
+					DISPLAY_TO_WORLD (32 + 36 + 44 + 56),
+					DISPLAY_TO_WORLD (32 + 36 + 44 + 56 + 72),
+				};
 				static const Color color_tab[] =
 				{
 					BUILD_COLOR (MAKE_RGB15_INIT (0x00, 0x00, 0x10), 0x53),
@@ -354,33 +511,27 @@ chmmr_postprocess (ELEMENT *ElementPtr)
 				// calculate tractor beam effect
 				angle = FACING_TO_ANGLE (StarShipPtr->ShipFacing);
 				dx = (ElementPtr->next.location.x
-						+ COSINE (angle, (LASER_RANGE / 3)
-						+ DISPLAY_TO_WORLD (CHMMR_OFFSET)))
+						+ COSINE (angle, ((LASER_RANGE << RESOLUTION_FACTOR) / 3) // JMS_GFX
+						+ DISPLAY_TO_WORLD (CHMMR_OFFSET << RESOLUTION_FACTOR))) // JMS_GFX
 						- ShipElementPtr->next.location.x;
 				dy = (ElementPtr->next.location.y
-						+ SINE (angle, (LASER_RANGE / 3)
-						+ DISPLAY_TO_WORLD (CHMMR_OFFSET)))
+						+ SINE (angle, ((LASER_RANGE << RESOLUTION_FACTOR) / 3) // JMS_GFX
+						+ DISPLAY_TO_WORLD (CHMMR_OFFSET << RESOLUTION_FACTOR))) // JMS_GFX
 						- ShipElementPtr->next.location.y;
 				angle = ARCTAN (dx, dy);
-				magnitude = WORLD_TO_VELOCITY (12) /
-						ShipElementPtr->mass_points;
-				DeltaVelocityComponents (&ShipElementPtr->velocity,
-						COSINE (angle, magnitude), SINE (angle, magnitude));
+				magnitude = WORLD_TO_VELOCITY (12 << RESOLUTION_FACTOR) / ShipElementPtr->mass_points; // JMS_GFX
+				DeltaVelocityComponents (&ShipElementPtr->velocity, COSINE (angle, magnitude), SINE (angle, magnitude));
 
-				GetCurrentVelocityComponents (&ShipElementPtr->velocity,
-						&dx, &dy);
+				GetCurrentVelocityComponents (&ShipElementPtr->velocity,&dx, &dy);
 				GetElementStarShip (ShipElementPtr, &EnemyStarShipPtr);
 
 				// set the effected ship's speed flags
 				current_speed = VelocitySquared (dx, dy);
-				max_speed = VelocitySquared (WORLD_TO_VELOCITY (
-						EnemyStarShipPtr->RaceDescPtr->characteristics.max_thrust),
-						0);
-				EnemyStarShipPtr->cur_status_flags &= ~(SHIP_AT_MAX_SPEED
-						| SHIP_BEYOND_MAX_SPEED);
+				max_speed = VelocitySquared (WORLD_TO_VELOCITY (EnemyStarShipPtr->RaceDescPtr->characteristics.max_thrust),0);
+				
+				EnemyStarShipPtr->cur_status_flags &= ~(SHIP_AT_MAX_SPEED | SHIP_BEYOND_MAX_SPEED);
 				if (current_speed > max_speed)
-					EnemyStarShipPtr->cur_status_flags |= (SHIP_AT_MAX_SPEED
-							| SHIP_BEYOND_MAX_SPEED);
+					EnemyStarShipPtr->cur_status_flags |= (SHIP_AT_MAX_SPEED | SHIP_BEYOND_MAX_SPEED);
 				else if (current_speed == max_speed)
 					EnemyStarShipPtr->cur_status_flags |= SHIP_AT_MAX_SPEED;
 
@@ -393,23 +544,28 @@ chmmr_postprocess (ELEMENT *ElementPtr)
 					if (hShadow)
 					{
 						ELEMENT *ShadowElementPtr;
+						COUNT shadow_magnitude; // JMS_GFX
+						
+						// JMS_GFX
+						if (RESOLUTION_FACTOR == 0)
+							shadow_magnitude = shadow_offs[i];
+						else if (RESOLUTION_FACTOR == 1)
+							shadow_magnitude = shadow_offs_2xres[i];
+						else
+							shadow_magnitude = shadow_offs_4xres[i];
 
 						LockElement (hShadow, &ShadowElementPtr);
 						ShadowElementPtr->playerNr = ShipElementPtr->playerNr;
-						ShadowElementPtr->state_flags = FINITE_LIFE | NONSOLID
-								| IGNORE_SIMILAR | POST_PROCESS;
+						ShadowElementPtr->state_flags = FINITE_LIFE | NONSOLID | IGNORE_SIMILAR | POST_PROCESS;
 						ShadowElementPtr->life_span = 1;
 
 						ShadowElementPtr->current = ShipElementPtr->next;
-						ShadowElementPtr->current.location.x +=
-								COSINE (angle, shadow_offs[i]);
-						ShadowElementPtr->current.location.y +=
-								SINE (angle, shadow_offs[i]);
+						ShadowElementPtr->current.location.x += COSINE (angle, shadow_magnitude); // JMS_GFX: replaced shadow_offs[i] with shadow_magnitude
+						ShadowElementPtr->current.location.y += SINE (angle, shadow_magnitude);   // JMS_GFX
 						ShadowElementPtr->next = ShadowElementPtr->current;
 
 						SetElementStarShip (ShadowElementPtr, EnemyStarShipPtr);
-						SetVelocityComponents (&ShadowElementPtr->velocity,
-								dx, dy);
+						SetVelocityComponents (&ShadowElementPtr->velocity, dx, dy);
 
 						SetPrimType (&(GLOBAL (DisplayArray))[
 								ShadowElementPtr->PrimIndex
@@ -430,6 +586,11 @@ chmmr_postprocess (ELEMENT *ElementPtr)
 	StarShipPtr->special_counter = 0;
 }
 
+<<<<<<<
+=======
+#define SATELLITE_OFFSET DISPLAY_TO_WORLD (64 << RESOLUTION_FACTOR) // JMS_GFX
+
+>>>>>>>
 static void
 satellite_preprocess (ELEMENT *ElementPtr)
 {
@@ -465,7 +626,7 @@ satellite_preprocess (ELEMENT *ElementPtr)
 		dx = WRAP_DELTA_X (dx);
 		dy = WRAP_DELTA_Y (dy);
 		if ((long)dx * dx + (long)dy * dy
-				<= DISPLAY_TO_WORLD (20L) * DISPLAY_TO_WORLD (20L))
+				<= DISPLAY_TO_WORLD (20L << RESOLUTION_FACTOR) * DISPLAY_TO_WORLD (20L << RESOLUTION_FACTOR)) // JMS_GFX
 			SetVelocityComponents (&ElementPtr->velocity,
 					WORLD_TO_VELOCITY (dx),
 					WORLD_TO_VELOCITY (dy));
@@ -475,8 +636,8 @@ satellite_preprocess (ELEMENT *ElementPtr)
 
 			angle = ARCTAN (dx, dy);
 			SetVelocityComponents (&ElementPtr->velocity,
-					COSINE (angle, WORLD_TO_VELOCITY (DISPLAY_TO_WORLD (20))),
-					SINE (angle, WORLD_TO_VELOCITY (DISPLAY_TO_WORLD (20))));
+					COSINE (angle, WORLD_TO_VELOCITY (DISPLAY_TO_WORLD (20 << RESOLUTION_FACTOR))),
+					SINE (angle, WORLD_TO_VELOCITY (DISPLAY_TO_WORLD (20 << RESOLUTION_FACTOR)))); // JMS_GFX
 		}
 
 		UnlockElement (StarShipPtr->hShip);
@@ -486,6 +647,11 @@ satellite_preprocess (ELEMENT *ElementPtr)
 static void
 spawn_point_defense (ELEMENT *ElementPtr)
 {
+<<<<<<<
+=======
+#define DEFENSE_RANGE (UWORD)(64 << RESOLUTION_FACTOR) // JMS_GFX
+#define DEFENSE_WAIT 2
+>>>>>>>
 	BYTE weakest;
 	UWORD best_dist;
 	STARSHIP *StarShipPtr;
@@ -496,7 +662,7 @@ spawn_point_defense (ELEMENT *ElementPtr)
 
 	GetElementStarShip (ElementPtr, &StarShipPtr);
 	hBestObject = 0;
-	best_dist = DEFENSE_RANGE + 1;
+	best_dist = DEFENSE_RANGE + (1 << RESOLUTION_FACTOR); // JMS_GFX
 	weakest = 255;
 	LockElement (StarShipPtr->hShip, &ShipPtr);
 	LockElement (ElementPtr->hTarget, &SattPtr);
@@ -789,12 +955,31 @@ init_chmmr (void)
 {
 	RACE_DESC *RaceDescPtr;
 
-	chmmr_desc.preprocess_func = chmmr_preprocess;
-	chmmr_desc.postprocess_func = chmmr_postprocess;
-	chmmr_desc.init_weapon_func = initialize_megawatt_laser;
-	chmmr_desc.cyborg_control.intelligence_func = chmmr_intelligence;
-
-	RaceDescPtr = &chmmr_desc;
+	// JMS_GFX: A rather clumsy way of giving ship correct stats at hi-res mode
+	if (RESOLUTION_FACTOR == 0)
+	{
+		chmmr_desc.preprocess_func = chmmr_preprocess;
+		chmmr_desc.postprocess_func = chmmr_postprocess;
+		chmmr_desc.init_weapon_func = initialize_megawatt_laser;
+		chmmr_desc.cyborg_control.intelligence_func = chmmr_intelligence;
+		RaceDescPtr = &chmmr_desc;
+	}
+	else if (RESOLUTION_FACTOR == 1)
+	{
+		chmmr_desc_2xres.preprocess_func = chmmr_preprocess;
+		chmmr_desc_2xres.postprocess_func = chmmr_postprocess;
+		chmmr_desc_2xres.init_weapon_func = initialize_megawatt_laser;
+		chmmr_desc_2xres.cyborg_control.intelligence_func = chmmr_intelligence;
+		RaceDescPtr = &chmmr_desc_2xres;
+	}
+	else
+	{
+		chmmr_desc_4xres.preprocess_func = chmmr_preprocess;
+		chmmr_desc_4xres.postprocess_func = chmmr_postprocess;
+		chmmr_desc_4xres.init_weapon_func = initialize_megawatt_laser;
+		chmmr_desc_4xres.cyborg_control.intelligence_func = chmmr_intelligence;
+		RaceDescPtr = &chmmr_desc_4xres;
+	}
 
 	return (RaceDescPtr);
 }

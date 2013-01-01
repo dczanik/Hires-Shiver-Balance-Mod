@@ -50,7 +50,15 @@
 // Point-Defense Laser
 #define SPECIAL_ENERGY_COST 4
 #define SPECIAL_WAIT 9
+<<<<<<<
 #define LASER_RANGE (UWORD)100
+=======
+
+#define SHIP_MASS 6
+#define MISSILE_LIFE 60
+#define MIN_MISSILE_SPEED DISPLAY_TO_WORLD (10 << RESOLUTION_FACTOR) // JMS_GFX
+#define MAX_MISSILE_SPEED DISPLAY_TO_WORLD (20 << RESOLUTION_FACTOR) // JMS_GFX
+>>>>>>>
 
 static RACE_DESC human_desc =
 {
@@ -122,6 +130,164 @@ static RACE_DESC human_desc =
 	0,
 	0, /* CodeRef */
 };
+<<<<<<<
+=======
+
+// JMS_GFX
+#define MAX_THRUST_2XRES /* DISPLAY_TO_WORLD (12) */ 48
+#define THRUST_INCREMENT_2XRES /* DISPLAY_TO_WORLD (4) */ 6
+
+// JMS_GFX
+static RACE_DESC human_desc_2xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE | SEEKING_WEAPON | LIGHT_POINT_DEFENSE,
+		11, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		HUMAN_RACE_STRINGS,
+		HUMAN_ICON_MASK_PMAP_ANIM,
+		HUMAN_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		0, /* Initial sphere of influence radius */
+		{ /* Known location (center of SoI) */
+			1752, 1450,
+		},
+	},
+	{
+		MAX_THRUST_2XRES,
+		THRUST_INCREMENT_2XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			HUMAN_BIG_MASK_PMAP_ANIM,
+			HUMAN_MED_MASK_PMAP_ANIM,
+			HUMAN_SML_MASK_PMAP_ANIM,
+		},
+		{
+			SATURN_BIG_MASK_PMAP_ANIM,
+			SATURN_MED_MASK_PMAP_ANIM,
+			SATURN_SML_MASK_PMAP_ANIM,
+		},
+		{
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+		},
+		{
+			HUMAN_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		HUMAN_VICTORY_SONG,
+		HUMAN_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		LONG_RANGE_WEAPON_2XRES,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+// JMS_GFX
+#define MAX_THRUST_4XRES /* DISPLAY_TO_WORLD (24) */ 96
+#define THRUST_INCREMENT_4XRES /* DISPLAY_TO_WORLD (8) */ 12
+
+// JMS_GFX
+static RACE_DESC human_desc_4xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE | SEEKING_WEAPON | LIGHT_POINT_DEFENSE,
+		11, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		HUMAN_RACE_STRINGS,
+		HUMAN_ICON_MASK_PMAP_ANIM,
+		HUMAN_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		0, /* Initial sphere of influence radius */
+		{ /* Known location (center of SoI) */
+			1752, 1450,
+		},
+	},
+	{
+		MAX_THRUST_4XRES,
+		THRUST_INCREMENT_4XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			HUMAN_BIG_MASK_PMAP_ANIM,
+			HUMAN_MED_MASK_PMAP_ANIM,
+			HUMAN_SML_MASK_PMAP_ANIM,
+		},
+		{
+			SATURN_BIG_MASK_PMAP_ANIM,
+			SATURN_MED_MASK_PMAP_ANIM,
+			SATURN_SML_MASK_PMAP_ANIM,
+		},
+		{
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+		},
+		{
+			HUMAN_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		HUMAN_VICTORY_SONG,
+		HUMAN_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		LONG_RANGE_WEAPON_4XRES,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+#define MISSILE_SPEED ((MAX_THRUST << RESOLUTION_FACTOR) >= MIN_MISSILE_SPEED ? (MAX_THRUST << RESOLUTION_FACTOR) : MIN_MISSILE_SPEED) // JMS_GFX
+#define TRACK_WAIT 3
+>>>>>>>
 
 static void
 nuke_preprocess (ELEMENT *ElementPtr)
@@ -147,9 +313,14 @@ nuke_preprocess (ELEMENT *ElementPtr)
 	{
 		SIZE speed;
 
+<<<<<<<
 		if ((speed = MISSILE_SPEED +
 				((MISSILE_LIFE - ElementPtr->life_span) *
 				THRUST_SCALE)) > MAX_MISSILE_SPEED)
+=======
+#define THRUST_SCALE DISPLAY_TO_WORLD (1 << RESOLUTION_FACTOR) // JMS_GFX
+		if ((speed = MISSILE_SPEED + ((MISSILE_LIFE - ElementPtr->life_span) * THRUST_SCALE)) > MAX_MISSILE_SPEED)
+>>>>>>>
 			speed = MAX_MISSILE_SPEED;
 		SetVelocityVector (&ElementPtr->velocity,
 				speed, facing);
@@ -208,6 +379,10 @@ spawn_point_defense (ELEMENT *ElementPtr)
 				&& !(EnemyStarShipPtr && EnemyStarShipPtr->SpeciesID == UMGAH_ID // old was: ->RaceResIndex == UMGAH_SHIP_INDEX
 					&& ObjectPtr->mass_points == 1))
 			{
+<<<<<<<
+=======
+#define LASER_RANGE (UWORD)(100 << RESOLUTION_FACTOR) // JMS_GFX
+>>>>>>>
 				SIZE delta_x, delta_y;
 
 				delta_x = ObjectPtr->next.location.x -
@@ -276,6 +451,13 @@ spawn_point_defense (ELEMENT *ElementPtr)
 static COUNT
 initialize_nuke (ELEMENT *ShipPtr, HELEMENT NukeArray[])
 {
+<<<<<<<
+=======
+#define HUMAN_OFFSET (42 << RESOLUTION_FACTOR) // JMS_GFX
+#define MISSILE_DAMAGE 4
+#define MISSILE_HITS 1
+#define NUKE_OFFSET (8 << RESOLUTION_FACTOR) // JMS_GFX
+>>>>>>>
 	STARSHIP *StarShipPtr;
 	MISSILE_BLOCK MissileBlock;
 
@@ -287,7 +469,7 @@ initialize_nuke (ELEMENT *ShipPtr, HELEMENT NukeArray[])
 	MissileBlock.sender = ShipPtr->playerNr;
 	MissileBlock.flags = 0;
 	MissileBlock.pixoffs = HUMAN_OFFSET;
-	MissileBlock.speed = MISSILE_SPEED;
+	MissileBlock.speed = MISSILE_SPEED << RESOLUTION_FACTOR; // JMS_GFX
 	MissileBlock.hit_points = MISSILE_HITS;
 	MissileBlock.damage = MISSILE_DAMAGE;
 	MissileBlock.life = MISSILE_LIFE;
@@ -354,11 +536,27 @@ init_human (void)
 {
 	RACE_DESC *RaceDescPtr;
 
-	human_desc.postprocess_func = human_postprocess;
-	human_desc.init_weapon_func = initialize_nuke;
-	human_desc.cyborg_control.intelligence_func = human_intelligence;
-
-	RaceDescPtr = &human_desc;
+	if (RESOLUTION_FACTOR == 0)
+	{
+		human_desc.postprocess_func = human_postprocess;
+		human_desc.init_weapon_func = initialize_nuke;
+		human_desc.cyborg_control.intelligence_func = human_intelligence;
+		RaceDescPtr = &human_desc;
+	}
+	else if (RESOLUTION_FACTOR == 1)
+	{
+		human_desc_2xres.postprocess_func = human_postprocess;
+		human_desc_2xres.init_weapon_func = initialize_nuke;
+		human_desc_2xres.cyborg_control.intelligence_func = human_intelligence;
+		RaceDescPtr = &human_desc_2xres;
+	}
+	else
+	{
+		human_desc_4xres.postprocess_func = human_postprocess;
+		human_desc_4xres.init_weapon_func = initialize_nuke;
+		human_desc_4xres.cyborg_control.intelligence_func = human_intelligence;
+		RaceDescPtr = &human_desc_4xres;
+	}
 
 	return (RaceDescPtr);
 }

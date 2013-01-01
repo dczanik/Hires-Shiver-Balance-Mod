@@ -129,6 +129,160 @@ static RACE_DESC orz_desc =
 	0, /* CodeRef */
 };
 
+// JMS_GFX
+#define MAX_THRUST_2XRES 70
+#define THRUST_INCREMENT_2XRES 10
+#define MISSILE_SPEED_2XRES DISPLAY_TO_WORLD (60)
+
+// JMS_GFX
+static RACE_DESC orz_desc_2xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE | SEEKING_SPECIAL,
+		23, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		ORZ_RACE_STRINGS,
+		ORZ_ICON_MASK_PMAP_ANIM,
+		ORZ_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		333 / SPHERE_RADIUS_INCREMENT * 2, /* Initial SoI radius */
+		{ /* Known location (center of SoI) */
+			3608, 2637,
+		},
+	},
+	{
+		MAX_THRUST_2XRES,
+		THRUST_INCREMENT_2XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			ORZ_BIG_MASK_PMAP_ANIM,
+			ORZ_MED_MASK_PMAP_ANIM,
+			ORZ_SML_MASK_PMAP_ANIM,
+		},
+		{
+			HOWITZER_BIG_MASK_PMAP_ANIM,
+			HOWITZER_MED_MASK_PMAP_ANIM,
+			HOWITZER_SML_MASK_PMAP_ANIM,
+		},
+		{
+			TURRET_BIG_MASK_PMAP_ANIM,
+			TURRET_MED_MASK_PMAP_ANIM,
+			TURRET_SML_MASK_PMAP_ANIM,
+		},
+		{
+			ORZ_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		ORZ_VICTORY_SONG,
+		ORZ_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		MISSILE_SPEED_2XRES * MISSILE_LIFE,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+// JMS_GFX
+#define MAX_THRUST_4XRES 140
+#define THRUST_INCREMENT_4XRES 20
+#define MISSILE_SPEED_4XRES DISPLAY_TO_WORLD (120)
+
+// JMS_GFX
+static RACE_DESC orz_desc_4xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE | SEEKING_SPECIAL,
+		23, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		ORZ_RACE_STRINGS,
+		ORZ_ICON_MASK_PMAP_ANIM,
+		ORZ_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		333 / SPHERE_RADIUS_INCREMENT * 2, /* Initial SoI radius */
+		{ /* Known location (center of SoI) */
+			3608, 2637,
+		},
+	},
+	{
+		MAX_THRUST_4XRES,
+		THRUST_INCREMENT_4XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			ORZ_BIG_MASK_PMAP_ANIM,
+			ORZ_MED_MASK_PMAP_ANIM,
+			ORZ_SML_MASK_PMAP_ANIM,
+		},
+		{
+			HOWITZER_BIG_MASK_PMAP_ANIM,
+			HOWITZER_MED_MASK_PMAP_ANIM,
+			HOWITZER_SML_MASK_PMAP_ANIM,
+		},
+		{
+			TURRET_BIG_MASK_PMAP_ANIM,
+			TURRET_MED_MASK_PMAP_ANIM,
+			TURRET_SML_MASK_PMAP_ANIM,
+		},
+		{
+			ORZ_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		ORZ_VICTORY_SONG,
+		ORZ_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		MISSILE_SPEED_4XRES * MISSILE_LIFE,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
 static void
 howitzer_collision (ELEMENT *ElementPtr0, POINT *pPt0,
 		ELEMENT *ElementPtr1, POINT *pPt1)
@@ -136,10 +290,22 @@ howitzer_collision (ELEMENT *ElementPtr0, POINT *pPt0,
 	if (!elementsOfSamePlayer (ElementPtr0, ElementPtr1))
 		weapon_collision (ElementPtr0, pPt0, ElementPtr1, pPt1);
 }
+<<<<<<<
+=======
+
+#define TURRET_OFFSET (14 << RESOLUTION_FACTOR) // JMS_GFX
+#define TURRET_WAIT 3
+>>>>>>>
 
 static COUNT
 initialize_turret_missile (ELEMENT *ShipPtr, HELEMENT MissileArray[])
 {
+<<<<<<<
+=======
+#define MISSILE_HITS 2
+#define MISSILE_DAMAGE 3
+#define MISSILE_OFFSET (1 << RESOLUTION_FACTOR) // JMS_GFX
+>>>>>>>
 	ELEMENT *TurretPtr;
 	STARSHIP *StarShipPtr;
 	MISSILE_BLOCK MissileBlock;
@@ -168,7 +334,7 @@ initialize_turret_missile (ELEMENT *ShipPtr, HELEMENT MissileArray[])
 	MissileBlock.sender = (ShipPtr->state_flags & (GOOD_GUY | BAD_GUY)) | IGNORE_SIMILAR;
 	MissileBlock.flags = IGNORE_SIMILAR;
 	MissileBlock.pixoffs = TURRET_OFFSET;
-	MissileBlock.speed = MISSILE_SPEED;
+	MissileBlock.speed = MISSILE_SPEED << RESOLUTION_FACTOR; // JMS_GFX
 	MissileBlock.hit_points = MISSILE_HITS;
 	MissileBlock.damage = MISSILE_DAMAGE;
 	MissileBlock.life = MISSILE_LIFE;
@@ -1023,58 +1189,266 @@ orz_preprocess (ELEMENT *ElementPtr)
 }
 
 static void
-orz_intelligence (ELEMENT *ShipPtr, EVALUATE_DESC *ObjectsOfConcern,
-		COUNT ConcernCounter)
+orz_intelligence (ELEMENT *ShipPtr, EVALUATE_DESC *ObjectsOfConcern, COUNT ConcernCounter)
 {
 	ELEMENT *TurretPtr;
 	STARSHIP *StarShipPtr;
 	EVALUATE_DESC *lpEvalDesc;
 
+<<<<<<<
 	LockElement (GetSuccElement (ShipPtr), &TurretPtr);
+=======
+
+			if (ElementPtr->thrust_wait == MARINE_WAIT)
+			{
+				--ElementPtr->thrust_wait;
+
+				if (RESOLUTION_FACTOR < 2)
+				{
+					s.origin.x = (16 << RESOLUTION_FACTOR) + (ElementPtr->turn_wait & 3) * ((9 + RESOLUTION_FACTOR * 6) << RESOLUTION_FACTOR);
+					s.origin.y = (14 << RESOLUTION_FACTOR) + (ElementPtr->turn_wait >> 2) * ((11 + RESOLUTION_FACTOR * 6) << RESOLUTION_FACTOR);
+				}
+				else
+				{
+					s.origin.x = (16 - (RESOLUTION_FACTOR * 3 / 2) + (ElementPtr->turn_wait & 3) * (9 + RESOLUTION_FACTOR * 3 / 2)) << RESOLUTION_FACTOR; // JMS_GFX
+					s.origin.y = (14 + (ElementPtr->turn_wait >> 2) * (11 + RESOLUTION_FACTOR)) << RESOLUTION_FACTOR; // JMS_GFX
+				}
+				s.frame = SetAbsFrameIndex (ElementPtr->next.image.farray[0], GetFrameCount (ElementPtr->next.image.farray[0]) - 2);
+				ModifySilhouette (ShipPtr, &s, 0);
+			}
+>>>>>>>
 
 	++TurretPtr->turn_wait;
 	ship_intelligence (ShipPtr, ObjectsOfConcern, ConcernCounter);
 	--TurretPtr->turn_wait;
 
+<<<<<<<
 	GetElementStarShip (ShipPtr, &StarShipPtr);
 	lpEvalDesc = &ObjectsOfConcern[ENEMY_SHIP_INDEX];
 	if (lpEvalDesc->ObjectPtr == 0)
 		StarShipPtr->ship_input_state &= ~SPECIAL;
+=======
+					|| ElementPtr->life_span == 0)
+			{
+				UnlockElement (hElement);
+				hElement = 0;
+LeftShip:
+				if (RESOLUTION_FACTOR < 2)
+				{
+					s.origin.x = (16 << RESOLUTION_FACTOR) + (ElementPtr->turn_wait & 3) * ((9 + RESOLUTION_FACTOR * 6) << RESOLUTION_FACTOR);
+					s.origin.y = (14 << RESOLUTION_FACTOR) + (ElementPtr->turn_wait >> 2) * ((11 + RESOLUTION_FACTOR * 6) << RESOLUTION_FACTOR);
+				}
+				else
+				{
+					s.origin.x = (16 - (RESOLUTION_FACTOR * 3 / 2) + (ElementPtr->turn_wait & 3) * (9 + RESOLUTION_FACTOR * 3 / 2)) << RESOLUTION_FACTOR; // JMS_GFX
+					s.origin.y = (14 + (ElementPtr->turn_wait >> 2) * (11 + RESOLUTION_FACTOR)) << RESOLUTION_FACTOR; // JMS_GFX
+				}
+				s.frame = ElementPtr->next.image.frame;
+				ModifySilhouette (ShipPtr, &s, MODIFY_SWAP);
+			}
+			else if (ElementPtr->thrust_wait == 0)
+			{
+>>>>>>>
+<<<<<<<
 	else if (StarShipPtr->special_counter != 1)
 	{
 		STARSHIP *EnemyStarShipPtr;
+=======
+				if (randval < (0x0100 / 16))
+				{
+					ElementPtr->life_span = 0;
+					ElementPtr->state_flags |= DISAPPEARING;
 
+					ProcessSound (SetAbsSoundIndex (StarShipPtr->RaceDescPtr->ship_data.ship_sounds, 4), ElementPtr);
+					goto LeftShip;
+				}
+				else if (randval < (0x0100 / 2 + 0x0100 / 16))
+				{
+					if (!DeltaCrew (ShipPtr, -1))
+						ShipPtr->life_span = 0;
+
+					++ElementPtr->thrust_wait;
+					if (RESOLUTION_FACTOR < 2)
+					{
+						s.origin.x = (16 << RESOLUTION_FACTOR) + (ElementPtr->turn_wait & 3) * ((9 + RESOLUTION_FACTOR * 6) << RESOLUTION_FACTOR);
+						s.origin.y = (14 << RESOLUTION_FACTOR) + (ElementPtr->turn_wait >> 2) * ((11 + RESOLUTION_FACTOR * 6) << RESOLUTION_FACTOR);
+					}
+					else
+					{
+						s.origin.x = (16 - (RESOLUTION_FACTOR * 3 / 2) + (ElementPtr->turn_wait & 3) * (9 + RESOLUTION_FACTOR * 3 / 2)) << RESOLUTION_FACTOR; // JMS_GFX
+						s.origin.y = (14 + (ElementPtr->turn_wait >> 2) * (11 + RESOLUTION_FACTOR)) << RESOLUTION_FACTOR; // JMS_GFX
+					}
+					s.frame = SetAbsFrameIndex (ElementPtr->next.image.farray[0], GetFrameCount (ElementPtr->next.image.farray[0]) - 1);
+					ModifySilhouette (ShipPtr, &s, 0);
+					ProcessSound (SetAbsSoundIndex (StarShipPtr->RaceDescPtr->ship_data.ship_sounds, 3), ElementPtr);
+				}
+			}
+>>>>>>>
+
+<<<<<<<
 		if (ShipPtr->turn_wait == 0
 				&& lpEvalDesc->MoveState == ENTICE
 				&& lpEvalDesc->which_turn < 24
+=======
+
+	if (hElement == 0 && ElementPtr->life_span)
+	{
+		ElementPtr->state_flags &= ~NONSOLID;
+		ElementPtr->state_flags |= CHANGING | CREW_OBJECT;
+		SetPrimType (&(GLOBAL (DisplayArray))[ElementPtr->PrimIndex], STAMP_PRIM);
+
+		ElementPtr->current.image.frame =
+				ElementPtr->next.image.frame =
+						SetAbsFrameIndex (
+						StarShipPtr->RaceDescPtr->ship_data.special[0], 21);
+>>>>>>>
+<<<<<<<
 				&& (StarShipPtr->cur_status_flags
 				& (SHIP_AT_MAX_SPEED | SHIP_BEYOND_MAX_SPEED))
 				&& !(StarShipPtr->ship_input_state & THRUST)
 				&& NORMALIZE_ANGLE (
 				GetVelocityTravelAngle (&ShipPtr->velocity)
+=======
+				POINT_PRIM);
+		SetPrimColor (&(GLOBAL (DisplayArray))[IonElementPtr->PrimIndex],
+				START_ION_COLOR);
+		IonElementPtr->colorCycleIndex = 0;
+		IonElementPtr->current.location = ElementPtr->current.location;
+		IonElementPtr->current.location.x += (COORD)COSINE (angle, DISPLAY_TO_WORLD (2 << RESOLUTION_FACTOR)); // JMS_GFX
+		IonElementPtr->current.location.y += (COORD)SINE (angle, DISPLAY_TO_WORLD (2 << RESOLUTION_FACTOR));   // JMS_GFX
+		IonElementPtr->death_func = ion_preprocess;
+
+		SetElementStarShip (IonElementPtr, StarShipPtr);
+
+		{
+>>>>>>>
+<<<<<<<
 				- ARCTAN (
 						lpEvalDesc->ObjectPtr->next.location.x
 						- ShipPtr->next.location.x,
+=======
+						--facing;
+				}
+			}
+			else
+			{
+				DWORD num_frames; // JMS_GFX: Was COUNT
+				VELOCITY_DESC ShipVelocity;
+
+				if (elementsOfSamePlayer (ObjectPtr, ElementPtr)
+						&& (ElementPtr->state_flags & IGNORE_SIMILAR))
+				{
+>>>>>>>
+<<<<<<<
 						lpEvalDesc->ObjectPtr->next.location.y
 						- ShipPtr->next.location.y
 				) + (QUADRANT - (OCTANT >> 1))) >=
 				((QUADRANT - (OCTANT >> 1)) << 1))
 			StarShipPtr->ship_input_state &= ~(LEFT | RIGHT);
+=======
+							21);
+					ElementPtr->state_flags &= ~IGNORE_SIMILAR;
+					ElementPtr->state_flags |= CHANGING;
+				}
 
+				num_frames = (WORLD_TO_TURN (square_root ((long)delta_x * delta_x + (long)delta_y * delta_y))) >> RESOLUTION_FACTOR; // JMS_GFX
+				
+				if (num_frames == 0)
+					num_frames = 1;
+
+				ShipVelocity = ObjectPtr->velocity;
+				GetNextVelocityComponents (&ShipVelocity,
+						&delta_x, &delta_y, num_frames);
+
+				// JMS_GFX: Made the calculations use SDWORD to avoid overflows.
+				delta_x = ((SDWORD)ObjectPtr->current.location.x + delta_x) - (SDWORD)ElementPtr->current.location.x;
+				delta_y = ((SDWORD)ObjectPtr->current.location.y + delta_y) - (SDWORD)ElementPtr->current.location.y;
+
+				delta_facing = NORMALIZE_FACING (
+						ANGLE_TO_FACING (ARCTAN (delta_x, delta_y)) - facing);
+>>>>>>>
+
+<<<<<<<
 		StarShipPtr->ship_input_state &= ~SPECIAL;
 		if (ShipPtr->turn_wait == 0
 				&& !(StarShipPtr->ship_input_state & (LEFT | RIGHT | WEAPON))
 				&& TurretPtr->turn_wait == 0)
 		{
+=======
+
+			StarShipPtr->ShipFacing = facing;
+			// XXX: thrust_wait is abused to store marine speed and
+			//   gravity well flags
+			StarShipPtr->cur_status_flags = ElementPtr->thrust_wait << 6;
+			StarShipPtr->RaceDescPtr->characteristics.thrust_increment = 8 << RESOLUTION_FACTOR; // JMS_GFX
+			StarShipPtr->RaceDescPtr->characteristics.max_thrust = 32 << RESOLUTION_FACTOR; // JMS_GFX
+
+			thrust_status = inertial_thrust (ElementPtr);
+
+			StarShipPtr->RaceDescPtr->characteristics.max_thrust = OldThrust;
+			StarShipPtr->RaceDescPtr->characteristics.thrust_increment =
+>>>>>>>
+<<<<<<<
 			SIZE delta_facing;
 			COUNT facing;//, orig_facing;
+=======
+					ElementPtr1->life_span = 0;
+				else
+				{
+					ElementPtr0->turn_wait = count_marines (StarShipPtr, TRUE);
+					ElementPtr0->thrust_wait = MARINE_WAIT;
+					ElementPtr0->next.image.frame = SetAbsFrameIndex (ElementPtr0->next.image.farray[0], 22 + ElementPtr0->turn_wait);
+					ElementPtr0->state_flags |= NONSOLID;
+					ElementPtr0->state_flags &= ~CREW_OBJECT;
+					SetPrimType (&(GLOBAL (DisplayArray))[ElementPtr0->PrimIndex], NO_PRIM);
+					ElementPtr0->preprocess_func = intruder_preprocess;
 
+					if (RESOLUTION_FACTOR < 2)
+					{
+						s.origin.x = (16 << RESOLUTION_FACTOR) + (ElementPtr0->turn_wait & 3) * ((9 + RESOLUTION_FACTOR * 6) << RESOLUTION_FACTOR);
+						s.origin.y = (14 << RESOLUTION_FACTOR) + (ElementPtr0->turn_wait >> 2) * ((11 + RESOLUTION_FACTOR * 6) << RESOLUTION_FACTOR);
+					}
+					else
+					{
+						s.origin.x = (16 - (RESOLUTION_FACTOR * 3 / 2) + (ElementPtr0->turn_wait & 3) * (9 + RESOLUTION_FACTOR * 3 / 2)) << RESOLUTION_FACTOR; // JMS_GFX
+						s.origin.y = (14 + (ElementPtr0->turn_wait >> 2) * (11 + RESOLUTION_FACTOR)) << RESOLUTION_FACTOR; // JMS_GFX
+					}
+					
+					// JMS: Draw the shadow.
+					s.frame = ElementPtr0->next.image.frame;
+					ModifySilhouette (ElementPtr1, &s, 0);
+					
+					// JMS: Draw the marine.
+					ElementPtr0->next.image.frame = SetAbsFrameIndex (ElementPtr0->next.image.farray[0], 22 + ElementPtr0->turn_wait);
+					s.frame = ElementPtr0->next.image.frame;
+					ModifySilhouette (ElementPtr1, &s, 0);
+				}
+>>>>>>>
+
+<<<<<<<
 			facing = NORMALIZE_FACING (StarShipPtr->ShipFacing
 					+ TurretPtr->thrust_wait);
 			if ((delta_facing = TrackShip (TurretPtr, &facing)) > 0)
 			{
 				StarShipPtr->ship_input_state |= SPECIAL;
 				if (delta_facing == ANGLE_TO_FACING (HALF_CIRCLE))
+=======
+				SpaceMarinePtr->hit_points = 3;
+				SpaceMarinePtr->mass_points = 1;
+
+				facing = FACING_TO_ANGLE (StarShipPtr->ShipFacing);
+				SpaceMarinePtr->current.location.x =
+				ShipPtr->current.location.x
+				- COSINE (facing, DISPLAY_TO_WORLD (TURRET_OFFSET << ((RESOLUTION_FACTOR + 1)/2))); // JMS_GFX
+				SpaceMarinePtr->current.location.y =
+				ShipPtr->current.location.y
+				- SINE (facing, DISPLAY_TO_WORLD (TURRET_OFFSET << ((RESOLUTION_FACTOR + 1)/2))); // JMS_GFX
+				SpaceMarinePtr->current.image.farray =
+						StarShipPtr->RaceDescPtr->ship_data.special;
+				SpaceMarinePtr->current.image.frame = SetAbsFrameIndex (
+						StarShipPtr->RaceDescPtr->ship_data.special[0], 20);
+
+>>>>>>>
 					delta_facing += (((BYTE)TFB_Random () & 1) << 1) - 1;
 
 				if (delta_facing < ANGLE_TO_FACING (HALF_CIRCLE))
@@ -1109,11 +1483,27 @@ init_orz (void)
 {
 	RACE_DESC *RaceDescPtr;
 
-	orz_desc.preprocess_func = orz_preprocess;
-	orz_desc.init_weapon_func = initialize_turret_missile;
-	orz_desc.cyborg_control.intelligence_func = orz_intelligence;
-
-	RaceDescPtr = &orz_desc;
+	if (RESOLUTION_FACTOR == 0)
+	{
+		orz_desc.preprocess_func = orz_preprocess;
+		orz_desc.init_weapon_func = initialize_turret_missile;
+		orz_desc.cyborg_control.intelligence_func = orz_intelligence;
+		RaceDescPtr = &orz_desc;
+	}
+	else if (RESOLUTION_FACTOR == 1)
+	{
+		orz_desc_2xres.preprocess_func = orz_preprocess;
+		orz_desc_2xres.init_weapon_func = initialize_turret_missile;
+		orz_desc_2xres.cyborg_control.intelligence_func = orz_intelligence;
+		RaceDescPtr = &orz_desc_2xres;
+	}
+	else
+	{
+		orz_desc_4xres.preprocess_func = orz_preprocess;
+		orz_desc_4xres.init_weapon_func = initialize_turret_missile;
+		orz_desc_4xres.cyborg_control.intelligence_func = orz_intelligence;
+		RaceDescPtr = &orz_desc_4xres;
+	}
 
 	return (RaceDescPtr);
 }

@@ -124,6 +124,168 @@ static RACE_DESC zoqfotpik_desc =
 	0,
 	0, /* CodeRef */
 };
+<<<<<<<
+=======
+
+// JMS_GFX
+#define MAX_THRUST_2XRES 80
+#define THRUST_INCREMENT_2XRES 20
+#define MISSILE_SPEED_2XRES DISPLAY_TO_WORLD (20)
+#define MISSILE_RANGE_2XRES (MISSILE_SPEED_2XRES * MISSILE_LIFE)
+
+// JMS_GFX
+static RACE_DESC zoqfotpik_desc_2xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE,
+		6, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		ZOQFOTPIK_RACE_STRINGS,
+		ZOQFOTPIK_ICON_MASK_PMAP_ANIM,
+		ZOQFOTPIK_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		320 / SPHERE_RADIUS_INCREMENT * 2, /* Initial SoI radius */
+		{ /* Known location (center of SoI) */
+			3761, 5333,
+		},
+	},
+	{
+		MAX_THRUST_2XRES,
+		THRUST_INCREMENT_2XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			ZOQFOTPIK_BIG_MASK_PMAP_ANIM,
+			ZOQFOTPIK_MED_MASK_PMAP_ANIM,
+			ZOQFOTPIK_SML_MASK_PMAP_ANIM,
+		},
+		{
+			SPIT_BIG_MASK_PMAP_ANIM,
+			SPIT_MED_MASK_PMAP_ANIM,
+			SPIT_SML_MASK_PMAP_ANIM,
+		},
+		{
+			STINGER_BIG_MASK_PMAP_ANIM,
+			STINGER_MED_MASK_PMAP_ANIM,
+			STINGER_SML_MASK_PMAP_ANIM,
+		},
+		{
+			ZOQFOTPIK_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		ZOQFOTPIK_VICTORY_SONG,
+		ZOQFOTPIK_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		MISSILE_RANGE_2XRES,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+// JMS_GFX
+#define MAX_THRUST_4XRES 160
+#define THRUST_INCREMENT_4XRES 40
+#define MISSILE_SPEED_4XRES DISPLAY_TO_WORLD (40)
+#define MISSILE_RANGE_4XRES (MISSILE_SPEED_4XRES * MISSILE_LIFE)
+
+// JMS_GFX
+static RACE_DESC zoqfotpik_desc_4xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE,
+		6, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		ZOQFOTPIK_RACE_STRINGS,
+		ZOQFOTPIK_ICON_MASK_PMAP_ANIM,
+		ZOQFOTPIK_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		320 / SPHERE_RADIUS_INCREMENT * 2, /* Initial SoI radius */
+		{ /* Known location (center of SoI) */
+			3761, 5333,
+		},
+	},
+	{
+		MAX_THRUST_4XRES,
+		THRUST_INCREMENT_4XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			ZOQFOTPIK_BIG_MASK_PMAP_ANIM,
+			ZOQFOTPIK_MED_MASK_PMAP_ANIM,
+			ZOQFOTPIK_SML_MASK_PMAP_ANIM,
+		},
+		{
+			SPIT_BIG_MASK_PMAP_ANIM,
+			SPIT_MED_MASK_PMAP_ANIM,
+			SPIT_SML_MASK_PMAP_ANIM,
+		},
+		{
+			STINGER_BIG_MASK_PMAP_ANIM,
+			STINGER_MED_MASK_PMAP_ANIM,
+			STINGER_SML_MASK_PMAP_ANIM,
+		},
+		{
+			ZOQFOTPIK_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		ZOQFOTPIK_VICTORY_SONG,
+		ZOQFOTPIK_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		MISSILE_RANGE_4XRES,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+#define ZOQFOTPIK_OFFSET (13 << RESOLUTION_FACTOR) // JMS_GFX
+#define SPIT_WAIT 2
+>>>>>>>
 
 static void
 spit_preprocess (ELEMENT *ElementPtr)
@@ -135,17 +297,30 @@ spit_preprocess (ELEMENT *ElementPtr)
 		COUNT index, angle;
 
 		ElementPtr->next.image.frame = IncFrameIndex (ElementPtr->next.image.frame);
+<<<<<<<
 
+=======
+>>>>>>>
 		angle = GetVelocityTravelAngle (&ElementPtr->velocity);
+<<<<<<<
 
+=======
+		
+>>>>>>>
 		if ((index = GetFrameIndex (ElementPtr->next.image.frame)) == 1)
 		{
 			SIZE current_speed, delta_x, delta_y;
 			
 			angle = angle + (((COUNT)TFB_Random () % 3) - 1);
 
+<<<<<<<
 			GetCurrentVelocityComponents (&ElementPtr->velocity, &delta_x, &delta_y);
 			current_speed = square_root (VelocitySquared (delta_x, delta_y));
+=======
+		speed = WORLD_TO_VELOCITY (DISPLAY_TO_WORLD ((GetFrameCount (ElementPtr->next.image.frame) - index) << RESOLUTION_FACTOR) << 1); // JMS_GFX
+		
+		SetVelocityComponents (&ElementPtr->velocity, (SIZE)COSINE (angle, speed), (SIZE)SINE (angle, speed));
+>>>>>>>
 
 			SetVelocityComponents (&ElementPtr->velocity,
 				(SIZE)COSINE (angle, current_speed),
@@ -182,7 +357,11 @@ initialize_spit (ELEMENT *ShipPtr, HELEMENT SpitArray[])
 	MissileBlock.sender = ShipPtr->playerNr;
 	MissileBlock.flags = IGNORE_SIMILAR;
 	MissileBlock.pixoffs = ZOQFOTPIK_OFFSET;
+<<<<<<<
 	MissileBlock.speed = MISSILE_STARTING_SPEED;
+=======
+	MissileBlock.speed = DISPLAY_TO_WORLD ((GetFrameCount (StarShipPtr->RaceDescPtr->ship_data.weapon[0])) << RESOLUTION_FACTOR) << 1; // JMS_GFX
+>>>>>>>
 	MissileBlock.hit_points = MISSILE_HITS;
 	MissileBlock.damage = MISSILE_DAMAGE;
 	MissileBlock.life = MISSILE_LIFE;
@@ -228,8 +407,7 @@ tongue_collision (ELEMENT *ElementPtr0, POINT *pPt0,
 	STARSHIP *StarShipPtr;
 
 	GetElementStarShip (ElementPtr0, &StarShipPtr);
-	if (StarShipPtr->special_counter ==
-			StarShipPtr->RaceDescPtr->characteristics.special_wait)
+	if (StarShipPtr->special_counter == StarShipPtr->RaceDescPtr->characteristics.special_wait)
 		weapon_collision (ElementPtr0, pPt0, ElementPtr1, pPt1);
 
 	StarShipPtr->special_counter -= ElementPtr0->turn_wait;
@@ -240,6 +418,13 @@ tongue_collision (ELEMENT *ElementPtr0, POINT *pPt0,
 static void
 spawn_tongue (ELEMENT *ElementPtr)
 {
+<<<<<<<
+=======
+#define TONGUE_SPEED 0
+#define TONGUE_HITS 1
+#define TONGUE_DAMAGE 12
+#define TONGUE_OFFSET (4 << RESOLUTION_FACTOR) // JMS_GFX
+>>>>>>>
 	STARSHIP *StarShipPtr;
 	MISSILE_BLOCK TongueBlock;
 	HELEMENT Tongue;
@@ -359,7 +544,7 @@ zoqfotpik_intelligence (ELEMENT *ShipPtr, EVALUATE_DESC *ObjectsOfConcern,
 #endif /* NEVER */
 						))
 						&& ship_weapons (ShipPtr,
-						ObjectsOfConcern->ObjectPtr, DISPLAY_TO_WORLD (20)))
+						ObjectsOfConcern->ObjectPtr, DISPLAY_TO_WORLD (20 << RESOLUTION_FACTOR))) // JMS_GFX
 				{
 					StarShipPtr->ship_input_state |= WEAPON;
 					break;
@@ -383,8 +568,7 @@ zoqfotpik_postprocess (ELEMENT *ElementPtr)
 					/* STICK_OUT_TONGUE */
 				StarShipPtr->RaceDescPtr->ship_data.ship_sounds, 1), ElementPtr);
 
-		StarShipPtr->special_counter =
-				StarShipPtr->RaceDescPtr->characteristics.special_wait;
+		StarShipPtr->special_counter = StarShipPtr->RaceDescPtr->characteristics.special_wait;
 	}
 
 	if (StarShipPtr->special_counter)
@@ -396,11 +580,27 @@ init_zoqfotpik (void)
 {
 	RACE_DESC *RaceDescPtr;
 
-	zoqfotpik_desc.postprocess_func = zoqfotpik_postprocess;
-	zoqfotpik_desc.init_weapon_func = initialize_spit;
-	zoqfotpik_desc.cyborg_control.intelligence_func = zoqfotpik_intelligence;
-
-	RaceDescPtr = &zoqfotpik_desc;
+	if (RESOLUTION_FACTOR == 0)
+	{
+		zoqfotpik_desc.postprocess_func = zoqfotpik_postprocess;
+		zoqfotpik_desc.init_weapon_func = initialize_spit;
+		zoqfotpik_desc.cyborg_control.intelligence_func = zoqfotpik_intelligence;
+		RaceDescPtr = &zoqfotpik_desc;
+	}
+	else if (RESOLUTION_FACTOR == 1)
+	{
+		zoqfotpik_desc_2xres.postprocess_func = zoqfotpik_postprocess;
+		zoqfotpik_desc_2xres.init_weapon_func = initialize_spit;
+		zoqfotpik_desc_2xres.cyborg_control.intelligence_func = zoqfotpik_intelligence;
+		RaceDescPtr = &zoqfotpik_desc_2xres;
+	}
+	else
+	{
+		zoqfotpik_desc_4xres.postprocess_func = zoqfotpik_postprocess;
+		zoqfotpik_desc_4xres.init_weapon_func = initialize_spit;
+		zoqfotpik_desc_4xres.cyborg_control.intelligence_func = zoqfotpik_intelligence;
+		RaceDescPtr = &zoqfotpik_desc_4xres;
+	}
 
 	return (RaceDescPtr);
 }

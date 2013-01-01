@@ -55,7 +55,18 @@
 #define NAPALM_HITS 2
 #define NAPALM_DAMAGE 2
 #define NUM_NAPALM_FADES 6
+<<<<<<<
 #define NAPALM_FADE_WAIT 2
+=======
+#define THRUST_WAIT 0
+#define WEAPON_WAIT 12
+#define SPECIAL_WAIT 0
+
+#define SHIP_MASS 7
+#define THRADDASH_OFFSET (9 << RESOLUTION_FACTOR) // JMS_GFX
+#define MISSILE_SPEED DISPLAY_TO_WORLD (30)
+#define MISSILE_LIFE 15
+>>>>>>>
 
 static RACE_DESC thraddash_desc =
 {
@@ -131,6 +142,160 @@ static RACE_DESC thraddash_desc =
 	0, /* CodeRef */
 };
 
+// JMS_GFX
+#define MAX_THRUST_2XRES 56
+#define THRUST_INCREMENT_2XRES 14
+#define MISSILE_SPEED_2XRES DISPLAY_TO_WORLD (60)
+
+// JMS_GFX
+static RACE_DESC thraddash_desc_2xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE,
+		10, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		THRADDASH_RACE_STRINGS,
+		THRADDASH_ICON_MASK_PMAP_ANIM,
+		THRADDASH_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		833 / SPHERE_RADIUS_INCREMENT * 2, /* Initial SoI radius */
+		{ /* Known location (center of SoI) */
+			2535, 8358,
+		},
+	},
+	{
+		MAX_THRUST_2XRES,
+		THRUST_INCREMENT_2XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			THRADDASH_BIG_MASK_PMAP_ANIM,
+			THRADDASH_MED_MASK_PMAP_ANIM,
+			THRADDASH_SML_MASK_PMAP_ANIM,
+		},
+		{
+			HORN_BIG_MASK_PMAP_ANIM,
+			HORN_MED_MASK_PMAP_ANIM,
+			HORN_SML_MASK_PMAP_ANIM,
+		},
+		{
+			NAPALM_BIG_MASK_PMAP_ANIM,
+			NAPALM_MED_MASK_PMAP_ANIM,
+			NAPALM_SML_MASK_PMAP_ANIM,
+		},
+		{
+			THRADDASH_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		THRADDASH_VICTORY_SONG,
+		THRADDASH_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		(MISSILE_SPEED_2XRES * MISSILE_LIFE) >> 1,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+// JMS_GFX
+#define MAX_THRUST_4XRES 112
+#define THRUST_INCREMENT_4XRES 28
+#define MISSILE_SPEED_4XRES DISPLAY_TO_WORLD (120)
+
+// JMS_GFX
+static RACE_DESC thraddash_desc_4xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE,
+		10, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		THRADDASH_RACE_STRINGS,
+		THRADDASH_ICON_MASK_PMAP_ANIM,
+		THRADDASH_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		833 / SPHERE_RADIUS_INCREMENT * 2, /* Initial SoI radius */
+		{ /* Known location (center of SoI) */
+			2535, 8358,
+		},
+	},
+	{
+		MAX_THRUST_4XRES,
+		THRUST_INCREMENT_4XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			THRADDASH_BIG_MASK_PMAP_ANIM,
+			THRADDASH_MED_MASK_PMAP_ANIM,
+			THRADDASH_SML_MASK_PMAP_ANIM,
+		},
+		{
+			HORN_BIG_MASK_PMAP_ANIM,
+			HORN_MED_MASK_PMAP_ANIM,
+			HORN_SML_MASK_PMAP_ANIM,
+		},
+		{
+			NAPALM_BIG_MASK_PMAP_ANIM,
+			NAPALM_MED_MASK_PMAP_ANIM,
+			NAPALM_SML_MASK_PMAP_ANIM,
+		},
+		{
+			THRADDASH_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		THRADDASH_VICTORY_SONG,
+		THRADDASH_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		(MISSILE_SPEED_4XRES * MISSILE_LIFE) >> 1,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
 static void
 thraddash_intelligence (ELEMENT *ShipPtr, EVALUATE_DESC *ObjectsOfConcern, COUNT ConcernCounter)
 {
@@ -141,7 +306,7 @@ thraddash_intelligence (ELEMENT *ShipPtr, EVALUATE_DESC *ObjectsOfConcern, COUNT
 	lpEvalDesc = &ObjectsOfConcern[ENEMY_SHIP_INDEX];
 	if (lpEvalDesc->ObjectPtr)
 	{
-#define STATIONARY_SPEED WORLD_TO_VELOCITY (DISPLAY_TO_WORLD (4))
+#define STATIONARY_SPEED WORLD_TO_VELOCITY (DISPLAY_TO_WORLD (4 << RESOLUTION_FACTOR)) // JMS_GFX
 		SIZE dx, dy;
 
 		GetCurrentVelocityComponents (
@@ -234,6 +399,12 @@ kaboom (ELEMENT *ElementPtr)
 static void
 repulsor_collision (ELEMENT *ElementPtr0, POINT *pPt0, ELEMENT *ElementPtr1, POINT *pPt1)
 {
+<<<<<<<
+=======
+#define MISSILE_HITS 2
+#define MISSILE_DAMAGE 1
+#define MISSILE_OFFSET (3 << RESOLUTION_FACTOR) // JMS_GFX
+>>>>>>>
 	STARSHIP *StarShipPtr;
 	
 	GetElementStarShip (ElementPtr0, &StarShipPtr);
@@ -308,7 +479,12 @@ initialize_weapon (ELEMENT *ShipPtr, HELEMENT WeaponArray[])
 	MissileBlock.face = MissileBlock.index = StarShipPtr->ShipFacing;
 	MissileBlock.sender = ShipPtr->playerNr;
 	MissileBlock.flags = IGNORE_SIMILAR;
+<<<<<<<
 	MissileBlock.speed = MISSILE_SPEED;
+=======
+	MissileBlock.pixoffs = THRADDASH_OFFSET;
+	MissileBlock.speed = MISSILE_SPEED << RESOLUTION_FACTOR; // JMS_GFX
+>>>>>>>
 	MissileBlock.hit_points = MISSILE_HITS;
 	MissileBlock.damage = MISSILE_DAMAGE;
 	MissileBlock.life = MISSILE_LIFE;
@@ -419,6 +595,11 @@ thraddash_preprocess (ELEMENT *ElementPtr)
 	}
 	else if (StarShipPtr->RaceDescPtr->ship_info.energy_level >= SPECIAL_ENERGY_COST)
 	{
+<<<<<<<
+=======
+#define SPECIAL_THRUST_INCREMENT (12 << RESOLUTION_FACTOR) // JMS_GFX
+#define SPECIAL_MAX_THRUST (72 << RESOLUTION_FACTOR) // JMS_GFX
+>>>>>>>
 		COUNT max_thrust, thrust_increment;
 		STATUS_FLAGS thrust_status;
 		HELEMENT hTrailElement;
@@ -514,11 +695,35 @@ init_thraddash (void)
 {
 	RACE_DESC *RaceDescPtr;
 
+<<<<<<<
 	thraddash_desc.preprocess_func = thraddash_preprocess;
 	thraddash_desc.init_weapon_func = initialize_weapon;
 	thraddash_desc.cyborg_control.intelligence_func = thraddash_intelligence;
 
 	RaceDescPtr = &thraddash_desc;
+=======
+	if (RESOLUTION_FACTOR == 0)
+	{
+		thraddash_desc.preprocess_func = thraddash_preprocess;
+		thraddash_desc.init_weapon_func = initialize_horn;
+		thraddash_desc.cyborg_control.intelligence_func = thraddash_intelligence;
+		RaceDescPtr = &thraddash_desc;
+	}
+	else if (RESOLUTION_FACTOR == 1)
+	{
+		thraddash_desc_2xres.preprocess_func = thraddash_preprocess;
+		thraddash_desc_2xres.init_weapon_func = initialize_horn;
+		thraddash_desc_2xres.cyborg_control.intelligence_func = thraddash_intelligence;
+		RaceDescPtr = &thraddash_desc_2xres;
+	}
+	else
+	{
+		thraddash_desc_4xres.preprocess_func = thraddash_preprocess;
+		thraddash_desc_4xres.init_weapon_func = initialize_horn;
+		thraddash_desc_4xres.cyborg_control.intelligence_func = thraddash_intelligence;
+		RaceDescPtr = &thraddash_desc_4xres;
+	}
+>>>>>>>
 
 	return (RaceDescPtr);
 }
