@@ -1,4 +1,3 @@
-text.setupmenu = STRTAB:addons/balance-4x/ui/setupmenu.txt
 text.balance-4x_strings = STRTAB:addons/balance-4x/balance-4x-strings.txt
 graphics.retreat_reticle = GFXRES:addons/balance-4x/ui/retreat_reticle.ani
 graphics.reticle.large = GFXRES:addons/balance-4x/battle/reticle-big.ani
