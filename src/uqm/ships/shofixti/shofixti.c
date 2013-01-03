@@ -28,7 +28,11 @@
 #define ENERGY_REGENERATION 1
 #define ENERGY_WAIT 9
 #define MAX_THRUST 35
+#define MAX_THRUST_2XRES (MAX_THRUST << 1)
+#define MAX_THRUST_4XRES (MAX_THRUST << 2)
 #define THRUST_INCREMENT 5
+#define THRUST_INCREMENT_2XRES (THRUST_INCREMENT << 1)
+#define THRUST_INCREMENT_4XRES (THRUST_INCREMENT << 2)
 #define TURN_WAIT 1
 #define THRUST_WAIT 0
 #define WEAPON_WAIT 3
@@ -37,16 +41,18 @@
 
 // Dart Gun
 #define WEAPON_ENERGY_COST 1
-#define SHOFIXTI_OFFSET 15
-#define MISSILE_OFFSET 1
+#define SHOFIXTI_OFFSET (15 << RESOLUTION_FACTOR)
+#define MISSILE_OFFSET (1 << RESOLUTION_FACTOR)
 #define MISSILE_SPEED 92
+#define MISSILE_SPEED_2XRES (MISSILE_SPEED << 1)
+#define MISSILE_SPEED_4XRES (MISSILE_SPEED << 2)
 #define MISSILE_LIFE 9
 #define MISSILE_HITS 1
 #define MISSILE_DAMAGE 1
 
 // Glory Device
 #define SPECIAL_ENERGY_COST 0
-#define DESTRUCT_RANGE 180 // DISPLAY_TO_WORLD is applied to this elsewhere.
+#define DESTRUCT_RANGE (180 << RESOLUTION_FACTOR) // DISPLAY_TO_WORLD is applied to this elsewhere.
 #define DESTRUCTION (DESTRUCT_RANGE / 20)
 #define MAX_DESTRUCTION 8 // Glory Device damage cap.
 #define CLOSE_ENOUGH 6 // At 6 or 7 damage, inflict 8 damage instead.
@@ -122,6 +128,150 @@ static RACE_DESC shofixti_desc =
 	0, /* CodeRef */
 };
 
+// JMS_GFX
+static RACE_DESC shofixti_desc_2xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE,
+		5, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		SHOFIXTI_RACE_STRINGS,
+		SHOFIXTI_ICON_MASK_PMAP_ANIM,
+		SHOFIXTI_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		0, /* Initial sphere of influence radius */
+		{ /* Known location (center of SoI) */
+			0, 0,
+		},
+	},
+	{
+		MAX_THRUST_2XRES,
+		THRUST_INCREMENT_2XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			SHOFIXTI_BIG_MASK_PMAP_ANIM,
+			SHOFIXTI_MED_MASK_PMAP_ANIM,
+			SHOFIXTI_SML_MASK_PMAP_ANIM,
+		},
+		{
+			DART_BIG_MASK_PMAP_ANIM,
+			DART_MED_MASK_PMAP_ANIM,
+			DART_SML_MASK_PMAP_ANIM,
+		},
+		{
+			DESTRUCT_BIG_MASK_ANIM,
+			DESTRUCT_MED_MASK_ANIM,
+			DESTRUCT_SML_MASK_ANIM,
+		},
+		{
+			SHOFIXTI_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		SHOFIXTI_VICTORY_SONG,
+		SHOFIXTI_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		MISSILE_SPEED_2XRES * MISSILE_LIFE,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+// JMS_GFX
+static RACE_DESC shofixti_desc_4xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE,
+		5, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		SHOFIXTI_RACE_STRINGS,
+		SHOFIXTI_ICON_MASK_PMAP_ANIM,
+		SHOFIXTI_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		0, /* Initial sphere of influence radius */
+		{ /* Known location (center of SoI) */
+			0, 0,
+		},
+	},
+	{
+		MAX_THRUST_4XRES,
+		THRUST_INCREMENT_4XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			SHOFIXTI_BIG_MASK_PMAP_ANIM,
+			SHOFIXTI_MED_MASK_PMAP_ANIM,
+			SHOFIXTI_SML_MASK_PMAP_ANIM,
+		},
+		{
+			DART_BIG_MASK_PMAP_ANIM,
+			DART_MED_MASK_PMAP_ANIM,
+			DART_SML_MASK_PMAP_ANIM,
+		},
+		{
+			DESTRUCT_BIG_MASK_ANIM,
+			DESTRUCT_MED_MASK_ANIM,
+			DESTRUCT_SML_MASK_ANIM,
+		},
+		{
+			SHOFIXTI_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		SHOFIXTI_VICTORY_SONG,
+		SHOFIXTI_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		MISSILE_SPEED_4XRES * MISSILE_LIFE,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
 static COUNT
 initialize_standard_missile (ELEMENT *ShipPtr, HELEMENT MissileArray[])
 {
@@ -136,7 +286,7 @@ initialize_standard_missile (ELEMENT *ShipPtr, HELEMENT MissileArray[])
 	MissileBlock.sender = ShipPtr->playerNr;
 	MissileBlock.flags = IGNORE_SIMILAR;
 	MissileBlock.pixoffs = SHOFIXTI_OFFSET;
-	MissileBlock.speed = MISSILE_SPEED;
+	MissileBlock.speed = (MISSILE_SPEED << RESOLUTION_FACTOR);
 	MissileBlock.hit_points = MISSILE_HITS;
 	MissileBlock.damage = MISSILE_DAMAGE;
 	MissileBlock.life = MISSILE_LIFE;
@@ -456,11 +606,28 @@ init_shofixti (void)
 
 	static RACE_DESC new_shofixti_desc;
 
-	shofixti_desc.postprocess_func = shofixti_postprocess;
-	shofixti_desc.init_weapon_func = initialize_standard_missile;
-	shofixti_desc.cyborg_control.intelligence_func = shofixti_intelligence;
+	if (RESOLUTION_FACTOR == 0)
+	{
+		shofixti_desc.postprocess_func = shofixti_postprocess;
+		shofixti_desc.init_weapon_func = initialize_standard_missile;
+		shofixti_desc.cyborg_control.intelligence_func = shofixti_intelligence;
+		new_shofixti_desc = shofixti_desc;
+	}
+	else if (RESOLUTION_FACTOR == 1)
+	{
+		shofixti_desc_2xres.postprocess_func = shofixti_postprocess;
+		shofixti_desc_2xres.init_weapon_func = initialize_standard_missile;
+		shofixti_desc_2xres.cyborg_control.intelligence_func = shofixti_intelligence;
+		new_shofixti_desc = shofixti_desc_2xres;
+	}
+	else
+	{
+		shofixti_desc_4xres.postprocess_func = shofixti_postprocess;
+		shofixti_desc_4xres.init_weapon_func = initialize_standard_missile;
+		shofixti_desc_4xres.cyborg_control.intelligence_func = shofixti_intelligence;
+		new_shofixti_desc = shofixti_desc_4xres;
+	}
 
-	new_shofixti_desc = shofixti_desc;
 	if (LOBYTE (GLOBAL (CurrentActivity)) == IN_ENCOUNTER
 			&& !GET_GAME_STATE (SHOFIXTI_RECRUITED))
 	{
