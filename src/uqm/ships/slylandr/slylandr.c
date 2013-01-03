@@ -28,7 +28,11 @@
 #define ENERGY_REGENERATION 0
 #define ENERGY_WAIT 10
 #define MAX_THRUST 60
+#define MAX_THRUST_2XRES (MAX_THRUST << 1)
+#define MAX_THRUST_4XRES (MAX_THRUST << 2)
 #define THRUST_INCREMENT MAX_THRUST
+#define THRUST_INCREMENT_2XRES (THRUST_INCREMENT << 1)
+#define THRUST_INCREMENT_4XRES (THRUST_INCREMENT << 2)
 #define THRUST_WAIT 0
 #define TURN_WAIT 0
 #define SHIP_MASS 1
@@ -36,14 +40,14 @@
 // Lightning weapon
 #define WEAPON_ENERGY_COST 2
 #define WEAPON_WAIT 20
-#define SLYLANDRO_OFFSET 9
-#define LASER_RANGE 32
-#define LASER_MAX_RANGE DISPLAY_TO_WORLD (160)
+#define SLYLANDRO_OFFSET (9 << RESOLUTION_FACTOR) 
+#define LASER_RANGE (32 << RESOLUTION_FACTOR)
+#define LASER_MAX_RANGE (DISPLAY_TO_WORLD (160) << RESOLUTION_FACTOR)
 
 // Energizer
 #define SPECIAL_ENERGY_COST 0
 #define SPECIAL_WAIT 20
-#define HARVEST_RANGE (208 * 3 / 8)
+#define HARVEST_RANGE ((208 * 3 / 8) << RESOLUTION_FACTOR)
 
 static RACE_DESC slylandro_desc =
 {
@@ -106,6 +110,150 @@ static RACE_DESC slylandro_desc =
 	{
 		0,
 		CLOSE_RANGE_WEAPON << 1,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+// JMS_GFX
+static RACE_DESC slylandro_desc_2xres =
+{
+	{ /* SHIP_INFO */
+		SEEKING_WEAPON | CREW_IMMUNE,
+		17, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		SLYLANDRO_RACE_STRINGS,
+		SLYLANDRO_ICON_MASK_PMAP_ANIM,
+		SLYLANDRO_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		INFINITE_RADIUS, /* Initial sphere of influence radius */
+		{ /* Known location (center of SoI) */
+			333, 9812,
+		},
+	},
+	{
+		MAX_THRUST_2XRES,
+		THRUST_INCREMENT_2XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			SLYLANDRO_BIG_MASK_PMAP_ANIM,
+			SLYLANDRO_MED_MASK_PMAP_ANIM,
+			SLYLANDRO_SML_MASK_PMAP_ANIM,
+		},
+		{
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+		},
+		{
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+		},
+		{
+			SLYLANDRO_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		SLYLANDRO_VICTORY_SONG,
+		SLYLANDRO_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		CLOSE_RANGE_WEAPON_2XRES << 1,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+// JMS_GFX
+static RACE_DESC slylandro_desc_4xres =
+{
+	{ /* SHIP_INFO */
+		SEEKING_WEAPON | CREW_IMMUNE,
+		17, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		SLYLANDRO_RACE_STRINGS,
+		SLYLANDRO_ICON_MASK_PMAP_ANIM,
+		SLYLANDRO_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		INFINITE_RADIUS, /* Initial sphere of influence radius */
+		{ /* Known location (center of SoI) */
+			333, 9812,
+		},
+	},
+	{
+		MAX_THRUST_4XRES,
+		THRUST_INCREMENT_4XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			SLYLANDRO_BIG_MASK_PMAP_ANIM,
+			SLYLANDRO_MED_MASK_PMAP_ANIM,
+			SLYLANDRO_SML_MASK_PMAP_ANIM,
+		},
+		{
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+		},
+		{
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+		},
+		{
+			SLYLANDRO_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		SLYLANDRO_VICTORY_SONG,
+		SLYLANDRO_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		CLOSE_RANGE_WEAPON_4XRES << 1,
 		NULL,
 	},
 	(UNINIT_FUNC *) NULL,
@@ -444,12 +592,30 @@ init_slylandro (void)
 {
 	RACE_DESC *RaceDescPtr;
 
-	slylandro_desc.preprocess_func = slylandro_preprocess;
-	slylandro_desc.postprocess_func = slylandro_postprocess;
-	slylandro_desc.init_weapon_func = initialize_lightning;
-	slylandro_desc.cyborg_control.intelligence_func = slylandro_intelligence;
-
-	RaceDescPtr = &slylandro_desc;
+	if (RESOLUTION_FACTOR == 0)
+	{
+		slylandro_desc.preprocess_func = slylandro_preprocess;
+		slylandro_desc.postprocess_func = slylandro_postprocess;
+		slylandro_desc.init_weapon_func = initialize_lightning;
+		slylandro_desc.cyborg_control.intelligence_func = slylandro_intelligence;
+		RaceDescPtr = &slylandro_desc;
+	}
+	else if (RESOLUTION_FACTOR == 1)
+	{
+		slylandro_desc_2xres.preprocess_func = slylandro_preprocess;
+		slylandro_desc_2xres.postprocess_func = slylandro_postprocess;
+		slylandro_desc_2xres.init_weapon_func = initialize_lightning;
+		slylandro_desc_2xres.cyborg_control.intelligence_func = slylandro_intelligence;
+		RaceDescPtr = &slylandro_desc_2xres;
+	}
+	else
+	{
+		slylandro_desc_4xres.preprocess_func = slylandro_preprocess;
+		slylandro_desc_4xres.postprocess_func = slylandro_postprocess;
+		slylandro_desc_4xres.init_weapon_func = initialize_lightning;
+		slylandro_desc_4xres.cyborg_control.intelligence_func = slylandro_intelligence;
+		RaceDescPtr = &slylandro_desc_4xres;
+	}
 
 	return (RaceDescPtr);
 }
