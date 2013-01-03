@@ -29,7 +29,11 @@
 #define ENERGY_REGENERATION 0
 #define ENERGY_WAIT 0
 #define MAX_THRUST 64
+#define MAX_THRUST_2XRES (MAX_THRUST << 1)
+#define MAX_THRUST_4XRES (MAX_THRUST << 2)
 #define THRUST_INCREMENT 16
+#define THRUST_INCREMENT_2XRES (THRUST_INCREMENT << 1)
+#define THRUST_INCREMENT_4XRES (THRUST_INCREMENT << 2)
 #define THRUST_WAIT 0
 #define TURN_WAIT 0
 #define SHIP_MASS 1
@@ -37,9 +41,9 @@
 // Triple Miniguns
 #define WEAPON_ENERGY_COST 1
 #define WEAPON_WAIT 0
-#define PKUNK_OFFSET 15
-#define MISSILE_OFFSET 1
-#define MISSILE_SPEED 120
+#define PKUNK_OFFSET (15 << RESOLUTION_FACTOR)
+#define MISSILE_OFFSET (1 << RESOLUTION_FACTOR)
+#define MISSILE_SPEED (120 << RESOLUTION_FACTOR)
 #define MISSILE_LIFE 5
 #define MISSILE_HITS 1
 #define MISSILE_DAMAGE 1
@@ -113,6 +117,150 @@ static RACE_DESC pkunk_desc =
 	{
 		0,
 		CLOSE_RANGE_WEAPON + 1,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+// JMS_GFX
+static RACE_DESC pkunk_desc_2xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE | FIRES_LEFT | FIRES_RIGHT,
+		20, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		PKUNK_RACE_STRINGS,
+		PKUNK_ICON_MASK_PMAP_ANIM,
+		PKUNK_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		666 / SPHERE_RADIUS_INCREMENT * 2, /* Initial SoI radius */
+		{ /* Known location (center of SoI) */
+			502, 401,
+		},
+	},
+	{
+		MAX_THRUST_2XRES,
+		THRUST_INCREMENT_2XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		0, /* SPECIAL_WAIT */
+		SHIP_MASS,
+	},
+	{
+		{
+			PKUNK_BIG_MASK_PMAP_ANIM,
+			PKUNK_MED_MASK_PMAP_ANIM,
+			PKUNK_SML_MASK_PMAP_ANIM,
+		},
+		{
+			BUG_BIG_MASK_PMAP_ANIM,
+			BUG_MED_MASK_PMAP_ANIM,
+			BUG_SML_MASK_PMAP_ANIM,
+		},
+		{
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+		},
+		{
+			PKUNK_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		PKUNK_VICTORY_SONG,
+		PKUNK_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		CLOSE_RANGE_WEAPON_2XRES + 2,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+// JMS_GFX
+static RACE_DESC pkunk_desc_4xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE | FIRES_LEFT | FIRES_RIGHT,
+		20, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		PKUNK_RACE_STRINGS,
+		PKUNK_ICON_MASK_PMAP_ANIM,
+		PKUNK_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		666 / SPHERE_RADIUS_INCREMENT * 2, /* Initial SoI radius */
+		{ /* Known location (center of SoI) */
+			502, 401,
+		},
+	},
+	{
+		MAX_THRUST_4XRES,
+		THRUST_INCREMENT_4XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		0, /* SPECIAL_WAIT */
+		SHIP_MASS,
+	},
+	{
+		{
+			PKUNK_BIG_MASK_PMAP_ANIM,
+			PKUNK_MED_MASK_PMAP_ANIM,
+			PKUNK_SML_MASK_PMAP_ANIM,
+		},
+		{
+			BUG_BIG_MASK_PMAP_ANIM,
+			BUG_MED_MASK_PMAP_ANIM,
+			BUG_SML_MASK_PMAP_ANIM,
+		},
+		{
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+		},
+		{
+			PKUNK_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		PKUNK_VICTORY_SONG,
+		PKUNK_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		CLOSE_RANGE_WEAPON_4XRES + 4,
 		NULL,
 	},
 	(UNINIT_FUNC *) NULL,
@@ -562,12 +710,30 @@ init_pkunk (void)
 {
 	RACE_DESC *RaceDescPtr;
 
-	pkunk_desc.preprocess_func = pkunk_preprocess;
-	pkunk_desc.postprocess_func = pkunk_postprocess;
-	pkunk_desc.init_weapon_func = initialize_bug_missile;
-	pkunk_desc.cyborg_control.intelligence_func = pkunk_intelligence;
-
-	RaceDescPtr = &pkunk_desc;
+	if (RESOLUTION_FACTOR == 0)
+	{
+		pkunk_desc.preprocess_func = pkunk_preprocess;
+		pkunk_desc.postprocess_func = pkunk_postprocess;
+		pkunk_desc.init_weapon_func = initialize_bug_missile;
+		pkunk_desc.cyborg_control.intelligence_func = pkunk_intelligence;
+		RaceDescPtr = &pkunk_desc;
+	}
+	else if (RESOLUTION_FACTOR == 1)
+	{
+		pkunk_desc_2xres.preprocess_func = pkunk_preprocess;
+		pkunk_desc_2xres.postprocess_func = pkunk_postprocess;
+		pkunk_desc_2xres.init_weapon_func = initialize_bug_missile;
+		pkunk_desc_2xres.cyborg_control.intelligence_func = pkunk_intelligence;
+		RaceDescPtr = &pkunk_desc_2xres;
+	}
+	else
+	{
+		pkunk_desc_4xres.preprocess_func = pkunk_preprocess;
+		pkunk_desc_4xres.postprocess_func = pkunk_postprocess;
+		pkunk_desc_4xres.init_weapon_func = initialize_bug_missile;
+		pkunk_desc_4xres.cyborg_control.intelligence_func = pkunk_intelligence;
+		RaceDescPtr = &pkunk_desc_4xres;
+	}
 
 	LastSound = 0;
 			// We need to reinitialise it at least each battle, to ensure
@@ -576,4 +742,3 @@ init_pkunk (void)
 
 	return (RaceDescPtr);
 }
-
