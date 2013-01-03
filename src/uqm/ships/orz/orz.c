@@ -29,7 +29,11 @@
 #define ENERGY_REGENERATION 1
 #define ENERGY_WAIT 6
 #define MAX_THRUST 36
+#define MAX_THRUST_2XRES (MAX_THRUST << 1)
+#define MAX_THRUST_4XRES (MAX_THRUST << 2)
 #define THRUST_INCREMENT 5
+#define THRUST_INCREMENT_2XRES (THRUST_INCREMENT << 1)
+#define THRUST_INCREMENT_4XRES (THRUST_INCREMENT << 2)
 #define THRUST_WAIT 0
 #define TURN_WAIT 1
 #define SHIP_MASS 4
@@ -37,25 +41,27 @@
 // Howitzer
 #define WEAPON_ENERGY_COST 6
 #define WEAPON_WAIT 4
-#define ORZ_OFFSET 9
+#define ORZ_OFFSET (9 << RESOLUTION_FACTOR)
 #define MISSILE_SPEED 120
+#define MISSILE_SPEED_2XRES (MISSILE_SPEED << 1)
+#define MISSILE_SPEED_4XRES (MISSILE_SPEED << 2)
 #define MISSILE_LIFE 12
 #define MISSILE_HITS 2
 #define MISSILE_DAMAGE 3
-#define MISSILE_OFFSET 1
+#define MISSILE_OFFSET (1 << RESOLUTION_FACTOR)
 
 // Marine
 #define SPECIAL_ENERGY_COST 0
 #define SPECIAL_WAIT 12
-#define MARINE_MAX_THRUST 32
-#define MARINE_THRUST_INCREMENT 8
+#define MARINE_MAX_THRUST (32 << RESOLUTION_FACTOR)
+#define MARINE_THRUST_INCREMENT (8 << RESOLUTION_FACTOR)
 #define MARINE_HIT_POINTS 3
 #define MAX_MARINES 8
 #define MARINE_WAIT 12
 #define ION_LIFE 1
 
 // Rotating Turret
-#define TURRET_OFFSET 14
+#define TURRET_OFFSET (14 << RESOLUTION_FACTOR)
 #define TURRET_WAIT 3
 
 static RACE_DESC orz_desc =
@@ -129,6 +135,150 @@ static RACE_DESC orz_desc =
 	0, /* CodeRef */
 };
 
+// JMS_GFX
+static RACE_DESC orz_desc_2xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE | SEEKING_SPECIAL,
+		23, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		ORZ_RACE_STRINGS,
+		ORZ_ICON_MASK_PMAP_ANIM,
+		ORZ_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		333 / SPHERE_RADIUS_INCREMENT * 2, /* Initial SoI radius */
+		{ /* Known location (center of SoI) */
+			3608, 2637,
+		},
+	},
+	{
+		MAX_THRUST_2XRES,
+		THRUST_INCREMENT_2XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			ORZ_BIG_MASK_PMAP_ANIM,
+			ORZ_MED_MASK_PMAP_ANIM,
+			ORZ_SML_MASK_PMAP_ANIM,
+		},
+		{
+			HOWITZER_BIG_MASK_PMAP_ANIM,
+			HOWITZER_MED_MASK_PMAP_ANIM,
+			HOWITZER_SML_MASK_PMAP_ANIM,
+		},
+		{
+			TURRET_BIG_MASK_PMAP_ANIM,
+			TURRET_MED_MASK_PMAP_ANIM,
+			TURRET_SML_MASK_PMAP_ANIM,
+		},
+		{
+			ORZ_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		ORZ_VICTORY_SONG,
+		ORZ_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		MISSILE_SPEED_2XRES * MISSILE_LIFE,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+// JMS_GFX
+static RACE_DESC orz_desc_4xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE | SEEKING_SPECIAL,
+		23, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		ORZ_RACE_STRINGS,
+		ORZ_ICON_MASK_PMAP_ANIM,
+		ORZ_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		333 / SPHERE_RADIUS_INCREMENT * 2, /* Initial SoI radius */
+		{ /* Known location (center of SoI) */
+			3608, 2637,
+		},
+	},
+	{
+		MAX_THRUST_4XRES,
+		THRUST_INCREMENT_4XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			ORZ_BIG_MASK_PMAP_ANIM,
+			ORZ_MED_MASK_PMAP_ANIM,
+			ORZ_SML_MASK_PMAP_ANIM,
+		},
+		{
+			HOWITZER_BIG_MASK_PMAP_ANIM,
+			HOWITZER_MED_MASK_PMAP_ANIM,
+			HOWITZER_SML_MASK_PMAP_ANIM,
+		},
+		{
+			TURRET_BIG_MASK_PMAP_ANIM,
+			TURRET_MED_MASK_PMAP_ANIM,
+			TURRET_SML_MASK_PMAP_ANIM,
+		},
+		{
+			ORZ_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		ORZ_VICTORY_SONG,
+		ORZ_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		MISSILE_SPEED_4XRES * MISSILE_LIFE,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
 static void
 howitzer_collision (ELEMENT *ElementPtr0, POINT *pPt0,
 		ELEMENT *ElementPtr1, POINT *pPt1)
@@ -168,7 +318,7 @@ initialize_turret_missile (ELEMENT *ShipPtr, HELEMENT MissileArray[])
 	MissileBlock.sender = (ShipPtr->state_flags & (GOOD_GUY | BAD_GUY)) | IGNORE_SIMILAR;
 	MissileBlock.flags = IGNORE_SIMILAR;
 	MissileBlock.pixoffs = TURRET_OFFSET;
-	MissileBlock.speed = MISSILE_SPEED;
+	MissileBlock.speed = (MISSILE_SPEED << RESOLUTION_FACTOR);
 	MissileBlock.hit_points = MISSILE_HITS;
 	MissileBlock.damage = MISSILE_DAMAGE;
 	MissileBlock.life = MISSILE_LIFE;
@@ -1109,12 +1259,27 @@ init_orz (void)
 {
 	RACE_DESC *RaceDescPtr;
 
-	orz_desc.preprocess_func = orz_preprocess;
-	orz_desc.init_weapon_func = initialize_turret_missile;
-	orz_desc.cyborg_control.intelligence_func = orz_intelligence;
-
-	RaceDescPtr = &orz_desc;
+	if (RESOLUTION_FACTOR == 0)
+	{
+		orz_desc.preprocess_func = orz_preprocess;
+		orz_desc.init_weapon_func = initialize_turret_missile;
+		orz_desc.cyborg_control.intelligence_func = orz_intelligence;
+		RaceDescPtr = &orz_desc;
+	}
+	else if (RESOLUTION_FACTOR == 1)
+	{
+		orz_desc_2xres.preprocess_func = orz_preprocess;
+		orz_desc_2xres.init_weapon_func = initialize_turret_missile;
+		orz_desc_2xres.cyborg_control.intelligence_func = orz_intelligence;
+		RaceDescPtr = &orz_desc_2xres;
+	}
+	else
+	{
+		orz_desc_4xres.preprocess_func = orz_preprocess;
+		orz_desc_4xres.init_weapon_func = initialize_turret_missile;
+		orz_desc_4xres.cyborg_control.intelligence_func = orz_intelligence;
+		RaceDescPtr = &orz_desc_4xres;
+	}
 
 	return (RaceDescPtr);
 }
-
