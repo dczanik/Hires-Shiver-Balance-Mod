@@ -26,7 +26,11 @@
 #define ENERGY_REGENERATION 1
 #define ENERGY_WAIT 50
 #define MAX_THRUST 20
+#define MAX_THRUST_2XRES (MAX_THRUST << 1)
+#define MAX_THRUST_4XRES (MAX_THRUST << 2)
 #define THRUST_INCREMENT 2
+#define THRUST_INCREMENT_2XRES (THRUST_INCREMENT << 1)
+#define THRUST_INCREMENT_4XRES (THRUST_INCREMENT << 2)
 #define THRUST_WAIT 1
 #define TURN_WAIT 4
 #define SHIP_MASS 5
@@ -37,11 +41,15 @@
 #define DRUUGE_OFFSET 24
 #define MISSILE_OFFSET 6
 #define MISSILE_SPEED 120
+#define MISSILE_SPEED_2XRES (MISSILE_SPEED << 1)
+#define MISSILE_SPEED_4XRES (MISSILE_SPEED << 2)
 #define MISSILE_LIFE 20
 #define MISSILE_RANGE (MISSILE_SPEED * MISSILE_LIFE)
+#define MISSILE_RANGE_2XRES (MISSILE_SPEED_2XRES * MISSILE_LIFE)
+#define MISSILE_RANGE_4XRES (MISSILE_SPEED_4XRES * MISSILE_LIFE)
 #define MISSILE_HITS 4
 #define MISSILE_DAMAGE 6
-#define RECOIL_VELOCITY WORLD_TO_VELOCITY (24)
+#define RECOIL_VELOCITY (WORLD_TO_VELOCITY (24) << RESOLUTION_FACTOR)
 #define MAX_RECOIL_VELOCITY (RECOIL_VELOCITY * 4)
 
 // Furnace
@@ -119,6 +127,150 @@ static RACE_DESC druuge_desc =
 	0, /* CodeRef */
 };
 
+// JMS_GFX
+static RACE_DESC druuge_desc_2xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE,
+		17, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		DRUUGE_RACE_STRINGS,
+		DRUUGE_ICON_MASK_PMAP_ANIM,
+		DRUUGE_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		1400 / SPHERE_RADIUS_INCREMENT * 2, /* Initial SoI radius */
+		{ /* Known location (center of SoI) */
+			9500, 2792,
+		},
+	},
+	{
+		MAX_THRUST_2XRES,
+		THRUST_INCREMENT_2XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			DRUUGE_BIG_MASK_PMAP_ANIM,
+			DRUUGE_MED_MASK_PMAP_ANIM,
+			DRUUGE_SML_MASK_PMAP_ANIM,
+		},
+		{
+			DRUUGE_CANNON_BIG_MASK_PMAP_ANIM,
+			DRUUGE_CANNON_MED_MASK_PMAP_ANIM,
+			DRUUGE_CANNON_SML_MASK_PMAP_ANIM,
+		},
+		{
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+		},
+		{
+			DRUUGE_CAPT_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		DRUUGE_VICTORY_SONG,
+		DRUUGE_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		MISSILE_RANGE_2XRES,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+// JMS_GFX
+static RACE_DESC druuge_desc_4xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE,
+		17, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		DRUUGE_RACE_STRINGS,
+		DRUUGE_ICON_MASK_PMAP_ANIM,
+		DRUUGE_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		1400 / SPHERE_RADIUS_INCREMENT * 2, /* Initial SoI radius */
+		{ /* Known location (center of SoI) */
+			9500, 2792,
+		},
+	},
+	{
+		MAX_THRUST_4XRES,
+		THRUST_INCREMENT_4XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			DRUUGE_BIG_MASK_PMAP_ANIM,
+			DRUUGE_MED_MASK_PMAP_ANIM,
+			DRUUGE_SML_MASK_PMAP_ANIM,
+		},
+		{
+			DRUUGE_CANNON_BIG_MASK_PMAP_ANIM,
+			DRUUGE_CANNON_MED_MASK_PMAP_ANIM,
+			DRUUGE_CANNON_SML_MASK_PMAP_ANIM,
+		},
+		{
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+		},
+		{
+			DRUUGE_CAPT_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		DRUUGE_VICTORY_SONG,
+		DRUUGE_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		MISSILE_RANGE_4XRES,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
 static void
 cannon_collision (ELEMENT *ElementPtr0, POINT *pPt0,
 		ELEMENT *ElementPtr1, POINT *pPt1)
@@ -172,7 +324,7 @@ initialize_cannon (ELEMENT *ShipPtr, HELEMENT CannonArray[])
 	MissileBlock.sender = ShipPtr->playerNr;
 	MissileBlock.flags = IGNORE_SIMILAR;
 	MissileBlock.pixoffs = DRUUGE_OFFSET;
-	MissileBlock.speed = MISSILE_SPEED;
+	MissileBlock.speed = (MISSILE_SPEED << RESOLUTION_FACTOR); 
 	MissileBlock.hit_points = MISSILE_HITS;
 	MissileBlock.damage = MISSILE_DAMAGE;
 	MissileBlock.life = MISSILE_LIFE;
@@ -324,13 +476,30 @@ init_druuge (void)
 {
 	RACE_DESC *RaceDescPtr;
 
-	druuge_desc.preprocess_func = druuge_preprocess;
-	druuge_desc.postprocess_func = druuge_postprocess;
-	druuge_desc.init_weapon_func = initialize_cannon;
-	druuge_desc.cyborg_control.intelligence_func = druuge_intelligence;
-
-	RaceDescPtr = &druuge_desc;
+	if (RESOLUTION_FACTOR == 0)
+	{
+		druuge_desc.preprocess_func = druuge_preprocess;
+		druuge_desc.postprocess_func = druuge_postprocess;
+		druuge_desc.init_weapon_func = initialize_cannon;
+		druuge_desc.cyborg_control.intelligence_func = druuge_intelligence;
+		RaceDescPtr = &druuge_desc;
+	}
+	else if (RESOLUTION_FACTOR == 1)
+	{
+		druuge_desc_2xres.preprocess_func = druuge_preprocess;
+		druuge_desc_2xres.postprocess_func = druuge_postprocess;
+		druuge_desc_2xres.init_weapon_func = initialize_cannon;
+		druuge_desc_2xres.cyborg_control.intelligence_func = druuge_intelligence;
+		RaceDescPtr = &druuge_desc_2xres;
+	}
+	else
+	{
+		druuge_desc_4xres.preprocess_func = druuge_preprocess;
+		druuge_desc_4xres.postprocess_func = druuge_postprocess;
+		druuge_desc_4xres.init_weapon_func = initialize_cannon;
+		druuge_desc_4xres.cyborg_control.intelligence_func = druuge_intelligence;
+		RaceDescPtr = &druuge_desc_4xres;
+	}
 
 	return (RaceDescPtr);
 }
-
