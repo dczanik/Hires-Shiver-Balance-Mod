@@ -28,7 +28,11 @@
 #define ENERGY_REGENERATION 1
 #define ENERGY_WAIT 8
 #define MAX_THRUST 24
+#define MAX_THRUST_2XRES (MAX_THRUST << 1)
+#define MAX_THRUST_4XRES (MAX_THRUST << 2)
 #define THRUST_INCREMENT 3
+#define THRUST_INCREMENT_2XRES (THRUST_INCREMENT << 1)
+#define THRUST_INCREMENT_4XRES (THRUST_INCREMENT << 2)
 #define THRUST_WAIT 4
 #define TURN_WAIT 1
 #define SHIP_MASS 6
@@ -36,12 +40,14 @@
 // Nuke
 #define WEAPON_ENERGY_COST 9
 #define WEAPON_WAIT 10
-#define HUMAN_OFFSET 42
-#define NUKE_OFFSET 8
-#define MIN_MISSILE_SPEED 40
-#define MAX_MISSILE_SPEED 80
-#define MISSILE_SPEED (MAX_THRUST >= MIN_MISSILE_SPEED ? MAX_THRUST : MIN_MISSILE_SPEED)
-#define THRUST_SCALE 4
+#define HUMAN_OFFSET (42 << RESOLUTION_FACTOR)
+#define NUKE_OFFSET (8 << RESOLUTION_FACTOR)
+#define MIN_MISSILE_SPEED (40 << RESOLUTION_FACTOR)
+#define MAX_MISSILE_SPEED (80 << RESOLUTION_FACTOR)
+#define MISSILE_SPEED ((MAX_THRUST << RESOLUTION_FACTOR) >= MIN_MISSILE_SPEED ?\
+				(MAX_THRUST << RESOLUTION_FACTOR) :\
+					MIN_MISSILE_SPEED)
+#define THRUST_SCALE (4 << RESOLUTION_FACTOR)
 #define MISSILE_LIFE 60
 #define MISSILE_HITS 1
 #define MISSILE_DAMAGE 4
@@ -50,7 +56,7 @@
 // Point-Defense Laser
 #define SPECIAL_ENERGY_COST 4
 #define SPECIAL_WAIT 9
-#define LASER_RANGE (UWORD)100
+#define LASER_RANGE ((UWORD)100 << RESOLUTION_FACTOR)
 
 static RACE_DESC human_desc =
 {
@@ -113,6 +119,150 @@ static RACE_DESC human_desc =
 	{
 		0,
 		LONG_RANGE_WEAPON,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+// JMS_GFX
+static RACE_DESC human_desc_2xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE | SEEKING_WEAPON | LIGHT_POINT_DEFENSE,
+		11, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		HUMAN_RACE_STRINGS,
+		HUMAN_ICON_MASK_PMAP_ANIM,
+		HUMAN_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		0, /* Initial sphere of influence radius */
+		{ /* Known location (center of SoI) */
+			1752, 1450,
+		},
+	},
+	{
+		MAX_THRUST_2XRES,
+		THRUST_INCREMENT_2XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			HUMAN_BIG_MASK_PMAP_ANIM,
+			HUMAN_MED_MASK_PMAP_ANIM,
+			HUMAN_SML_MASK_PMAP_ANIM,
+		},
+		{
+			SATURN_BIG_MASK_PMAP_ANIM,
+			SATURN_MED_MASK_PMAP_ANIM,
+			SATURN_SML_MASK_PMAP_ANIM,
+		},
+		{
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+		},
+		{
+			HUMAN_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		HUMAN_VICTORY_SONG,
+		HUMAN_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		LONG_RANGE_WEAPON_2XRES,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+// JMS_GFX
+static RACE_DESC human_desc_4xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE | SEEKING_WEAPON | LIGHT_POINT_DEFENSE,
+		11, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		HUMAN_RACE_STRINGS,
+		HUMAN_ICON_MASK_PMAP_ANIM,
+		HUMAN_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		0, /* Initial sphere of influence radius */
+		{ /* Known location (center of SoI) */
+			1752, 1450,
+		},
+	},
+	{
+		MAX_THRUST_4XRES,
+		THRUST_INCREMENT_4XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			HUMAN_BIG_MASK_PMAP_ANIM,
+			HUMAN_MED_MASK_PMAP_ANIM,
+			HUMAN_SML_MASK_PMAP_ANIM,
+		},
+		{
+			SATURN_BIG_MASK_PMAP_ANIM,
+			SATURN_MED_MASK_PMAP_ANIM,
+			SATURN_SML_MASK_PMAP_ANIM,
+		},
+		{
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+		},
+		{
+			HUMAN_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		HUMAN_VICTORY_SONG,
+		HUMAN_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		LONG_RANGE_WEAPON_4XRES,
 		NULL,
 	},
 	(UNINIT_FUNC *) NULL,
@@ -354,12 +504,27 @@ init_human (void)
 {
 	RACE_DESC *RaceDescPtr;
 
-	human_desc.postprocess_func = human_postprocess;
-	human_desc.init_weapon_func = initialize_nuke;
-	human_desc.cyborg_control.intelligence_func = human_intelligence;
-
-	RaceDescPtr = &human_desc;
+	if (RESOLUTION_FACTOR == 0)
+	{
+		human_desc.postprocess_func = human_postprocess;
+		human_desc.init_weapon_func = initialize_nuke;
+		human_desc.cyborg_control.intelligence_func = human_intelligence;
+		RaceDescPtr = &human_desc;
+	}
+	else if (RESOLUTION_FACTOR == 1)
+	{
+		human_desc_2xres.postprocess_func = human_postprocess;
+		human_desc_2xres.init_weapon_func = initialize_nuke;
+		human_desc_2xres.cyborg_control.intelligence_func = human_intelligence;
+		RaceDescPtr = &human_desc_2xres;
+	}
+	else
+	{
+		human_desc_4xres.postprocess_func = human_postprocess;
+		human_desc_4xres.init_weapon_func = initialize_nuke;
+		human_desc_4xres.cyborg_control.intelligence_func = human_intelligence;
+		RaceDescPtr = &human_desc_4xres;
+	}
 
 	return (RaceDescPtr);
 }
-
