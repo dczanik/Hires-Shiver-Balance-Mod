@@ -28,7 +28,11 @@
 #define ENERGY_REGENERATION 1
 #define ENERGY_WAIT 4
 #define MAX_THRUST 36
+#define MAX_THRUST_2XRES (MAX_THRUST << 1)
+#define MAX_THRUST_4XRES (MAX_THRUST << 2)
 #define THRUST_INCREMENT 6
+#define THRUST_INCREMENT_2XRES (THRUST_INCREMENT << 1)
+#define THRUST_INCREMENT_4XRES (THRUST_INCREMENT << 2)
 #define THRUST_WAIT 4
 #define TURN_WAIT 4
 #define SHIP_MASS 7
@@ -36,10 +40,12 @@
 // Blaster Pulse
 #define WEAPON_ENERGY_COST 5
 #define WEAPON_WAIT 1
-#define MELNORME_OFFSET 24
+#define MELNORME_OFFSET (24 << RESOLUTION_FACTOR)
 #define LEVEL_COUNTER 72
 #define MAX_PUMP 4
 #define PUMPUP_SPEED 180
+#define PUMPUP_SPEED_2XRES (PUMPUP_SPEED << 1)
+#define PUMPUP_SPEED_4XRES (PUMPUP_SPEED << 2)
 #define PUMPUP_LIFE 10
 #define PUMPUP_DAMAGE 2
 #define MIN_PUMPITUDE_ANIMS 3
@@ -49,11 +55,11 @@
 // Confusion Pulse
 #define SPECIAL_ENERGY_COST 20
 #define SPECIAL_WAIT 20
-#define CMISSILE_SPEED 120
+#define CMISSILE_SPEED (120 << RESOLUTION_FACTOR)
 #define CMISSILE_LIFE 20
 #define CMISSILE_HITS 50
 #define CMISSILE_DAMAGE 0
-#define CMISSILE_OFFSET 4
+#define CMISSILE_OFFSET (4 << RESOLUTION_FACTOR)
 
 static RACE_DESC melnorme_desc =
 {
@@ -116,6 +122,150 @@ static RACE_DESC melnorme_desc =
 	{
 		0,
 		PUMPUP_SPEED * PUMPUP_LIFE,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+// JMS_GFX
+static RACE_DESC melnorme_desc_2xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE,
+		18, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		MELNORME_RACE_STRINGS,
+		MELNORME_ICON_MASK_PMAP_ANIM,
+		MELNORME_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		INFINITE_RADIUS, /* Initial sphere of influence radius */
+		{ /* Known location (center of SoI) */
+			MAX_X_UNIVERSE >> 1, MAX_Y_UNIVERSE >> 1,
+		},
+	},
+	{
+		MAX_THRUST_2XRES,
+		THRUST_INCREMENT_2XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			MELNORME_BIG_MASK_PMAP_ANIM,
+			MELNORME_MED_MASK_PMAP_ANIM,
+			MELNORME_SML_MASK_PMAP_ANIM,
+		},
+		{
+			PUMPUP_BIG_MASK_PMAP_ANIM,
+			PUMPUP_MED_MASK_PMAP_ANIM,
+			PUMPUP_SML_MASK_PMAP_ANIM,
+		},
+		{
+			CONFUSE_BIG_MASK_PMAP_ANIM,
+			CONFUSE_MED_MASK_PMAP_ANIM,
+			CONFUSE_SML_MASK_PMAP_ANIM,
+		},
+		{
+			MELNORME_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		MELNORME_VICTORY_SONG,
+		MELNORME_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		PUMPUP_SPEED_2XRES * PUMPUP_LIFE,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+// JMS_GFX
+static RACE_DESC melnorme_desc_4xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE,
+		18, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		MELNORME_RACE_STRINGS,
+		MELNORME_ICON_MASK_PMAP_ANIM,
+		MELNORME_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		INFINITE_RADIUS, /* Initial sphere of influence radius */
+		{ /* Known location (center of SoI) */
+			MAX_X_UNIVERSE >> 1, MAX_Y_UNIVERSE >> 1,
+		},
+	},
+	{
+		MAX_THRUST_4XRES,
+		THRUST_INCREMENT_4XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			MELNORME_BIG_MASK_PMAP_ANIM,
+			MELNORME_MED_MASK_PMAP_ANIM,
+			MELNORME_SML_MASK_PMAP_ANIM,
+		},
+		{
+			PUMPUP_BIG_MASK_PMAP_ANIM,
+			PUMPUP_MED_MASK_PMAP_ANIM,
+			PUMPUP_SML_MASK_PMAP_ANIM,
+		},
+		{
+			CONFUSE_BIG_MASK_PMAP_ANIM,
+			CONFUSE_MED_MASK_PMAP_ANIM,
+			CONFUSE_SML_MASK_PMAP_ANIM,
+		},
+		{
+			MELNORME_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		MELNORME_VICTORY_SONG,
+		MELNORME_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		PUMPUP_SPEED_4XRES * PUMPUP_LIFE,
 		NULL,
 	},
 	(UNINIT_FUNC *) NULL,
@@ -239,8 +389,8 @@ pump_up_postprocess (ELEMENT *ElementPtr)
 
 			angle = FACING_TO_ANGLE (StarShipPtr->ShipFacing);
 			SetVelocityComponents (&EPtr->velocity,
-					COSINE (angle, WORLD_TO_VELOCITY (PUMPUP_SPEED)),
-					SINE (angle, WORLD_TO_VELOCITY (PUMPUP_SPEED)));
+					COSINE (angle, WORLD_TO_VELOCITY (PUMPUP_SPEED << RESOLUTION_FACTOR)),
+					SINE (angle, WORLD_TO_VELOCITY (PUMPUP_SPEED << RESOLUTION_FACTOR)));
 			GetCurrentVelocityComponents (&ShipPtr->velocity, &dx, &dy);
 			dx = dx * 1/2;
 			dy = dy * 1/2;
@@ -559,7 +709,7 @@ initialize_test_pump_up (ELEMENT *ShipPtr, HELEMENT PumpUpArray[])
 	MissileBlock.sender = ShipPtr->playerNr;
 	MissileBlock.flags = IGNORE_SIMILAR;
 	MissileBlock.pixoffs = MELNORME_OFFSET;
-	MissileBlock.speed = PUMPUP_SPEED;
+	MissileBlock.speed = (PUMPUP_SPEED << RESOLUTION_FACTOR);
 	MissileBlock.hit_points = PUMPUP_DAMAGE;
 	MissileBlock.damage = PUMPUP_DAMAGE;
 	MissileBlock.life = PUMPUP_LIFE;
@@ -697,12 +847,27 @@ init_melnorme (void)
 {
 	RACE_DESC *RaceDescPtr;
 
-	melnorme_desc.postprocess_func = melnorme_postprocess;
-	melnorme_desc.init_weapon_func = initialize_pump_up;
-	melnorme_desc.cyborg_control.intelligence_func = melnorme_intelligence;
-
-	RaceDescPtr = &melnorme_desc;
+	if (RESOLUTION_FACTOR == 0)
+	{
+		melnorme_desc.postprocess_func = melnorme_postprocess;
+		melnorme_desc.init_weapon_func = initialize_pump_up;
+		melnorme_desc.cyborg_control.intelligence_func = melnorme_intelligence;
+		RaceDescPtr = &melnorme_desc;
+	}
+	else if (RESOLUTION_FACTOR == 1)
+	{
+		melnorme_desc_2xres.postprocess_func = melnorme_postprocess;
+		melnorme_desc_2xres.init_weapon_func = initialize_pump_up;
+		melnorme_desc_2xres.cyborg_control.intelligence_func = melnorme_intelligence;
+		RaceDescPtr = &melnorme_desc_2xres;
+	}
+	else
+	{
+		melnorme_desc_4xres.postprocess_func = melnorme_postprocess;
+		melnorme_desc_4xres.init_weapon_func = initialize_pump_up;
+		melnorme_desc_4xres.cyborg_control.intelligence_func = melnorme_intelligence;
+		RaceDescPtr = &melnorme_desc_4xres;
+	}
 
 	return (RaceDescPtr);
 }
-
