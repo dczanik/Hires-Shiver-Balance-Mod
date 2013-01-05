@@ -29,7 +29,11 @@
 #define ENERGY_REGENERATION 1
 #define ENERGY_WAIT 6
 #define MAX_THRUST 44
+#define MAX_THRUST_2XRES (MAX_THRUST << 1)
+#define MAX_THRUST_4XRES (MAX_THRUST << 2)
 #define THRUST_INCREMENT MAX_THRUST
+#define THRUST_INCREMENT_2XRES MAX_THRUST_2XRES
+#define THRUST_INCREMENT_4XRES MAX_THRUST_4XRES
 #define THRUST_WAIT 0
 #define TURN_WAIT 0
 #define SHIP_MASS 1
@@ -38,7 +42,11 @@
 #define WEAPON_ENERGY_COST 2
 #define WEAPON_WAIT 1
 #define ARILOU_OFFSET 9
+#define ARILOU_OFFSET_2XRES (ARILOU_OFFSET << 1)
+#define ARILOU_OFFSET_4XRES (ARILOU_OFFSET << 2)
 #define LASER_RANGE DISPLAY_TO_WORLD (88 + ARILOU_OFFSET)
+#define LASER_RANGE_2XRES DISPLAY_TO_WORLD (200 + ARILOU_OFFSET_2XRES)
+#define LASER_RANGE_4XRES DISPLAY_TO_WORLD (400 + ARILOU_OFFSET_4XRES)
 
 // Teleporter
 #define SPECIAL_ENERGY_COST 4
@@ -46,9 +54,9 @@
 #define TRANSIT_TIME 13
 #define SPECIAL_STUN 4
 #define SPECIAL_LASER_FREEZE 13
-#define PERSONAL_SPACE_BUBBLE		DISPLAY_TO_WORLD (400)
-#define HOP_DISTANCE				DISPLAY_TO_WORLD (240)
-#define HOP_VARIATION				DISPLAY_TO_WORLD (60)
+#define PERSONAL_SPACE_BUBBLE		DISPLAY_TO_WORLD (400 << RESOLUTION_FACTOR)
+#define HOP_DISTANCE			DISPLAY_TO_WORLD (240 << RESOLUTION_FACTOR)
+#define HOP_VARIATION			DISPLAY_TO_WORLD (60 << RESOLUTION_FACTOR)
 
 static RACE_DESC arilou_desc =
 {
@@ -121,6 +129,150 @@ static RACE_DESC arilou_desc =
 	0, /* CodeRef */
 };
 
+// JMS_GFX
+static RACE_DESC arilou_desc_2xres =
+{
+	{ /* SHIP_INFO */
+		/* FIRES_FORE | */ IMMEDIATE_WEAPON,
+		16, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		ARILOU_RACE_STRINGS,
+		ARILOU_ICON_MASK_PMAP_ANIM,
+		ARILOU_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		250 / SPHERE_RADIUS_INCREMENT * 2, /* Initial SoI radius */
+		{ /* Known location (center of SoI) */
+			438, 6372,
+		},
+	},
+	{
+		MAX_THRUST_2XRES,
+		THRUST_INCREMENT_2XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			ARILOU_BIG_MASK_PMAP_ANIM,
+			ARILOU_MED_MASK_PMAP_ANIM,
+			ARILOU_SML_MASK_PMAP_ANIM,
+		},
+		{
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+		},
+		{
+			WARP_BIG_MASK_PMAP_ANIM,
+			WARP_MED_MASK_PMAP_ANIM,
+			WARP_SML_MASK_PMAP_ANIM,
+		},
+		{
+			ARILOU_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		ARILOU_VICTORY_SONG,
+		ARILOU_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		LASER_RANGE_2XRES >> 1,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+// JMS_GFX
+static RACE_DESC arilou_desc_4xres =
+{
+	{ /* SHIP_INFO */
+		/* FIRES_FORE | */ IMMEDIATE_WEAPON,
+		16, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		ARILOU_RACE_STRINGS,
+		ARILOU_ICON_MASK_PMAP_ANIM,
+		ARILOU_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		250 / SPHERE_RADIUS_INCREMENT * 2, /* Initial SoI radius */
+		{ /* Known location (center of SoI) */
+			438, 6372,
+		},
+	},
+	{
+		MAX_THRUST_4XRES,
+		THRUST_INCREMENT_4XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			ARILOU_BIG_MASK_PMAP_ANIM,
+			ARILOU_MED_MASK_PMAP_ANIM,
+			ARILOU_SML_MASK_PMAP_ANIM,
+		},
+		{
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+		},
+		{
+			WARP_BIG_MASK_PMAP_ANIM,
+			WARP_MED_MASK_PMAP_ANIM,
+			WARP_SML_MASK_PMAP_ANIM,
+		},
+		{
+			ARILOU_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		ARILOU_VICTORY_SONG,
+		ARILOU_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		LASER_RANGE_4XRES >> 1,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
 static COUNT
 initialize_autoaim_laser (ELEMENT *ShipPtr, HELEMENT LaserArray[])
 {
@@ -138,11 +290,11 @@ initialize_autoaim_laser (ELEMENT *ShipPtr, HELEMENT LaserArray[])
 
 	LaserBlock.cx = ShipPtr->next.location.x;
 	LaserBlock.cy = ShipPtr->next.location.y;
-	LaserBlock.ex = COSINE (FACING_TO_ANGLE (LaserBlock.face), LASER_RANGE);
-	LaserBlock.ey = SINE (FACING_TO_ANGLE (LaserBlock.face), LASER_RANGE);
+	LaserBlock.ex = COSINE (FACING_TO_ANGLE (LaserBlock.face), (LASER_RANGE << RESOLUTION_FACTOR));
+	LaserBlock.ey = SINE (FACING_TO_ANGLE (LaserBlock.face), (LASER_RANGE << RESOLUTION_FACTOR));
 	LaserBlock.sender = ShipPtr->playerNr;
 	LaserBlock.flags = IGNORE_SIMILAR;
-	LaserBlock.pixoffs = ARILOU_OFFSET;
+	LaserBlock.pixoffs = (ARILOU_OFFSET << RESOLUTION_FACTOR);
 	LaserBlock.color = BUILD_COLOR (MAKE_RGB15 (0x1F, 0x1F, 0x0A), 0x0E);
 	LaserArray[0] = initialize_laser (&LaserBlock);
 
@@ -463,12 +615,27 @@ init_arilou (void)
 {
 	RACE_DESC *RaceDescPtr;
 
-	arilou_desc.preprocess_func = arilou_preprocess;
-	arilou_desc.init_weapon_func = initialize_autoaim_laser;
-	arilou_desc.cyborg_control.intelligence_func = arilou_intelligence;
-
-	RaceDescPtr = &arilou_desc;
-
+	// JMS_GFX: A rather clumsy way of giving ship correct stats at hi-res mode
+	if (RESOLUTION_FACTOR == 0)
+	{
+		arilou_desc.preprocess_func = arilou_preprocess;
+		arilou_desc.init_weapon_func = initialize_autoaim_laser;
+		arilou_desc.cyborg_control.intelligence_func = arilou_intelligence;
+		RaceDescPtr = &arilou_desc;
+	}
+	else if (RESOLUTION_FACTOR == 1)
+	{
+		arilou_desc_2xres.preprocess_func = arilou_preprocess;
+		arilou_desc_2xres.init_weapon_func = initialize_autoaim_laser;
+		arilou_desc_2xres.cyborg_control.intelligence_func = arilou_intelligence;
+		RaceDescPtr = &arilou_desc_2xres;
+	}
+	else
+	{
+		arilou_desc_4xres.preprocess_func = arilou_preprocess;
+		arilou_desc_4xres.init_weapon_func = initialize_autoaim_laser;
+		arilou_desc_4xres.cyborg_control.intelligence_func = arilou_intelligence;
+		RaceDescPtr = &arilou_desc_4xres;
+	}
 	return (RaceDescPtr);
 }
-
