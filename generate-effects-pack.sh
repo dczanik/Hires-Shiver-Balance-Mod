@@ -13,8 +13,8 @@
 if [ $1 ]
 then
     cd content/addons
-    zip -r $1 balance
+    zip -r $1 balance-2x balance-4x
 else
     cd content/addons
-    zip -r balance-effects-unified.zip balance
+    zip -r balance-effects-hires.zip balance-2x balance-4x
 fi
