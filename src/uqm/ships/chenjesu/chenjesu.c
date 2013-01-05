@@ -28,7 +28,11 @@
 #define ENERGY_REGENERATION 1
 #define ENERGY_WAIT 4
 #define MAX_THRUST  27
+#define MAX_THRUST_2XRES (MAX_THRUST << 1)
+#define MAX_THRUST_4XRES (MAX_THRUST << 2)
 #define THRUST_INCREMENT 3
+#define THRUST_INCREMENT_2XRES (THRUST_INCREMENT << 1)
+#define THRUST_INCREMENT_4XRES (THRUST_INCREMENT << 2)
 #define THRUST_WAIT 4
 #define TURN_WAIT 6
 #define SHIP_MASS 9
@@ -36,32 +40,32 @@
 // Photon shard
 #define WEAPON_ENERGY_COST 5
 #define WEAPON_WAIT 0
-#define CHENJESU_OFFSET 16
+#define CHENJESU_OFFSET (16 << RESOLUTION_FACTOR)
 #define MISSILE_OFFSET 0
-#define MISSILE_SPEED 64
-#define FRAGMENT_SPEED 100
+#define MISSILE_SPEED (64 << RESOLUTION_FACTOR)
+#define FRAGMENT_SPEED (100 << RESOLUTION_FACTOR)
 #define MISSILE_LIFE 90
 #define MISSILE_HITS 10
 #define MISSILE_DAMAGE 6
 #define NUM_SPARKLES 8
 
 // Shrapnel
-#define FRAGMENT_OFFSET 2
+#define FRAGMENT_OFFSET (2 << RESOLUTION_FACTOR)
 #define NUM_FRAGMENTS 8
 #define TWIRL_OUT 7
 #define TWIRL_IN 8
 #define FRAGMENT_LIFE (TWIRL_OUT + TWIRL_IN)
-#define FRAGMENT_RANGE DISPLAY_TO_WORLD (120) // This bit is for the cyborg only.
+#define FRAGMENT_RANGE (DISPLAY_TO_WORLD (120) << RESOLUTION_FACTOR) // This bit is for the cyborg only.
 #define FRAGMENT_HITS 1
 #define FRAGMENT_DAMAGE 1
 
 // DOGI
 #define SPECIAL_ENERGY_COST MAX_ENERGY
 #define SPECIAL_WAIT 0
-#define DOGGY_OFFSET 20
-#define DOGGY_SPEED 32
+#define DOGGY_OFFSET (20 << RESOLUTION_FACTOR)
+#define DOGGY_SPEED (32 << RESOLUTION_FACTOR)
 #define ENERGY_DRAIN 10
-#define FREE_DOGGY_OFFSET 68 
+#define FREE_DOGGY_OFFSET (68 << RESOLUTION_FACTOR)
 #define MAX_DOGGIES 4
 #define DOGGY_HITS 3
 #define DOGGY_MASS 4
@@ -127,6 +131,150 @@ static RACE_DESC chenjesu_desc =
 	{
 		0,
 		LONG_RANGE_WEAPON,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+// JMS_GFX
+static RACE_DESC chenjesu_desc_2xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE | SEEKING_SPECIAL | SEEKING_WEAPON,
+		28, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		CHENJESU_RACE_STRINGS,
+		CHENJESU_ICON_MASK_PMAP_ANIM,
+		CHENJESU_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		0, /* Initial sphere of influence radius */
+		{ /* Known location (center of SoI) */
+			0, 0,
+		},
+	},
+	{
+		MAX_THRUST_2XRES,
+		THRUST_INCREMENT_2XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			CHENJESU_BIG_MASK_PMAP_ANIM,
+			CHENJESU_MED_MASK_PMAP_ANIM,
+			CHENJESU_SML_MASK_PMAP_ANIM,
+		},
+		{
+			SPARK_BIG_MASK_PMAP_ANIM,
+			SPARK_MED_MASK_PMAP_ANIM,
+			SPARK_SML_MASK_PMAP_ANIM,
+		},
+		{
+			DOGGY_BIG_MASK_PMAP_ANIM,
+			DOGGY_MED_MASK_PMAP_ANIM,
+			DOGGY_SML_MASK_PMAP_ANIM,
+		},
+		{
+			CHENJESU_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		CHENJESU_VICTORY_SONG,
+		CHENJESU_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		LONG_RANGE_WEAPON_2XRES,
+		NULL,
+	},
+	(UNINIT_FUNC *) NULL,
+	(PREPROCESS_FUNC *) NULL,
+	(POSTPROCESS_FUNC *) NULL,
+	(INIT_WEAPON_FUNC *) NULL,
+	0,
+	0, /* CodeRef */
+};
+
+// JMS_GFX
+static RACE_DESC chenjesu_desc_4xres =
+{
+	{ /* SHIP_INFO */
+		FIRES_FORE | SEEKING_SPECIAL | SEEKING_WEAPON,
+		28, /* Super Melee cost */
+		MAX_CREW, MAX_CREW,
+		MAX_ENERGY, MAX_ENERGY,
+		CHENJESU_RACE_STRINGS,
+		CHENJESU_ICON_MASK_PMAP_ANIM,
+		CHENJESU_MICON_MASK_PMAP_ANIM,
+		NULL, NULL, NULL
+	},
+	{ /* FLEET_STUFF */
+		0, /* Initial sphere of influence radius */
+		{ /* Known location (center of SoI) */
+			0, 0,
+		},
+	},
+	{
+		MAX_THRUST_4XRES,
+		THRUST_INCREMENT_4XRES,
+		ENERGY_REGENERATION,
+		WEAPON_ENERGY_COST,
+		SPECIAL_ENERGY_COST,
+		ENERGY_WAIT,
+		TURN_WAIT,
+		THRUST_WAIT,
+		WEAPON_WAIT,
+		SPECIAL_WAIT,
+		SHIP_MASS,
+	},
+	{
+		{
+			CHENJESU_BIG_MASK_PMAP_ANIM,
+			CHENJESU_MED_MASK_PMAP_ANIM,
+			CHENJESU_SML_MASK_PMAP_ANIM,
+		},
+		{
+			SPARK_BIG_MASK_PMAP_ANIM,
+			SPARK_MED_MASK_PMAP_ANIM,
+			SPARK_SML_MASK_PMAP_ANIM,
+		},
+		{
+			DOGGY_BIG_MASK_PMAP_ANIM,
+			DOGGY_MED_MASK_PMAP_ANIM,
+			DOGGY_SML_MASK_PMAP_ANIM,
+		},
+		{
+			CHENJESU_CAPTAIN_MASK_PMAP_ANIM,
+			NULL, NULL, NULL, NULL, NULL
+		},
+		CHENJESU_VICTORY_SONG,
+		CHENJESU_SHIP_SOUNDS,
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		{ NULL, NULL, NULL },
+		NULL, NULL
+	},
+	{
+		0,
+		LONG_RANGE_WEAPON_4XRES,
 		NULL,
 	},
 	(UNINIT_FUNC *) NULL,
@@ -673,13 +821,31 @@ init_chenjesu (void)
 {
 	RACE_DESC *RaceDescPtr;
 
-	chenjesu_desc.preprocess_func = chenjesu_preprocess;
-	chenjesu_desc.postprocess_func = chenjesu_postprocess;
-	chenjesu_desc.init_weapon_func = initialize_crystal;
-	chenjesu_desc.cyborg_control.intelligence_func = chenjesu_intelligence;
-
-	RaceDescPtr = &chenjesu_desc;
-
+	// JMS_GFX: A rather clumsy way of giving ship correct stats at hi-res mode
+	if (RESOLUTION_FACTOR == 0)
+	{
+		chenjesu_desc.preprocess_func = chenjesu_preprocess;
+		chenjesu_desc.postprocess_func = chenjesu_postprocess;
+		chenjesu_desc.init_weapon_func = initialize_crystal;
+		chenjesu_desc.cyborg_control.intelligence_func = chenjesu_intelligence;
+		RaceDescPtr = &chenjesu_desc;
+	}
+	else if (RESOLUTION_FACTOR == 1)
+	{
+		chenjesu_desc_2xres.preprocess_func = chenjesu_preprocess;
+		chenjesu_desc_2xres.postprocess_func = chenjesu_postprocess;
+		chenjesu_desc_2xres.init_weapon_func = initialize_crystal;
+		chenjesu_desc_2xres.cyborg_control.intelligence_func = chenjesu_intelligence;
+		RaceDescPtr = &chenjesu_desc_2xres;
+	}
+	else
+	{
+		chenjesu_desc_4xres.preprocess_func = chenjesu_preprocess;
+		chenjesu_desc_4xres.postprocess_func = chenjesu_postprocess;
+		chenjesu_desc_4xres.init_weapon_func = initialize_crystal;
+		chenjesu_desc_4xres.cyborg_control.intelligence_func = chenjesu_intelligence;
+		RaceDescPtr = &chenjesu_desc_4xres;
+	}
+	
 	return (RaceDescPtr);
 }
-
