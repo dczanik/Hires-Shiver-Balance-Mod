@@ -420,7 +420,7 @@ SaveGameState (const GAME_STATE *GSPtr, DECODE_REF fh)
 
 	//log_add (log_Debug, "Size:%lu, divided:%lu", sizeof (GSPtr->GameState), sizeof (GSPtr->GameState) % 4);
 	
-	assert (sizeof (GSPtr->GameState) % 4 == 1);
+	//assert (sizeof (GSPtr->GameState) % 4 == 1);
 	cwrite_8  (fh, 0); /* GAME_STATE alignment padding */
 }
 
@@ -455,6 +455,17 @@ SaveSisState (const SIS_STATE *SSPtr, void *fp)
 static BOOLEAN
 SaveSummary (const SUMMARY_DESC *SummPtr, void *fp)
 {
+	UNICODE SaveNameCheck[SAVE_CHECKER_SIZE] = {0};
+	strncpy(SaveNameCheck, SAVE_NAME_CHECKER, SAVE_CHECKER_SIZE);
+	
+	// JMS: First we store the savegamename identifier (which tells the code
+	// that this savegame has an user-given name) and the name itself.
+	if (
+		write_str (fp, SaveNameCheck, SAVE_CHECKER_SIZE) != 1 ||
+		write_str (fp, Global_save_name, SAVE_NAME_SIZE) != 1
+		)
+		return FALSE;
+	
 	if (!SaveSisState (&SummPtr->SS, fp))
 		return FALSE;
 

@@ -41,6 +41,7 @@ CONTEXT RadarContext;
 FRAME PlayFrame;
 
 GLOBDATA GlobData;
+UNICODE Global_save_name[SAVE_NAME_SIZE]; // JMS
 
 static BOOLEAN initedGameStructs = FALSE;
 
@@ -342,6 +343,10 @@ InitGameStructures (void)
 	CurStarDescPtr = 0;
 	GLOBAL (autopilot.x) = ~0;
 	GLOBAL (autopilot.y) = ~0;
+	
+	// JMS
+	for (i = 0; i < SAVE_NAME_SIZE ; i++)
+		Global_save_name[i] = 0;
 
 	/* In case the program is exited before the full game is terminated,
 	 * make sure that the temporary files are deleted.

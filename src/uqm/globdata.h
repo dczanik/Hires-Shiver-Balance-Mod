@@ -1086,6 +1086,7 @@ typedef struct
 } GLOBDATA;
 
 extern GLOBDATA GlobData;
+extern UNICODE Global_save_name[SAVE_NAME_SIZE]; // JMS
 #define GLOBAL(f) GlobData.Game_state.f
 #define GLOBAL_SIS(f) GlobData.SIS_state.f
 

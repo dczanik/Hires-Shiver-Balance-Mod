@@ -128,6 +128,9 @@ enum
 	{3 + 42, 30 + (5 * 16)},
 
 #define SIS_NAME_SIZE 16
+#define SAVE_NAME_SIZE 32 // JMS
+#define SAVE_NAME_CHECKER "superbutcherX !" // JMS
+#define SAVE_CHECKER_SIZE SIS_NAME_SIZE
 
 typedef struct
 {
@@ -163,6 +166,8 @@ typedef struct
 
 typedef struct
 {
+	UNICODE SaveNameChecker[SAVE_CHECKER_SIZE]; // JMS
+	UNICODE SaveName[SAVE_NAME_SIZE]; // JMS
 	SIS_STATE SS;
 	BYTE Activity;
 	BYTE Flags;

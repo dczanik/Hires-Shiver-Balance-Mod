@@ -499,7 +499,7 @@ LoadGameState (GAME_STATE *GSPtr, DECODE_REF fh)
 
 	cread_a8  (fh, GSPtr->GameState, sizeof (GSPtr->GameState));
 
-	//assert (sizeof (GSPtr->GameState) % 4 == 3);
+	//assert (sizeof (GSPtr->GameState) % 4 == 1);
 	cread_8  (fh, NULL); /* GAME_STATE alignment padding */
 }
 
@@ -539,9 +539,72 @@ LoadSisState (SIS_STATE *SSPtr, void *fp)
 static BOOLEAN
 LoadSummary (SUMMARY_DESC *SummPtr, void *fp)
 {
+	// JMS: New variables required for compatibility between
+	// old, unnamed saves and the new, named ones.
+	BOOLEAN no_savename = false;
+	SDWORD  temp_log_x = 0;
+	SDWORD  temp_log_y = 0;
+	DWORD   temp_ru    = 0;
+	DWORD   temp_fuel  = 0;
+	
+	// JMS: Reading the savegame name.
+	{
+		// First we check if there is a savegamename identifier.
+		// The identifier tells us whether the name exists at all.
+		read_str (fp, SummPtr->SaveNameChecker, SAVE_CHECKER_SIZE);
+		
+		// If the name doesn't exist (because this most probably
+		// is a savegame from an older version), we have to rewind the
+		// savefile to be able to read the saved variables into their
+		// correct places.
+		if (strncmp(SummPtr->SaveNameChecker, SAVE_NAME_CHECKER, SAVE_CHECKER_SIZE))
+		{
+			COUNT i;
+			
+			// Apparently the bytes read to SummPtr->SaveNameChecker with
+			// read_str are destroyed from fp, so we must copy these bytes
+			// to temp variables at this point to preserve them.
+			no_savename = true;
+			memcpy(&temp_log_x, SummPtr->SaveNameChecker, sizeof(SDWORD));
+			memcpy(&temp_log_y, &(SummPtr->SaveNameChecker[sizeof(SDWORD)]), sizeof(SDWORD));
+			memcpy(&temp_ru, &(SummPtr->SaveNameChecker[2 * sizeof(SDWORD)]), sizeof(DWORD));
+			memcpy(&temp_fuel, &(SummPtr->SaveNameChecker[2 * sizeof(SDWORD)+ sizeof(DWORD)]), sizeof(DWORD));
+			
+			// Rewind the position in savefile.
+			for (i = 0; i < SAVE_CHECKER_SIZE; i++)
+				uio_ungetc (1, (uio_Stream *) fp);
+			
+			// Zero the bogus savenamechecker.
+			for (i = 0; i < SAVE_CHECKER_SIZE; i++)
+				SummPtr->SaveNameChecker[i] = 0;
+			
+			// Make sure the save's name is empty.
+			for (i = 0; i < SAVE_NAME_SIZE; i++)
+				SummPtr->SaveName[i] = 0;
+		}
+		else
+		{
+			// If the name identifier exists, let's also read
+			// the savegame's actual name, which is situated right
+			// after the identifier.
+			read_str (fp, SummPtr->SaveName, SAVE_NAME_SIZE);
+		}
+		
+		//log_add (log_Debug, "fp: %d Check:%s Name:%s", fp, SummPtr->SaveNameChecker, SummPtr->SaveName);
+	}
+	
 	if (!LoadSisState (&SummPtr->SS, fp))
 		return FALSE;
-
+		
+	// JMS: Now we'll put those temp variables into action.
+	if (no_savename)
+	{
+		SummPtr->SS.log_x = temp_log_x;
+		SummPtr->SS.log_y = temp_log_y;
+		SummPtr->SS.ResUnits = temp_ru;
+		SummPtr->SS.FuelOnBoard = temp_fuel;
+	}
+	
 	if (
 			read_8  (fp, &SummPtr->Activity) != 1 ||
 			read_8  (fp, &SummPtr->Flags) != 1 ||

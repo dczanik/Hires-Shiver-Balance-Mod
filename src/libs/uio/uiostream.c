@@ -264,9 +264,11 @@ uio_ungetc(int c, uio_Stream *stream) {
 	assert((stream->openFlags & O_ACCMODE) != O_WRONLY);
 	assert(c >= 0 && c <= 255);
 
-	return (int) EOF;
-			// not implemented
-//	return c;
+	//return (int) EOF;
+	
+	stream->operation = uio_StreamOperation_read;
+	stream->dataStart -= c;
+	return c;
 }
 
 // NB. POSIX allows errno to be set for vsprintf(), but does not require it:

@@ -37,6 +37,7 @@
 #include "sounds.h"
 #include "util.h"
 #include "libs/graphics/gfx_common.h"
+#include "libs/log.h"
 
 #include "process.h" // JMS
 
@@ -433,6 +434,174 @@ NameCaptainOrShip (bool nameCaptain, bool gamestart)
 	}
 
 	SetMenuSounds (MENU_SOUND_ARROWS, MENU_SOUND_SELECT);
+}
+
+// JMS
+static BOOLEAN
+DrawSaveNameString (UNICODE *Str, COUNT CursorPos, COUNT state, COUNT gameIndex)
+{
+	RECT r;
+	TEXT lf;
+	Color BackGround, ForeGround;
+	FONT Font;
+	
+	LockMutex (GraphicsLock);
+	
+	SetContextForeGroundColor (BUILD_COLOR (MAKE_RGB15 (0x1B, 0x00, 0x1B), 0x33));
+	r.extent.width = 15 << RESOLUTION_FACTOR; // JMS_GFX
+	if (MAX_SAVED_GAMES > 99)
+		r.extent.width += 5 << RESOLUTION_FACTOR; // JMS_GFX
+	r.extent.height = 11 << RESOLUTION_FACTOR; // JMS_GFX
+	r.corner.x = 8 << RESOLUTION_FACTOR; // JMS_GFX
+	r.corner.y = (160 + ((gameIndex % SAVES_PER_PAGE) * 13)) << RESOLUTION_FACTOR; // JMS_GFX
+	DrawRectangle (&r);
+	
+	r.extent.width = (204 - SAFE_X) << RESOLUTION_FACTOR; // JMS_GFX
+	r.corner.x = (30 + SAFE_X) << RESOLUTION_FACTOR; // JMS_GFX
+	DrawRectangle (&r);
+		
+	Font = TinyFont;
+	lf.baseline.x = r.corner.x + (3 << RESOLUTION_FACTOR);
+	lf.baseline.y = r.corner.y + (8 << RESOLUTION_FACTOR); // JMS_GFX
+			
+	BackGround = BUILD_COLOR (MAKE_RGB15 (0x1B, 0x00, 0x1B), 0x33);
+	ForeGround = BUILD_COLOR (MAKE_RGB15 (0x00, 0x00, 0x14), 0x01);
+		
+	lf.align = ALIGN_LEFT;
+	
+	SetContextFont (Font);
+	lf.pStr = Str;
+	lf.CharCount = (COUNT)~0;
+	
+	if (!(state & DDSHS_EDIT))
+	{	
+		//RECT r;
+		TEXT t;
+		
+		SetContextForeGroundColor (BLACK_COLOR);
+		DrawFilledRectangle (&r);
+		
+		t.baseline.x = r.corner.x + (3 << RESOLUTION_FACTOR);
+		t.baseline.y = r.corner.y + (8 << RESOLUTION_FACTOR); // JMS_GFX
+		t.align = ALIGN_LEFT;
+		t.pStr = Global_save_name;
+		t.CharCount = (COUNT)~0;
+		SetContextForeGroundColor (CAPTAIN_NAME_TEXT_COLOR);
+		font_DrawText (&t);
+	}
+	else
+	{	// editing state
+		COUNT i;
+		RECT text_r;
+		BYTE char_deltas[SAVE_NAME_SIZE];
+		BYTE *pchar_deltas;
+		
+		TextRect (&lf, &text_r, char_deltas);
+		if ((text_r.extent.width + 2) >= r.extent.width)
+		{	// the text does not fit the input box size and so
+			// will not fit when displayed later
+			UnlockMutex (GraphicsLock);
+			// disallow the change
+			return (FALSE);
+		}
+		
+		SetContextForeGroundColor (BackGround);
+		DrawFilledRectangle (&r);
+		
+		pchar_deltas = char_deltas;
+		
+		for (i = CursorPos; i > 0; --i)
+			text_r.corner.x += *pchar_deltas++;
+		if (CursorPos < lf.CharCount) /* end of line */
+			--text_r.corner.x;
+		
+		if (state & DDSHS_BLOCKCUR)
+		{	// Use block cursor for keyboardless systems
+			if (CursorPos == lf.CharCount)
+			{	// cursor at end-line -- use insertion point
+				text_r.extent.width = 1;
+			}
+			else if (CursorPos + 1 == lf.CharCount)
+			{	// extra pixel for last char margin
+				text_r.extent.width = (SIZE)*pchar_deltas + 2;
+			}
+			else
+			{	// normal mid-line char
+				text_r.extent.width = (SIZE)*pchar_deltas + 1;
+			}
+		}
+		else
+		{	// Insertion point cursor
+			text_r.extent.width = 1;
+		}
+		
+		text_r.corner.y = r.corner.y;
+		text_r.extent.height = r.extent.height;
+		SetContextForeGroundColor (BLACK_COLOR);
+		DrawFilledRectangle (&text_r);
+		
+		SetContextForeGroundColor (ForeGround);
+		font_DrawText (&lf);
+		
+		SetFlashRect (&r);
+	}
+	
+	UnlockMutex (GraphicsLock);
+	return (TRUE);
+}
+
+// JMS
+static BOOLEAN
+OnSaveNameChange (TEXTENTRY_STATE *pTES)
+{
+	COUNT hl = DDSHS_EDIT;
+	COUNT *gameIndex = pTES->CbParam;
+	
+	if (pTES->JoystickMode)
+		hl |= DDSHS_BLOCKCUR;
+	
+	return DrawSaveNameString (pTES->BaseStr, pTES->CursorPos, hl, *gameIndex);
+}
+
+// JMS
+static void
+NameSaveGame (COUNT gameIndex)
+{
+	UNICODE buf[SAVE_NAME_SIZE] = "";
+	TEXTENTRY_STATE tes;
+	UNICODE *Setting;
+	COUNT CursPos = 0; // JMS
+	COUNT *gIndex = HMalloc (sizeof (COUNT));
+	*gIndex = gameIndex;
+	
+	DrawSaveNameString (buf, CursPos, DDSHS_EDIT, gameIndex);
+	
+	Setting = Global_save_name;
+	tes.MaxSize = SAVE_NAME_SIZE;
+	
+	// text entry setup
+	tes.Initialized = FALSE;
+	tes.BaseStr = buf;
+	tes.CursorPos = CursPos;
+	tes.CbParam = gIndex;
+	tes.ChangeCallback = OnSaveNameChange;
+	tes.FrameCallback = 0;
+	
+	if (DoTextEntry (&tes))
+		utf8StringCopy (Setting, tes.MaxSize, buf);
+	else
+		utf8StringCopy (buf, sizeof (buf), Setting);
+	
+	DrawSaveNameString (buf, CursPos, DDSHS_NORMAL, gameIndex);
+
+	if (namingCB)
+		namingCB ();
+	
+	SetMenuSounds (MENU_SOUND_ARROWS, MENU_SOUND_SELECT);
+	
+	HFree (gIndex);
+	
+	SetFlashRect (NULL);
 }
 
 // JMS: This is for naming captain and ship at game start.
@@ -877,6 +1046,8 @@ DrawGameSelection (PICK_GAME_STATE *pickState, COUNT selSlot)
 	COUNT curSlot;
 	UNICODE buf[256];
 	UNICODE buf2[80];
+	UNICODE *SaveName; // JMS
+	UNICODE unnamedSave[16] = "(Unnamed Save)"; // JMS
 	
 	BatchGraphics ();
 
@@ -930,11 +1101,19 @@ DrawGameSelection (PICK_GAME_STATE *pickState, COUNT selSlot)
 		}
 		else
 		{
+			// JMS: If a savegamename identifier is found, this save
+			// has an user-given name and we can use it.
+			// Otherwise we'll use the default "unnamed save" for this
+			// savegame (it's most probably a save from an older version,
+			// which didn't feature user-given names for saves.)
+			if (!(strncmp(desc->SaveNameChecker, SAVE_NAME_CHECKER, SAVE_CHECKER_SIZE)))
+				SaveName = desc->SaveName;
+			else
+				SaveName = unnamedSave;
+			
 			DateToString (buf2, sizeof buf2, desc->month_index,
 					desc->day_index, desc->year_index);
-			snprintf (buf, sizeof buf, "%s %s",
-					GAME_STRING (SAVEGAME_STRING_BASE + 4), buf2);
-						// "Saved Game - Date:"
+			snprintf (buf, sizeof buf, "%s: %s", buf2, SaveName); // JMS
 		}
 		font_DrawText (&t);
 	}
@@ -1060,7 +1239,11 @@ SaveLoadGame (PICK_GAME_STATE *pickState, COUNT gameIndex)
 	UnlockMutex (GraphicsLock);
 
 	if (pickState->saving)
+	{
+		NameSaveGame (gameIndex);
+		//PlayMenuSound (MENU_SOUND_SUCCESS);
 		success = SaveGame (gameIndex, desc);
+	}
 	else
 		success = LoadGame (gameIndex, NULL);
 
