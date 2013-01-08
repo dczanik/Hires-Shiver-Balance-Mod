@@ -206,7 +206,6 @@ DrawNameString (bool nameCaptain, UNICODE *Str, COUNT CursorPos,
 	LockMutex (GraphicsLock);
 
 	{
-		r.extent.width = SHIP_NAME_WIDTH;
 		r.extent.height = SHIP_NAME_HEIGHT;
 
 		SetContext (StatusContext);
@@ -216,6 +215,7 @@ DrawNameString (bool nameCaptain, UNICODE *Str, COUNT CursorPos,
 			r.corner.x = RES_STAT_SCALE(3) - RES_CASE(0,2,5); // JMS_GFX
 			r.corner.y = RES_CASE(10,18,32); // JMS_GFX
 			r.extent.height += RESOLUTION_FACTOR; // JMS_GFX
+			r.extent.width = SHIP_NAME_WIDTH - RES_CASE(2,0,0);		// JMS_GFX
 			lf.baseline.x = (STATUS_WIDTH >> 1) - RES_CASE(1,0,-1);
 			lf.baseline.y = r.corner.y + r.extent.height - RES_CASE(1,0,3);
 
@@ -227,6 +227,7 @@ DrawNameString (bool nameCaptain, UNICODE *Str, COUNT CursorPos,
 			Font = StarConFont;
 			r.corner.x = RES_CASE(2,4,5); // JMS_GFX;
 			r.corner.y = RES_CASE(20,40,67); // JMS_GFX;
+			r.extent.width = SHIP_NAME_WIDTH;
 			lf.baseline.x = r.corner.x + (r.extent.width >> 1);
 			lf.baseline.y = r.corner.y + r.extent.height - RES_CASE(1,3,3); // JMS_GFX
 
@@ -564,7 +565,7 @@ OnSaveNameChange (TEXTENTRY_STATE *pTES)
 }
 
 // JMS
-static void
+static BOOLEAN
 NameSaveGame (COUNT gameIndex)
 {
 	UNICODE buf[SAVE_NAME_SIZE] = "";
@@ -602,6 +603,11 @@ NameSaveGame (COUNT gameIndex)
 	HFree (gIndex);
 	
 	SetFlashRect (NULL);
+	
+	if (tes.Success)
+		return (TRUE);
+	else
+		return (FALSE);
 }
 
 // JMS: This is for naming captain and ship at game start.
@@ -1224,7 +1230,7 @@ DoPickGame (MENU_STATE *pMS)
 }
 
 static BOOLEAN
-SaveLoadGame (PICK_GAME_STATE *pickState, COUNT gameIndex)
+SaveLoadGame (PICK_GAME_STATE *pickState, COUNT gameIndex, BOOLEAN *canceled_by_user)
 {
 	SUMMARY_DESC *desc = pickState->summary + gameIndex;
 	STAMP saveStamp;
@@ -1240,9 +1246,16 @@ SaveLoadGame (PICK_GAME_STATE *pickState, COUNT gameIndex)
 
 	if (pickState->saving)
 	{
-		NameSaveGame (gameIndex);
-		//PlayMenuSound (MENU_SOUND_SUCCESS);
-		success = SaveGame (gameIndex, desc);
+		if (NameSaveGame (gameIndex))
+		{
+			PlayMenuSound (MENU_SOUND_SUCCESS);
+			success = SaveGame (gameIndex, desc);
+		}
+		else
+		{
+			success = FALSE;
+			*canceled_by_user = TRUE;
+		}
 	}
 	else
 		success = LoadGame (gameIndex, NULL);
@@ -1331,6 +1344,8 @@ PickGame (BOOLEAN saving, BOOLEAN fromMainMenu)
 	// Save/load retry loop
 	while (1)
 	{
+		BOOLEAN canceled_by_user = FALSE;
+		
 		pickState.success = FALSE;
 		DoInput (&MenuState, TRUE);
 		if (!pickState.success)
@@ -1338,11 +1353,11 @@ PickGame (BOOLEAN saving, BOOLEAN fromMainMenu)
 
 		lastUsedSlot = MenuState.CurState;
 
-		if (SaveLoadGame (&pickState, MenuState.CurState))
+		if (SaveLoadGame (&pickState, MenuState.CurState, &canceled_by_user))
 			break; // all good
 
 		// something broke
-		if (saving)
+		if (saving && !canceled_by_user)
 			SaveProblem ();
 		// TODO: Shouldn't we have a Problem() equivalent for Load too?
 

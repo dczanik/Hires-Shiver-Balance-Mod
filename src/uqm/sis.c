@@ -470,10 +470,10 @@ DrawCaptainsName (void)
 	OldContext = SetContext (StatusContext);
 	OldFont = SetContextFont (TinyFont);
 	OldColor = SetContextForeGroundColor (CAPTAIN_NAME_BACKGROUND_COLOR);
-
+	
 	r.corner.x = RES_STAT_SCALE(3) - RES_CASE(0,2,5);		// JMS_GFX
 	r.corner.y = RES_CASE(10,18,32);						// JMS_GFX
-	r.extent.width = SHIP_NAME_WIDTH;						// JMS_GFX
+	r.extent.width = SHIP_NAME_WIDTH - RES_CASE(2,0,0);		// JMS_GFX
 	r.extent.height = SHIP_NAME_HEIGHT + RESOLUTION_FACTOR;	// JMS_GFX
 	DrawFilledRectangle (&r);
 
