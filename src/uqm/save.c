@@ -599,10 +599,10 @@ SaveProblemMessage (STAMP *MsgStamp)
 			- r.corner.x;
 	t.baseline.y = ((SIS_SCREEN_HEIGHT >> 1) - (r.extent.height >> 1))
 			- r.corner.y;
-	r.corner.x += t.baseline.x - 4;
-	r.corner.y += t.baseline.y - 4;
-	r.extent.width += 8;
-	r.extent.height += 8;
+	r.corner.x += t.baseline.x - (4 << RESOLUTION_FACTOR);
+	r.corner.y += t.baseline.y - (4 << RESOLUTION_FACTOR);
+	r.extent.width += (8 << RESOLUTION_FACTOR);
+	r.extent.height += (8 << RESOLUTION_FACTOR);
 
 	*MsgStamp = SaveContextFrame (&r);
 	

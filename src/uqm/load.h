@@ -25,6 +25,7 @@
 extern ACTIVITY NextActivity;
 
 extern BOOLEAN LoadGame (COUNT which_game, SUMMARY_DESC *summary_desc);
+extern void LoadProblemMessage ();
 
 
 #endif  /* _LOAD_H */

@@ -1032,7 +1032,11 @@ DrawSavegameSummary (PICK_GAME_STATE *pickState, COUNT gameIndex)
 		}
 		t.CharCount = (COUNT)~0;
 		font_DrawText (&t);
-
+		
+		// JMS: Let's warn the user about bogus savegames.
+		if (strncmp(pSD->SaveNameChecker, SAVE_NAME_CHECKER, SAVE_CHECKER_SIZE))
+			LoadProblemMessage ();
+		
 		SetContext (OldContext);
 
 		// Restore the states because we hacked them
@@ -1238,17 +1242,14 @@ SaveLoadGame (PICK_GAME_STATE *pickState, COUNT gameIndex, BOOLEAN *canceled_by_
 
 	saveStamp.frame = NULL;
 
-	// TODO: fix ConfirmSaveLoad() interface so it does not rely on
-	//   MsgStamp != NULL parameter.
-	LockMutex (GraphicsLock);
-	ConfirmSaveLoad (pickState->saving ? &saveStamp : NULL);
-	UnlockMutex (GraphicsLock);
-
 	if (pickState->saving)
 	{
 		if (NameSaveGame (gameIndex))
 		{
 			PlayMenuSound (MENU_SOUND_SUCCESS);
+			LockMutex (GraphicsLock);
+			ConfirmSaveLoad (pickState->saving ? &saveStamp : NULL);
+			UnlockMutex (GraphicsLock);
 			success = SaveGame (gameIndex, desc);
 		}
 		else
@@ -1258,7 +1259,12 @@ SaveLoadGame (PICK_GAME_STATE *pickState, COUNT gameIndex, BOOLEAN *canceled_by_
 		}
 	}
 	else
+	{
+		LockMutex (GraphicsLock);
+		ConfirmSaveLoad (pickState->saving ? &saveStamp : NULL);
+		UnlockMutex (GraphicsLock);
 		success = LoadGame (gameIndex, NULL);
+	}
 
 	// TODO: the same should be done for both save and load if we also
 	//   display a load problem message
