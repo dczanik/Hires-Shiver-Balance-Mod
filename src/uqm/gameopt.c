@@ -602,7 +602,9 @@ NameSaveGame (COUNT gameIndex)
 	
 	HFree (gIndex);
 	
+	LockMutex (GraphicsLock);
 	SetFlashRect (NULL);
+	UnlockMutex (GraphicsLock);
 	
 	if (tes.Success)
 		return (TRUE);
