@@ -1053,7 +1053,7 @@ DrawGameSelection (PICK_GAME_STATE *pickState, COUNT selSlot)
 	UNICODE buf[256];
 	UNICODE buf2[80];
 	UNICODE *SaveName; // JMS
-	UNICODE unnamedSave[16] = "(Unnamed Save)"; // JMS
+	UNICODE unnamedSave[32] = "(Unnamed. File may be broken!)"; // JMS
 	
 	BatchGraphics ();
 

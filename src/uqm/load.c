@@ -23,6 +23,7 @@
 #include <assert.h>
 
 #include "load.h"
+#include "save.h" // JMS: For SaveProblemMessage
 
 #include "build.h"
 #include "libs/declib.h"
@@ -38,6 +39,8 @@
 #include "libs/tasklib.h"
 #include "libs/log.h"
 #include "libs/misc.h"
+
+#include "util.h"
 
 //#define DEBUG_LOAD
 
@@ -536,6 +539,41 @@ LoadSisState (SIS_STATE *SSPtr, void *fp)
 	}
 }
 
+static void
+LoadProblemMessage ()
+{
+#define MAX_MSG_LINES 1
+	RECT r;
+	TEXT t;
+	
+	SetContextFont (StarConFont);
+	
+	t.baseline.x = t.baseline.y = 0;
+	t.align = ALIGN_CENTER;
+	t.pStr = "Warning: loading incompatible savegame!";
+	
+	TextRect (&t, &r, NULL);
+	t.baseline.x = ((SIS_SCREEN_WIDTH >> 1) - (r.extent.width >> 1))
+	- r.corner.x;
+	t.baseline.y = ((SIS_SCREEN_HEIGHT >> 1) - (r.extent.height >> 1))
+	- r.corner.y;
+	r.corner.x += t.baseline.x - 4;
+	r.corner.y += t.baseline.y - 4;
+	r.extent.width += 8;
+	r.extent.height += 8;
+	
+	BatchGraphics ();
+	DrawStarConBox (&r, 2,
+					BUILD_COLOR (MAKE_RGB15 (0x10, 0x10, 0x10), 0x19),
+					BUILD_COLOR (MAKE_RGB15 (0x08, 0x08, 0x08), 0x1F),
+					TRUE, BUILD_COLOR (MAKE_RGB15 (0x0A, 0x0A, 0x0A), 0x08));
+	SetContextForeGroundColor (
+							   BUILD_COLOR (MAKE_RGB15 (0x14, 0x14, 0x14), 0x0F));
+	font_DrawText (&t);
+	
+	UnbatchGraphics ();
+}
+
 static BOOLEAN
 LoadSummary (SUMMARY_DESC *SummPtr, void *fp)
 {
@@ -599,6 +637,11 @@ LoadSummary (SUMMARY_DESC *SummPtr, void *fp)
 	// JMS: Now we'll put those temp variables into action.
 	if (no_savename)
 	{
+		LockMutex (GraphicsLock);
+		LoadProblemMessage ();
+		FlushGraphics ();
+		UnlockMutex (GraphicsLock);
+		
 		SummPtr->SS.log_x = temp_log_x;
 		SummPtr->SS.log_y = temp_log_y;
 		SummPtr->SS.ResUnits = temp_ru;
