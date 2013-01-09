@@ -45,6 +45,7 @@
 #include "nameref.h"
 
 #include "gamestr.h"
+#include "../options.h"
 
 #include "libs/graphics/bbox.h"
 
@@ -83,8 +84,8 @@ static void clear_control (WIDGET_CONTROLENTRY *widget);
 #endif
 
 #define MENU_COUNT          8
-#define CHOICE_COUNT       23 
-#define SLIDER_COUNT        3
+#define CHOICE_COUNT       25 
+#define SLIDER_COUNT        4
 #define BUTTON_COUNT       10
 #define LABEL_COUNT         4
 #define TEXTENTRY_COUNT     1
@@ -106,7 +107,8 @@ typedef int (*HANDLER)(WIDGET *, int);
 static int choice_widths[CHOICE_COUNT] = {
 	3, 2, 3, 2, 2, 2, 2, 2, 2, 2, 
 	2, 2, 2, 2, 2, 3, 3, 2,	3, 3, 
-	3, 2, 3 };
+	3, 2, 3,
+	2, 3 };
 
 static HANDLER button_handlers[BUTTON_COUNT] = {
 	quit_main_menu, quit_sub_menu, do_graphics, do_engine,
@@ -117,9 +119,9 @@ static HANDLER button_handlers[BUTTON_COUNT] = {
 static int menu_sizes[MENU_COUNT] = {
 	7, 6, 7, 8, 2, 5,
 #ifdef HAVE_OPENGL
-	5,
+	8,
 #else
-	4,
+	7,
 #endif
 	11
 };
@@ -172,6 +174,9 @@ static WIDGET *advanced_widgets[] = {
 	(WIDGET *)(&choices[12]),
 	(WIDGET *)(&choices[15]),
 	(WIDGET *)(&choices[16]),
+	(WIDGET *)(&choices[23]), /* Mirror match reticles */
+	(WIDGET *)(&choices[24]), /* opt_retreat */
+	(WIDGET *)(&sliders[3]),  /* opt_retreat_wait */
 	(WIDGET *)(&buttons[1]) };
 
 static WIDGET *keyconfig_widgets[] = {
@@ -400,10 +405,15 @@ SetDefaults (void)
 	choices[20].selected = 0;
 	choices[21].selected = opts.musicremix;
 	choices[22].selected = opts.loresBlowup; // JMS
-	
+
+	choices[23].selected = opts.reticles;
+	choices[24].selected = opts.retreat;
+
 	sliders[0].value = opts.musicvol;
 	sliders[1].value = opts.sfxvol;
 	sliders[2].value = opts.speechvol;
+	
+	sliders[3].value = opts.retreat_wait;
 }
 
 static void
@@ -432,10 +442,16 @@ PropagateResults (void)
 	opts.player2 = choices[19].selected;
 	opts.musicremix = choices[21].selected;
 	opts.loresBlowup = choices[22].selected; // JMS
-	
+
+	opts.reticles = choices[23].selected;
+	opts.retreat_wait = choices[24].selected;
+
 	opts.musicvol = sliders[0].value;
 	opts.sfxvol = sliders[1].value;
 	opts.speechvol = sliders[2].value;
+
+	opts.retreat_wait = sliders[3].value;
+
 	SetGlobalOptions (&opts);
 }
 
@@ -1247,7 +1263,11 @@ GetGlobalOptions (GLOBALOPTS *opts)
 			opts->driver = OPTVAL_PURE_IF_POSSIBLE;
 		}
 	}
-	
+
+	opts->reticles     = opt_reticles;
+	opts->retreat      = opt_retreat;
+	opts->retreat_wait = opt_retreat_wait;
+
 	opts->player1 = PlayerControls[0];
 	opts->player2 = PlayerControls[1];
 	
@@ -1546,7 +1566,15 @@ SetGlobalOptions (GLOBALOPTS *opts)
 	res_PutString ("keys.4.name", input_templates[3].name);
 	res_PutString ("keys.5.name", input_templates[4].name);
 	res_PutString ("keys.6.name", input_templates[5].name);
-	
+
+	opt_reticles     = opts->reticles;
+	opt_retreat      = opts->reticles;
+	opt_retreat_wait = opts->retreat_wait;
+
+	res_PutInteger ("config.reticles", opts->reticles == OPTVAL_ENABLED);
+	res_PutInteger ("config.retreat", opts->retreat);
+	res_PutInteger ("config.retreat_wait", opts->retreat_wait);
+
 	SaveResourceIndex (configDir, "uqm.cfg", "config.", TRUE);
 	SaveKeyConfiguration (configDir, "flight.cfg");
 }

@@ -1,5 +1,5 @@
 #(TITLE)
-Ur-Quan Masters Setup
+Ur-Quan Masters HD Setup
 
 #(SUBTITLES)
 
@@ -14,7 +14,7 @@ Edit Controls
 #(CHOICES)
 Resolution
 Use Framebuffer?
-Scaler
+Scaler (lo-res)
 Scanlines
 Menu Style
 Font Style
@@ -34,35 +34,39 @@ Player One
 Player Two
 Control Set
 UQM Remixes
+Stretch Gfx?
 Reticles
 S-melee Retreat
 
 #(CAT_0_OPTS)
 320x240
 640x480
-800x600
-1024x768
-Custom
+1280x960
+640x480 4:3
+1280x960 4:3
 
 #(CAT_0_OPT_0_DESC)
-320x240 resolution.
+Lo-res 320x240 resolution.
 Available with SDL framebuffer or OpenGL.
 
 #(CAT_0_OPT_1_DESC)
-640x480 resolution.
-Available with SDL framebuffer or OpenGL.
+Hi-res 640x480 resolution.
+NOT FINISHED YET - VERY BUGGY!!!
+Requires 'Hires2x' package installed.
 
 #(CAT_0_OPT_2_DESC)
-800x600 resolution.
-Requires OpenGL graphics drivers.
+Hi-res 1280x960 resolution.
+Requires 'Hires4x' package installed.
 
 #(CAT_0_OPT_3_DESC)
-1024x768 resolution.
-Requires OpenGL graphics drivers.
+Hi-res 640x480 resolution.
+Forced to 4:3 aspect ratio in fullscreen.
+Requires 'Hires2x' package installed.
 
 #(CAT_0_OPT_4_DESC)
-Custom resolution set from the commandline.
-Requires OpenGL graphics drivers.
+Hi-res 1280x960 resolution.
+Forced to 4:3 aspect ratio in fullscreen.
+Requires 'Hires4x' package installed.
 
 #(CAT_1_OPTS)
 If Possible
@@ -71,7 +75,7 @@ Never
 #(CAT_1_OPT_0_DESC)
 Uses SDL Framebuffer mode if possible,
 and OpenGL otherwise.  Framebuffer mode
-is available for 320x240 and 640x480.
+is available for Lo-res 320 and 320->640 modes.
 
 #(CAT_1_OPT_1_DESC)
 Always use OpenGL.
@@ -94,26 +98,27 @@ Fastest, though least attractive, option.
 #(CAT_2_OPT_1_DESC)
 Bilinear average scaling.
 A simple, fast blending technique.
-Hardware-accelerated in OpenGL mode.
+Affects only 320x240 mode.
 
 #(CAT_2_OPT_2_DESC)
 Adaptive bilinear scaling.
 A slower, less blurry blending technique.
+Affects only 320x240 mode.
 
 #(CAT_2_OPT_3_DESC)
 Advanced bilinear scaling.
 Hand-weighted blend that produces smoother curves.
-The most expensive scaler.
+Affects only 320x240 mode.
 
 #(CAT_2_OPT_4_DESC)
 An interpolating scaler.
 Produces sharp edges, but at a higher resolution.
-Based on the Scale2x algorithm.
+Affects only 320x240 mode.
 
 #(CAT_2_OPT_5_DESC)
 A high quality, very expensive interpolating scaler.
 Produces sharp edges, but at a higher resolution.
-Based on the HQ2X algorithm.
+Affects only 320x240 mode.
 
 #(CAT_3_OPTS)
 Disabled
@@ -127,7 +132,7 @@ Simulate an interlaced display.
 
 #(CAT_4_OPTS)
 Text
-Pictographic
+Pictograms
 
 #(CAT_4_OPT_0_DESC)
 In-game menus resemble the Original PC version.
@@ -159,7 +164,7 @@ as per the original PC version.
 
 #(CAT_6_OPT_1_DESC)
 Displays planet scan information as pictograms,
-as per the 3do version..
+as per the 3do version.
 
 #(CAT_7_OPTS)
 Per-Page
@@ -209,7 +214,7 @@ Display everything in a window.
 
 #(CAT_10_OPT_1_DESC)
 Game occupies the entire screen.
-(if available)
+(if available. Might not work in OS X 10.7 and 10.8.)
 
 #(CAT_11_OPTS)
 Slides
@@ -425,29 +430,53 @@ Requires a restart of UQM to take effect.
 
 #(CAT_22_OPTS)
 Disabled
-Enabled
+320->640
+320->800
+320->1024
 
 #(CAT_22_OPT_0_DESC)
+No stretching.
+
+#(CAT_22_OPT_1_DESC)
+Use lo-res 320x240 gfx stretched to 640x480.
+To use this, first select 320x240 as the resolution.
+Available with SDL framebuffer or OpenGL.
+
+#(CAT_22_OPT_2_DESC)
+Use lo-res 320x240 gfx stretched to 800x600.
+To use this, first select 320x240 as the resolution.
+Requires OpenGL graphics drivers.
+
+#(CAT_22_OPT_3_DESC)
+Use lo-res 320x240 gfx stretched to 1024x768.
+To use this, first select 320x240 as the resolution.
+Requires OpenGL graphics drivers.
+
+#(CAT_23_OPTS)
+Disabled
+Enabled
+
+#(CAT_23_OPT_0_DESC)
 There will be no reticles in melee.
 (as in original version)
 
-#(CAT_22_OPT_1_DESC)
+#(CAT_23_OPT_1_DESC)
 Enable reticles in melee to recognize own
 and enemy ships in case of ship-duplicate
 battle.
 
-#(CAT_23_OPTS)
+#(CAT_24_OPTS)
 Deny
 Once
 Allow
 
-#(CAT_23_OPT_0_DESC)
+#(CAT_24_OPT_0_DESC)
 Ships cannot retreat in Supermelee.
 
-#(CAT_23_OPT_1_DESC)
+#(CAT_24_OPT_1_DESC)
 Ships may retreat once per Supermelee.
 
-#(CAT_23_OPT_2_DESC)
+#(CAT_24_OPT_2_DESC)
 Ships may retreat in Supermelee.
 
 #(SLIDERS)
@@ -472,7 +501,7 @@ Sets the delay before a ship can flee in Supermelee.
 Quit Setup Menu
 Return to Main Menu
 Graphics Options
-PC/3do Compatibility Options
+PC/3do Options
 Sound Options
 Resources Options
 Configure Controls
