@@ -3,10 +3,10 @@ TARGETS="uqm"
 # For the 'uqm' target:
 if [ "$DEBUG" = "1" ]; then
 	uqm_OBJS=obj/debug/    # Directory for object files
-	uqm_NAME=uqm-improved-netmelee-debug  # File name of executable
+	uqm_NAME=uqm-improved-netmelee-hires-debug  # File name of executable
 else
 	uqm_OBJS=obj/release/  # Directory for object files
-	uqm_NAME=uqm-improved-netmelee   # File name of executable
+	uqm_NAME=uqm-improved-netmelee-hires   # File name of executable
 fi
 case "$HOST_SYSTEM" in
 	ARMV5|WINSCW|GCCE)
@@ -25,7 +25,7 @@ fi
 # config.
 uqm_INSTALL_LIBS="executable"
 uqm_INSTALL_LIB_executable_SRC="$BUILD_WORK/$uqm_NAME"
-uqm_INSTALL_LIB_executable_DEST=uqm/uqm
+uqm_INSTALL_LIB_executable_DEST=uqm/$uqm_NAME
 uqm_INSTALL_LIB_executable_MODE="0755"
 
 # Stuff to install under the directory for system-independant data, as
@@ -39,6 +39,6 @@ uqm_INSTALL_SHARED_content_MODE="go+rX"
 # config.
 uqm_INSTALL_BINS=wrapper
 uqm_INSTALL_BIN_wrapper_SRC="$BUILD_WORK/uqm-wrapper"
-uqm_INSTALL_BIN_wrapper_DEST="uqm-improved-netmelee"
+uqm_INSTALL_BIN_wrapper_DEST="$uqm_NAME"
 uqm_INSTALL_BIN_wrapper_MODE="0755"
 
