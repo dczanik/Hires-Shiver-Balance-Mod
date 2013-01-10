@@ -654,7 +654,7 @@ init_shofixti (void)
 				--new_shofixti_desc.characteristics.turn_wait;
 			if (++new_shofixti_desc.characteristics.thrust_wait == 0)
 				--new_shofixti_desc.characteristics.thrust_wait;
-#define MIN_THRUST_INCREMENT DISPLAY_TO_WORLD (1)
+#define MIN_THRUST_INCREMENT DISPLAY_TO_WORLD (1 << RESOLUTION_FACTOR)
 			if (new_shofixti_desc.characteristics.thrust_increment <=
 					MIN_THRUST_INCREMENT)
 			{
@@ -667,7 +667,7 @@ init_shofixti (void)
 
 				num_thrusts = new_shofixti_desc.characteristics.max_thrust /
 						new_shofixti_desc.characteristics.thrust_increment;
-				--new_shofixti_desc.characteristics.thrust_increment;
+				new_shofixti_desc.characteristics.thrust_increment -= 1 << RESOLUTION_FACTOR; // JMS_GFX
 				new_shofixti_desc.characteristics.max_thrust =
 						new_shofixti_desc.characteristics.thrust_increment *
 						num_thrusts;
