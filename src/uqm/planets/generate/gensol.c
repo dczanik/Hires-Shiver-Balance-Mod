@@ -552,8 +552,8 @@ GenerateSol_generateEnergy (SOLARSYS_STATE *solarSys, PLANET_DESC *world,
 			return 0;
 		}
 
-		solarSys->SysInfo.PlanetInfo.CurPt.x = 20;
-		solarSys->SysInfo.PlanetInfo.CurPt.y = MAP_HEIGHT - 8;
+		solarSys->SysInfo.PlanetInfo.CurPt.x = (20 << RESOLUTION_FACTOR); // JMS_GFX
+		solarSys->SysInfo.PlanetInfo.CurPt.y = MAP_HEIGHT - (8 << RESOLUTION_FACTOR); // JMS_GFX
 
 		return 1; // only matters when count is requested
 	}
