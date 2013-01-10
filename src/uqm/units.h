@@ -284,7 +284,7 @@ universeToLogy (uy)
 extern SIZE sinetab[];
 #define SINVAL(a) sinetab[NORMALIZE_ANGLE(a)]
 #define COSVAL(a) SINVAL((a)+QUADRANT)
-#define SINE(a,m) ((SIZE)((((long)SINVAL(a))*(long)(m))>>SIN_SHIFT))
+#define SINE(a,m) ((SDWORD)((((long)SINVAL(a))*(long)(m))>>SIN_SHIFT)) // JMS: SDWORD was SIZE. Changed to avoid overflows in hires.
 #define COSINE(a,m) SINE((a)+QUADRANT,m)
 extern COUNT ARCTAN (SIZE delta_x, SIZE delta_y);
 
