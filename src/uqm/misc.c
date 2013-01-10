@@ -96,7 +96,7 @@ spawn_rubble (ELEMENT *AsteroidElementPtr)
 		if (RESOLUTION_FACTOR == 0)
 			RubbleElementPtr->current.image.frame = SetAbsFrameIndex (asteroid[0], ANGLE_TO_FACING (FULL_CIRCLE));
 		else
-			RubbleElementPtr->current.image.frame = SetAbsFrameIndex (asteroid[0], 30);
+			RubbleElementPtr->current.image.frame = SetAbsFrameIndex (asteroid[0], 29);
 		
 		RubbleElementPtr->current.location = AsteroidElementPtr->current.location;
 		RubbleElementPtr->preprocess_func = animation_preprocess;
@@ -267,7 +267,7 @@ crew_preprocess (ELEMENT *ElementPtr)
 
 	if (hTarget)
 	{
-#define CREW_DELTA SCALED_ONE
+#define CREW_DELTA (SCALED_ONE << RESOLUTION_FACTOR)
 		SIZE delta;
 		ELEMENT *ShipPtr;
 

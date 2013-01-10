@@ -1036,7 +1036,8 @@ DrawSavegameSummary (PICK_GAME_STATE *pickState, COUNT gameIndex)
 		font_DrawText (&t);
 		
 		// JMS: Let's warn the user about bogus savegames.
-		if (strncmp(pSD->SaveNameChecker, SAVE_NAME_CHECKER, SAVE_CHECKER_SIZE))
+		if (strncmp(pSD->SaveNameChecker, SAVE_NAME_CHECKER, SAVE_CHECKER_SIZE)
+			&& !(pickState->saving))
 			LoadProblemMessage ();
 		
 		SetContext (OldContext);
