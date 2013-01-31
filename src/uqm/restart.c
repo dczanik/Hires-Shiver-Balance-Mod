@@ -19,6 +19,8 @@
 // JMS_GFX 2012: Merged the resolution Factor stuff from P6014.
 
 #include "restart.h"
+
+#include "options.h"
  
 #include "colors.h"
 #include "controls.h"
